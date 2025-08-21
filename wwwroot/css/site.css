@@ -1,22 +1,38 @@
-html {
-  font-size: 14px;
+/* Font setup (point to your font in wwwroot/fonts/) */
+@font-face {
+    font-family: 'Agrandir';
+    src: url('../fonts/Agrandir-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+.custom-navbar {
+    background-color: white;
+    height: 70px;
+    border-bottom: 1px solid #ddd;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+.nav-link-custom {
+    font-size: 13.3px;
+    font-family: 'Agrandir', sans-serif;
+    color: black;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    letter-spacing: 0.5px;
+    padding: 8px 12px;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
-}
+    .nav-link-custom:hover {
+        color: #383838;
+        transform: translateY( -2px )/* change hover color if needed */
+    }
 
-body {
-  margin-bottom: 60px;
+.logo img {
+    display: block;
+    margin: 0 auto;
+    height: 45px;
+    transition: transform 0.3s ease;
+}
+.logo img:hover {
+    transform: scale(1.05);
 }
