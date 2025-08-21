@@ -29,4 +29,25 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
+    public class AccountController : Controller
+    {
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Login(string email, string password)
+        {
+            // For now: just a dummy check
+            if (email == "admin@test.com" && password == "12345")
+            {
+                return RedirectToAction("Index", "Dashboard");
+            }
+
+            ViewBag.Error = "Invalid login attempt.";
+            return View();
+        }
+    }
 }
