@@ -49,5 +49,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             ViewBag.Error = "Invalid login attempt.";
             return View();
         }
+
+        public IActionResult Profile()
+        {
+            return View();
+        }
     }
 }
