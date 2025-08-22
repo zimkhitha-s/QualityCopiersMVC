@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <link rel="icon" type="image/png" href="~/images/logo2.png" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/dashboard.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-papq3tUj..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar stays in layout -->
+        <aside class="dashboard-sidebar">
+
+            <!-- Top -->
+            <div class="sidebar-top">
+                <img src="~/images/logo2.png" alt="Logo" class="sidebar-logo" />
+                <span class="sidebar-company">Quality Copiers</span>
+            </div>
+
+            <!-- Account -->
+            <div class="sidebar-account">
+                <img src="~/images/usericon.jpeg" alt="User Icon" class="user-icon" />
+                <div class="user-details">
+                    <span class="user-name">Craig Diedricks</span>
+                    <span class="user-job">Manager</span>
+                </div>
+            </div>
+
+            <!-- Middle menu -->
+            <ul class="sidebar-menu">
+                <li><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="#"><i class="fas fa-users"></i> Clients</a></li>
+                <li><a class="highlight-menu" href="#"><i class="fas fa-users"></i> Employees</a></li>
+                <li><a href="#"><i class="fas fa-user-tie"></i> Invoices</a></li>
+                <li><a href="#"><i class="fas fa-file-alt"></i> Quotations</a></li>
+                <li><a class="highlight-menu" href="#"><i class="fas fa-credit-card"></i> Payments</a></li>
+
+                <div class="menu-spacer"></div>
+
+                <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
+                <li><a href="#"><i class="fas fa-user-circle"></i> Account</a></li>
+                <li><a class="highlight-menu" href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="#"><i class="fas fa-question-circle"></i> Help</a></li>
+            </ul>
+
+        </aside>
+
+        <!-- Main content: THIS IS WHERE VIEWS LOAD -->
+        <main class="dashboard-main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
