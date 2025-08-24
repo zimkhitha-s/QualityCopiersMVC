@@ -84,7 +84,6 @@
                 <div class="nav-item">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M9 12l2 2 4-4"/>
-                        <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h18z"/>
                         <path d="M3 12v7c0 .552.448 1 1 1h16c.552 0 1-.448 1-1v-7"/>
                     </svg>
                 </div>
@@ -102,7 +101,7 @@
         <main class="main-content">
             <!-- Added banner section and repositioned profile elements for Twitter/LinkedIn style layout -->
             <div class="profile-banner">
-                
+
             </div>
             
             <div class="profile-header">
@@ -119,52 +118,99 @@
                     <h1>My profile</h1>
                     <h2>Craig Diedericks</h2>
                 </div>
-                <div class="action-buttons">
-                    <button class="cancel-button">Cancel</button>
-                    <button class="save-button">Save</button>
-                </div>
+                
             </div>
 
             <div class="profile-content">
                 <div class="tabs">
-                    <button class="tab active">Personal Details</button>
-                    <button class="tab">Password</button>
+                    <!-- Added click handlers and data attributes for tab switching -->
+                    <button class="tab active" data-tab="personal" onclick="switchTab('personal')">Personal Details</button>
+                    <button class="tab" data-tab="password" onclick="switchTab('password')">Password</button>
                 </div>
 
-                <form class="profile-form">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="fullname">Full name</label>
-                            <input type="text" id="fullname" value="Craig" />
+                <!-- Added tab content containers with IDs for switching -->
+                <div id="personal-tab" class="tab-content active">
+                    <form class="profile-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="fullname">Full name</label>
+                                <input type="text" id="fullname" value="Craig" />
+                            </div>
+                            <div class="form-group">
+                                <label for="role">Role</label>
+                                <input type="text" id="role" value="Manager" />
+                            </div>
+                            <div class="form-group">
+                                <label for="surname">Surname</label>
+                                <input type="text" id="surname" value="Diedericks" />
+                            </div>
+                            <div class="form-group">
+                                <label for="mobile">Mobile</label>
+                                <input type="text" id="mobile" value="072 815 7895" />
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" value="criag.diedericks@gmail.com" />
+                            </div>
+                            <div class="form-group">
+                                <label for="language">Language</label>
+                                <select id="language">
+                                    <option value="english">English</option>
+                                    <option value="afrikaans">Afrikaans</option>
+                                    <option value="french">French</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="role">Role</label>
-                            <input type="text" id="role" value="Manager" />
-                        </div>
-                        <div class="form-group">
-                            <label for="surname">Surname</label>
-                            <input type="text" id="surname" value="Diedericks" />
-                        </div>
-                        <div class="form-group">
-                            <label for="mobile">Mobile</label>
-                            <input type="text" id="mobile" value="072 815 7895" />
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" value="criag.diedericks@gmail.com" />
-                        </div>
-                        <div class="form-group">
-                            <label for="language">Language</label>
-                            <select id="language">
-                                <option value="english">English</option>
-                                <option value="afrikaans">Afrikaans</option>
-                                <option value="french">Zulu</option>
-                            </select>
-                        </div>
+                    </form>
+                    
+                </div>
+
+                
+                <!-- Added password tab content matching the screenshot -->
+                <div id="password-tab" class="tab-content">
+                    <div class="password-section">
+                        <h3>Password</h3>
+                        <p class="password-subtitle">Please enter your current password to change your password</p>
+                        
+                        <form class="password-form">
+                            <div class="form-group full-width">
+                                <label for="current-password">Current Password</label>
+                                <input type="password" id="current-password" placeholder="*************" />
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="new-password">New Password</label>
+                                <input type="password" id="new-password" placeholder="*************" />
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="confirm-password">Confirm Password</label>
+                                <input type="password" id="confirm-password" placeholder="*************" />
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
+                    <div class="action-buttons">
+                        <button class="cancel-button">Cancel</button>
+                        <button class="save-button">Save Changes</button>
+                    </div>
             </div>
         </main>
     </div>
+
+    <!-- Added JavaScript for tab switching functionality -->
+    <script>
+        function switchTab(tabName) {
+            // Remove active class from all tabs and tab contents
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Add active class to clicked tab and corresponding content
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+    </script>
 </body>
 </html>
