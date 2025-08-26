@@ -1,0 +1,184 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotations - Quality Copiers</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/quotations-styles.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="app-container">
+        <!-- Expanded Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">QC</div>
+                    <span class="logo-text">Quality Copiers</span>
+                </div>
+            </div>
+            
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <div class="avatar-placeholder"></div>
+                </div>
+                <div class="user-info">
+                    <div class="user-name">Craig Diedericks</div>
+                    <div class="user-role">Manager</div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item">
+                    <div class="nav-icon">📊</div>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <div class="nav-icon">👥</div>
+                    <span>Clients</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <div class="nav-icon">👤</div>
+                    <span>Employees</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <div class="nav-icon">📄</div>
+                    <span>Invoices</span>
+                </a>
+                <a href="#" class="nav-item active">
+                    <div class="nav-icon">📋</div>
+                    <span>Quotations</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <div class="nav-icon">💰</div>
+                    <span>Payments</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-bottom">
+                <a href="#" class="nav-item">
+                    <div class="nav-icon">🔔</div>
+                    <span>Notifications</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <div class="nav-icon">⚙️</div>
+                    <span>Account</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <div class="nav-icon">🚪</div>
+                    <span>Logout</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <div class="nav-icon">❓</div>
+                    <span>Help</span>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1 class="page-title">Quotations</h1>
+                <div class="header-actions">
+                    <div class="search-container">
+                        <input type="text" class="search-input" placeholder="Search quotations ...">
+                        <div class="search-icon">🔍</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary">
+                    <span class="btn-icon">➕</span>
+                    Create
+                </button>
+                <button class="btn btn-secondary">
+                    <span class="btn-icon">🔽</span>
+                    Filter
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table class="quotations-table">
+                    <thead>
+                        <tr>
+                            <th>Client Name</th>
+                            <th>Email</th>
+                            <th>Date of Quote</th>
+                            <th>Quote number</th>
+                            <th>Status</th>
+                            <th>Operation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>John Doe</td>
+                            <td>john.doe@gmail.com</td>
+                            <td>2025 / 08 / 15</td>
+                            <td>#102515510</td>
+                            <td><span class="status status-progress">In progress</span></td>
+                            <td>
+                                <button class="delete-btn">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>John Doe</td>
+                            <td>john.doe@gmail.com</td>
+                            <td>2025 / 08 / 15</td>
+                            <td>#102515510</td>
+                            <td><span class="status status-accepted">Accepted</span></td>
+                            <td>
+                                <button class="delete-btn">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>John Doe</td>
+                            <td>john.doe@gmail.com</td>
+                            <td>2025 / 08 / 15</td>
+                            <td>#102515510</td>
+                            <td><span class="status status-progress">In progress</span></td>
+                            <td>
+                                <button class="delete-btn">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>John Doe</td>
+                            <td>john.doe@gmail.com</td>
+                            <td>2025 / 08 / 15</td>
+                            <td>#102515510</td>
+                            <td><span class="status status-progress">In progress</span></td>
+                            <td>
+                                <button class="delete-btn">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>John Doe</td>
+                            <td>john.doe@gmail.com</td>
+                            <td>2025 / 08 / 15</td>
+                            <td>#102515510</td>
+                            <td><span class="status status-declined">Declined</span></td>
+                            <td>
+                                <button class="delete-btn">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>John Doe</td>
+                            <td>john.doe@gmail.com</td>
+                            <td>2025 / 08 / 15</td>
+                            <td>#102515510</td>
+                            <td><span class="status status-progress">In progress</span></td>
+                            <td>
+                                <button class="delete-btn">🗑️</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
+    
