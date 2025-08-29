@@ -43,11 +43,11 @@
                     <div class="nav-icon">👤</div>
                     <span>Employees</span>
                 </a>
-                <a href="#" class="nav-item" onclick="location.href='@Url.Action("Invoices", "Dashboard")'">
+                <a href="#" class="nav-item active" onclick="location.href='@Url.Action("Invoices", "Dashboard")'">
                     <div class="nav-icon">📄</div>
                     <span>Invoices</span>
                 </a>
-                <a href="#" class="nav-item active" onclick="location.href='@Url.Action("Quotations", "Dashboard")'">
+                <a href="#" class="nav-item" onclick="location.href='@Url.Action("Quotations", "Dashboard")'">
                     <div class="nav-icon">📋</div>
                     <span>Quotations</span>
                 </a>
@@ -80,8 +80,8 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="content-header">
-            <h1>Create New Quotation</h1>
-            <button type="button" class="cancel-btn" onclick="location.href='@Url.Action("Quotations", "Dashboard")'">Cancel</button>
+            <h1>Create New Invoice</h1>
+            <button type="button" class="cancel-btn" onclick="location.href='@Url.Action("Invoices", "Dashboard")'">Cancel</button>
         </div>
         
         <div class="content-body">
@@ -113,7 +113,7 @@
                 </div>
 
                 <div class="form-section">
-                    <h3>Quotation Items</h3>
+                    <h3>Items</h3>
                     <div class="items-container">
                         <div class="items-header">
                             <div class="item-field">Description</div>
@@ -148,7 +148,7 @@
                 </div>
                 
                 <div class="form-actions">
-                    <button type="button" class="cancel-btn" onclick="location.href='@Url.Action("Quotations", "Dashboard")'">Cancel</button>
+                    <button type="button" class="cancel-btn" onclick="location.href='@Url.Action("Invoices", "Dashboard")'">Cancel</button>
                     <button type="submit" class="save-btn">Create Quotation</button>
                 </div>
             </form>

@@ -44,11 +44,11 @@
                     <div class="nav-icon">👤</div>
                     <span>Employees</span>
                 </a>
-                <a href="#" class="nav-item" onclick="location.href='@Url.Action("Invoices", "Dashboard")'">
+                <a href="#" class="nav-item active" onclick="location.href='@Url.Action("Invoices", "Dashboard")'">
                     <div class="nav-icon">📄</div>
                     <span>Invoices</span>
                 </a>
-                <a href="#" class="nav-item active" onclick="location.href='@Url.Action("Quotations", "Dashboard")'">
+                <a href="#" class="nav-item" onclick="location.href='@Url.Action("Quotations", "Dashboard")'">
                     <div class="nav-icon">📋</div>
                     <span>Quotations</span>
                 </a>
@@ -81,17 +81,17 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="content-header">
-                <h1 class="page-title">Quotations</h1>
+                <h1 class="page-title">Invoices</h1>
                 <div class="header-actions">
                     <div class="search-container">
-                        <input type="text" class="search-input" placeholder="Search quotations ...">
+                        <input type="text" class="search-input" placeholder="Search invoices ...">
                         <div class="search-icon">🔍</div>
                     </div>
                 </div>
             </div>
             
             <div class="action-buttons">
-                <button class="btn btn-primary" onclick="location.href='/Dashboard/CreateQuotation'">
+                <button class="btn btn-primary" onclick="location.href='/Dashboard/CreateInvoice'">
                     <span class="btn-icon">➕</span>
                     Create
                 </button>
@@ -106,70 +106,70 @@
                     <thead>
                         <tr>
                             <th>Client Name</th>
+                            <th>Mobile</th>
                             <th>Email</th>
-                            <th>Date of Quote</th>
-                            <th>Quote number</th>
-                            <th>Status</th>
+                            <th>Date of Invoice</th>
+                            <th>Invoice number</th>
                             <th>Operation</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>John Doe</td>
+                            <td>+27 12 345 6789</td>
                             <td>john.doe@gmail.com</td>
                             <td>2025 / 08 / 15</td>
-                            <td>#102515510</td>
-                            <td><span class="status status-progress">In progress</span></td>
+                            <td>#10000128</td>
                             <td>
                                 <button class="delete-btn">🗑️</button>
                             </td>
                         </tr>
                         <tr>
                             <td>John Doe</td>
+                            <td>+27 12 345 6789</td>
                             <td>john.doe@gmail.com</td>
                             <td>2025 / 08 / 15</td>
-                            <td>#102515510</td>
-                            <td><span class="status status-accepted">Accepted</span></td>
+                            <td>#10000128</td>
                             <td>
                                 <button class="delete-btn">🗑️</button>
                             </td>
                         </tr>
                         <tr>
                             <td>John Doe</td>
+                            <td>+27 12 345 6789</td>
                             <td>john.doe@gmail.com</td>
                             <td>2025 / 08 / 15</td>
-                            <td>#102515510</td>
-                            <td><span class="status status-progress">In progress</span></td>
+                            <td>#10000128</td>
                             <td>
                                 <button class="delete-btn">🗑️</button>
                             </td>
                         </tr>
                         <tr>
                             <td>John Doe</td>
+                            <td>+27 12 345 6789</td>
                             <td>john.doe@gmail.com</td>
                             <td>2025 / 08 / 15</td>
-                            <td>#102515510</td>
-                            <td><span class="status status-progress">In progress</span></td>
+                            <td>#10000128</td>
                             <td>
                                 <button class="delete-btn">🗑️</button>
                             </td>
                         </tr>
                         <tr>
                             <td>John Doe</td>
+                            <td>+27 12 345 6789</td>
                             <td>john.doe@gmail.com</td>
                             <td>2025 / 08 / 15</td>
-                            <td>#102515510</td>
-                            <td><span class="status status-declined">Declined</span></td>
+                            <td>#10000128</td>
                             <td>
                                 <button class="delete-btn">🗑️</button>
                             </td>
                         </tr>
                         <tr>
                             <td>John Doe</td>
+                            <td>+27 12 345 6789</td>
                             <td>john.doe@gmail.com</td>
                             <td>2025 / 08 / 15</td>
-                            <td>#102515510</td>
-                            <td><span class="status status-progress">In progress</span></td>
+                            <td>#10000128</td>
                             <td>
                                 <button class="delete-btn">🗑️</button>
                             </td>

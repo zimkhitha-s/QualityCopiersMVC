@@ -18,5 +18,15 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         {
             return View();
         }
+
+        public IActionResult Invoices()
+        {
+            return View();
+        }
+
+        public IActionResult CreateInvoice()
+        {
+            return View();
+        }
     }
 }
