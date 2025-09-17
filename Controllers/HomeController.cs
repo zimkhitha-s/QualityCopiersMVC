@@ -18,6 +18,12 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             return View();
         }
 
+        public IActionResult Services()
+        {
+            ViewData["Title"] = "Services";
+            return View();
+        }
+
         public IActionResult Privacy()
         {
             return View();
