@@ -33,5 +33,15 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         {
             return View();
         }
+
+        public IActionResult Employees()
+        {
+            return View();
+        }
+
+        public IActionResult Clients()
+        {
+            return View();
+        }
     }
 }

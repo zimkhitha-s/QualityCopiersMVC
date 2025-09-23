@@ -216,7 +216,7 @@ body {
 }
 
 .banner-actions {
-  display: flex;
+  display: flex-end;
   gap: 15px;
 }
 
