@@ -99,7 +99,7 @@
 
 
     .sidebar-menu li {
-        margin-bottom: 5px;
+        margin-bottom: 5 px;
     }
 
         .sidebar-menu li a {
@@ -145,3 +145,137 @@
 .menu-spacer {
     flex-grow: 2; /* pushes bottom menu to bottom */
 }
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+    .dashboard-header h1 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+.dashboard-search {
+    padding: 8px 15px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    width: 250px;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Custom grid layout to accommodate different card sizes */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 339.4px 339.4px 339.4px;
+    grid-template-rows: 304.5px 382.5px 182.9px 182.9px;
+    gap: 20px;
+    justify-content: start;
+}
+
+/* Basic dashboard card styling */
+.dashboard-card {
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-card.image-card {
+    background: #fff;
+}
+
+.dashboard-card.placeholder {
+    background: #e0e0e0;
+}
+
+.dashboard-card .card-label {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* First row cards */
+.dashboard-card.first-row {
+    width: 339.4px;
+    height: 304.5px;
+}
+
+/* Payments button */
+.payments-btn {
+    display: inline-block;
+    background-color: #98B5DF;
+    padding: 8px 14px;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Blue cards exact shade */
+.dashboard-card.blue {
+    background-color: #8BB8F4;
+}
+
+/* Fourth card */
+.dashboard-card.fourth-card {
+    width: 413px;
+    height: 382.5px;
+    background-color: #000;
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+
+/* Last 4 smaller cards */
+.dashboard-card.small-card {
+    background-color: #000;
+    width: 279.9px;
+    height: 182.9px;
+}
+
+/* Position the small cards in two rows */
+.dashboard-card.small-card:nth-child(5) {
+    grid-column: 1 / 2;
+    grid-row: 3 / 4;
+}
+
+.dashboard-card.small-card:nth-child(6) {
+    grid-column: 2 / 3;
+    grid-row: 3 / 4;
+}
+
+.dashboard-card.small-card:nth-child(7) {
+    grid-column: 1 / 2;
+    grid-row: 4 / 5;
+}
+
+.dashboard-card.small-card:nth-child(8) {
+    grid-column: 2 / 3;
+    grid-row: 4 / 5;
+}
+
+/* Clickable card styling */
+.clickable-card {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.clickable-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.clickable-card:active {
+    transform: translateY(0);
+}
+

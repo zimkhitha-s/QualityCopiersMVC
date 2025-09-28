@@ -2,8 +2,38 @@
     ViewBag.Title = "Dashboard";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
+<link rel="stylesheet" href="~/css/dashboard.css" />
 
+<div class="dashboard-main">
+    <div class="dashboard-header">
+        <h1>Dashboard</h1>
+        <input type="text" placeholder="Search something ..." class="dashboard-search" />
+    </div>
 
+    <div class="dashboard-grid">
+        <!-- First row: 3 cards -->
+        <div class="dashboard-card image-card first-row">
+            <img src="~/images/login-bg.jpg" alt="Payments" />
+            <span class="card-label payments-btn">Payments</span>
+        </div>
+        <div class="dashboard-card placeholder blue first-row"></div>
+        <div class="dashboard-card placeholder blue first-row"></div>
 
+        <!-- Fourth card -->
+        <div class="dashboard-card placeholder black fourth-card"></div>
 
-       
+        <!-- Last 4 cards -->
+        <div class="dashboard-card image-card small-card">
+            <img src="~/images/login-bg.jpg" alt="Printer Ink" />
+        </div>
+        <div class="dashboard-card placeholder blue small-card">
+            <span class="card-label"><i class="fas fa-plus"></i> Create Invoice</span>
+        </div>
+        <div class="dashboard-card placeholder blue small-card">
+            <span class="card-label"><i class="fas fa-plus"></i> Add Employee</span>
+        </div>
+        <a href="@Url.Action("Index", "AddClient")" class="dashboard-card placeholder black small-card clickable-card">
+            <span class="card-label"><i class="fas fa-plus"></i> Add Client</span>
+        </a>
+    </div>
+</div>
