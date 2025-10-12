@@ -1,0 +1,246 @@
+﻿@{
+    ViewBag.Title = "Clients";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+<link rel="stylesheet" href="~/css/clients.css" />
+
+<div class="clients-page">
+    <div class="clients-header">
+        <h1>Clients</h1>
+    </div>
+    
+    <div class="clients-actions">
+        <a href="@Url.Action("Index", "AddClient")" class="btn add-btn"><i class="fas fa-plus-circle"></i> Add new</a>
+        <button class="btn filter-btn" onclick="toggleFilterMenu()"><i class="fas fa-filter"></i> Filter</button>
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search clients ....." />
+        </div>
+    </div>
+
+    <!-- Filter Popup Menu -->
+    <div id="filterMenu" class="filter-popup">
+        <div class="filter-popup-content">
+            <h3 class="filter-heading">Filter Clients</h3>
+            <ul class="filter-options">
+                <li><a href="#" onclick="selectFilter('alphabetical')">Alphabetical A-Z</a></li>
+                <li><a href="#" onclick="selectFilter('newest')">Date Added newest - oldest</a></li>
+                <li><a href="#" onclick="selectFilter('oldest')">Date added oldest - newest</a></li>
+                <li><a href="#" onclick="selectFilter('recent')">Recently added</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="clients-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Client Name</th>
+                    <th>Mobile</th>
+                    <th>Email</th>
+                    <th>Company Name</th>
+                    <th>Operation</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dummy data. This needs to be changed once the database is complete -->
+                <tr>
+                    <td>John Doe</td>
+                    <td>+27 12 345 6789</td>
+                    <td>john.doe@gmail.com</td>
+                    <td>Elevate Studios</td>
+                    <td>
+                        <button class="icon-btn edit"><i class="fas fa-pen"></i></button>
+                        <button class="icon-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>John Doe</td>
+                    <td>+27 12 345 6789</td>
+                    <td>john.doe@gmail.com</td>
+                    <td>Elevate Studios</td>
+                    <td>
+                        <button class="icon-btn edit"><i class="fas fa-pen"></i></button>
+                        <button class="icon-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>John Doe</td>
+                    <td>+27 12 345 6789</td>
+                    <td>john.doe@gmail.com</td>
+                    <td>Elevate Studios</td>
+                    <td>
+                        <button class="icon-btn edit"><i class="fas fa-pen"></i></button>
+                        <button class="icon-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>John Doe</td>
+                    <td>+27 12 345 6789</td>
+                    <td>john.doe@gmail.com</td>
+                    <td>Elevate Studios</td>
+                    <td>
+                        <button class="icon-btn edit"><i class="fas fa-pen"></i></button>
+                        <button class="icon-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>John Doe</td>
+                    <td>+27 12 345 6789</td>
+                    <td>john.doe@gmail.com</td>
+                    <td>Elevate Studios</td>
+                    <td>
+                        <button class="icon-btn edit"><i class="fas fa-pen"></i></button>
+                        <button class="icon-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>John Doe</td>
+                    <td>+27 12 345 6789</td>
+                    <td>john.doe@gmail.com</td>
+                    <td>Elevate Studios</td>
+                    <td>
+                        <button class="icon-btn edit"><i class="fas fa-pen"></i></button>
+                        <button class="icon-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>John Doe</td>
+                    <td>+27 12 345 6789</td>
+                    <td>john.doe@gmail.com</td>
+                    <td>Elevate Studios</td>
+                    <td>
+                        <button class="icon-btn edit"><i class="fas fa-pen"></i></button>
+                        <button class="icon-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>John Doe</td>
+                    <td>+27 12 345 6789</td>
+                    <td>john.doe@gmail.com</td>
+                    <td>Elevate Studios</td>
+                    <td>
+                        <button class="icon-btn edit"><i class="fas fa-pen"></i></button>
+                        <button class="icon-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>John Doe</td>
+                    <td>+27 12 345 6789</td>
+                    <td>john.doe@gmail.com</td>
+                    <td>Elevate Studios</td>
+                    <td>
+                        <button class="icon-btn edit"><i class="fas fa-pen"></i></button>
+                        <button class="icon-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>John Doe</td>
+                    <td>+27 12 345 6789</td>
+                    <td>john.doe@gmail.com</td>
+                    <td>Elevate Studios</td>
+                    <td>
+                        <button class="icon-btn edit"><i class="fas fa-pen"></i></button>
+                        <button class="icon-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function toggleFilterMenu() {
+    const filterMenu = document.getElementById('filterMenu');
+    if (filterMenu.style.display === 'block') {
+        filterMenu.style.display = 'none';
+        document.body.style.overflow = 'auto'; // Restore scrolling
+    } else {
+        filterMenu.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+}
+
+function selectFilter(filterType) {
+    // Hide the popup menu
+    document.getElementById('filterMenu').style.display = 'none';
+    document.body.style.overflow = 'auto'; // Restore scrolling
+    
+    // Here you can add the actual filtering logic
+    console.log('Filter selected:', filterType);
+    
+    // For now, just show an alert (you can replace this with actual filtering)
+    alert('Filter applied: ' + filterType);
+}
+
+// Close popup when clicking on the background overlay
+document.addEventListener('click', function(event) {
+    const filterMenu = document.getElementById('filterMenu');
+    const filterBtn = document.querySelector('.filter-btn');
+    const filterContent = document.querySelector('.filter-popup-content');
+    
+    // Close if clicking on the background overlay (not the content)
+    if (event.target === filterMenu) {
+        filterMenu.style.display = 'none';
+        document.body.style.overflow = 'auto'; // Restore scrolling
+    }
+});
+
+// Close popup with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const filterMenu = document.getElementById('filterMenu');
+        if (filterMenu.style.display === 'block') {
+            filterMenu.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+    }
+});
+</script>
+
+<!-- Delete Confirmation Modal not programmed just a pop up -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <h2>Delete Client</h2>
+        <p>Are you sure you want to delete this client?</p>
+        <div class="modal-actions">
+            <button class="btn confirm-btn" >Yes </button>
+            <button class="btn cancel-btn" onclick="closeModal()">no</button>
+        </div>
+    </div>
+</div>
+<script>
+    const modal = document.getElementById("deleteModal");
+    const confirmDelete = document.getElementById("confirmDelete");
+    let rowToDelete = null;
+
+    // Open modal when delete button is clicked
+    document.querySelectorAll(".icon-btn.delete").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            rowToDelete = e.target.closest("tr");
+            modal.style.display = "flex";
+        });
+    });
+
+    // Close modal
+    function closeModal() {
+        modal.style.display = "none";
+        rowToDelete = null;
+    }
+
+    // Confirm delete
+    confirmDelete.addEventListener("click", () => {
+        if (rowToDelete) {
+            rowToDelete.remove(); // delete the row from table
+        }
+        closeModal();
+    });
+
+    // Close when clicking outside modal
+    window.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+</script>
+

@@ -1,69 +1,39 @@
 ﻿@{
     ViewBag.Title = "Dashboard";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
+<link rel="stylesheet" href="~/css/dashboard.css" />
 
-<div class="container-fluid mt-4">
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-2 bg-dark text-white vh-100 p-3">
-            <h4 class="mb-4">My Dashboard</h4>
-            <ul class="nav flex-column">
-                <li class="nav-item"><a class="nav-link text-white" href="#">Overview</a></li>
-                <li class="nav-item"><a class="nav-link text-white" href="#">Reports</a></li>
-                <li class="nav-item"><a class="nav-link text-white" href="#">Settings</a></li>
-            </ul>
+<div class="dashboard-main">
+    <div class="dashboard-header">
+        <h1>Dashboard</h1>
+        <input type="text" placeholder="Search something ..." class="dashboard-search" />
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- First row: 3 cards -->
+        <div class="dashboard-card image-card first-row">
+            <img src="~/images/login-bg.jpg" alt="Payments" />
+            <span class="card-label payments-btn">Payments</span>
         </div>
+        <div class="dashboard-card placeholder blue first-row"></div>
+        <div class="dashboard-card placeholder blue first-row"></div>
 
-        <!-- Main Content -->
-        <div class="col-md-10 p-4">
-            <h2 class="mb-4">Dashboard Overview</h2>
+        <!-- Fourth card -->
+        <div class="dashboard-card placeholder black fourth-card"></div>
 
-            <!-- Stat cards -->
-            <div class="row">
-                <div class="col-md-3 mb-4">
-                    <div class="card shadow-sm p-3">
-                        <h5>Total Users</h5>
-                        <p>1,245</p>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-4">
-                    <div class="card shadow-sm p-3">
-                        <h5>Revenue</h5>
-                        <p>$12,430</p>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-4">
-                    <div class="card shadow-sm p-3">
-                        <h5>New Orders</h5>
-                        <p>150</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Placeholder Chart -->
-            <div class="card p-4 shadow-sm">
-                <h5>Sales Performance</h5>
-                <canvas id="salesChart"></canvas>
-            </div>
+        <!-- Last 4 cards -->
+        <div class="dashboard-card image-card small-card">
+            <img src="~/images/login-bg.jpg" alt="Printer Ink" />
         </div>
+        <div class="dashboard-card placeholder blue small-card">
+            <span class="card-label"><i class="fas fa-plus"></i> Create Invoice</span>
+        </div>
+        <div class="dashboard-card placeholder blue small-card">
+            <span class="card-label"><i class="fas fa-plus"></i> Add Employee</span>
+        </div>
+        <a href="@Url.Action("Index", "AddClient")" class="dashboard-card placeholder black small-card clickable-card">
+            <span class="card-label"><i class="fas fa-plus"></i> Add Client</span>
+        </a>
     </div>
 </div>
-
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    var ctx = document.getElementById('salesChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar'],
-            datasets: [{
-                label: 'Sales',
-                data: [30, 45, 60],
-                backgroundColor: '#4e73df'
-            }]
-        }
-    });
-</script>
-
