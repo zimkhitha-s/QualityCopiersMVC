@@ -1,4 +1,117 @@
-﻿<!DOCTYPE html>
+﻿﻿
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title> Quality Copiers</title>
+    <link rel="icon" type="image/jpeg" href="~/images/logo.jpeg" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="custom-navbar d-flex justify-content-between align-items-center px-4">
+            <!-- right links -->
+            <div class="d-flex gap-4">
+                <a href="/" class="nav-link-custom">Home</a>
+                <a href="/Home/Services" class="nav-link-custom">Services</a>
+                <a href="/Home/Products" class="nav-link-custom">Products</a>
+            </div>
+
+
+            <!-- Logo in middle -->
+            <div class="logo text-center">
+                <img src="~/images/logo.jpeg" alt="Logo" style="height:50px;">
+            </div>
+
+            <!-- left links -->
+            <div class="d-flex gap-4">
+                <a href="/Home/About" class="nav-link-custom">About us</a>
+                <a href="/Home/Contact" class="nav-link-custom">Contact</a>
+                <a href="/Account/Login" class="nav-link-custom">Sign in</a>
+            </div>
+        </nav>
+    </header>
+
+
+@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Quality Copiers</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="top-nav">
+            <img src="~/images/logo.jpeg" alt="Quality Copiers Logo" style="height:50px;" />
+            <nav>
+                <ul>
+                    <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li><a asp-controller="Home" asp-action="Services">Services</a></li>
+                    <li><a asp-controller="Home" asp-action="Products">Products</a></li>
+                    <li><a asp-controller="Home" asp-action="About">About Us</a></li>
+                    <li><a asp-controller="Home" asp-action="Contact">Contact</a></li>
+                    <li><a asp-controller="Home" asp-action="SignIn">Sign In</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header> *@
+
+    <!-- Page Content -->
+    <main role="main" class="container">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer style="background:#111; color:#eee; padding:40px 20px;">
+        <div style="display:flex; flex-wrap:wrap; justify-content:space-between;">
+
+            <!-- Left Column -->
+            <div style="flex:1; min-width:200px; margin-bottom:20px;">
+                <img src="~/images/logo.jpeg" alt="Quality Copiers Logo" style="height:40px; margin-bottom:10px;" />
+                <p>Your trusted partner for professional printing and copying solutions since 2007.</p>
+            </div>
+
+            <!-- Center Column -->
+            <div style="flex:1; min-width:200px; margin-bottom:20px;">
+                <h4>Quick Links</h4>
+                <ul style="list-style:none; padding:0">
+                    <li><a asp-controller="Home" asp-action="Index" style="color:#98b5df;">Home</a></li>
+                    <li><a asp-controller="Home" asp-action="About" style="color:#98b5df;">About Us</a></li>
+                    <li><a asp-controller="Home" asp-action="Services" style="color:#98b5df;">Services</a></li>
+                    <li><a asp-controller="Home" asp-action="Products" style="color:#98b5df;">Products</a></li>
+                    <li><a asp-controller="Home" asp-action="Contact" style="color:#98b5df;">Contact</a></li>
+                </ul>
+            </div>
+
+            <!-- Right Column -->
+            <div style="flex:1; min-width:200px; margin-bottom:20px;">
+                <h4>Contact Us</h4>
+                <p>134 Victoria Rd, Southfield, 7800, Cape Town</p>
+                <p>📞 +27 21 829 3819</p>
+                <p>📠 +27 86 509 9966</p>
+                <p>✉ info@qualitycopiers.co.za</p>
+            </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #444; margin:20px 0;" />
+
+        <div style="text-align:center;">
+            <p>&copy; @DateTime.Now.Year Quality Copiers. All rights reserved.</p>
+        </div>
+    </footer>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
+
+
+
+@* <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -29,6 +142,7 @@
                 <a href="/Home/About" class="nav-link-custom">About us</a>
                 <a href="/Home/Contact" class="nav-link-custom">Contact</a>
                 <a href="/Account/Login" class="nav-link-custom">Sign in</a>
+                <a href="/Account/Profile" class="nav-link-custom">Profile</a>
             </div>
         </nav>
     </header>
@@ -46,3 +160,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+ *@

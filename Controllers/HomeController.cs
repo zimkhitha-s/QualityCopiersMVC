@@ -18,6 +18,12 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             return View();
         }
 
+        public IActionResult Services()
+        {
+            ViewData["Title"] = "Services";
+            return View();
+        }
+
         public IActionResult Privacy()
         {
             return View();
@@ -49,5 +55,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             ViewBag.Error = "Invalid login attempt.";
             return View();
         }
+
+        /*public IActionResult Profile()
+        {
+            return View();
+        }*/
     }
 }
