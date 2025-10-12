@@ -1,0 +1,30 @@
+﻿@{
+    ViewData["Title"] = "Sign In";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="login-bg-full"></div>
+
+<div class="panel-right">
+
+    <div class="login-content">
+        <h1 class="welcome-title">Welcome Back!</h1>
+        <h2 class="login-title">Login</h2>
+        <p class="login-subtext">Welcome back! Please login to your account.</p>
+
+    
+            <form asp-action="Login" asp-controller="Account" method="post">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name= "Email" class="form-control" placeholder="Enter your email" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="Password" class="form-control" placeholder="Enter your password" />
+            </div>
+
+            <button type="submit" class="btn-login">Login</button>
+
+        </form>
+    </div>
+</div>

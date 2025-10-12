@@ -1,0 +1,197 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Craig Diedericks</title>
+    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar expanded">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">QC</div>
+                    <span class="logo-text">Quality Copiers</span>
+                </div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <div class="user-info">
+                    <div class="user-name">Craig Diedericks</div>
+                    <div class="user-role">Manager</div>
+                </div>
+            </div>
+
+            <div class="sidebar-nav">
+                <a href="#" class="nav-item">
+                    <img src="~/images/dashboard.png" alt="Logo" width="27.8" height="20">
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <img src="~/images/clients.png" alt="Logo" width="27.8" height="20">
+                    <span>Clients</span>
+                </a>
+                <a href="/Dashboard/Employees" class="nav-item">
+                    <img src="~/images/employees.png" alt="Logo" width="30" height="25">
+                    <span>Employees</span>
+                </a>
+                <a href="/Dashboard/Invoices" class="nav-item">
+                    <img src="~/images/invoice_quotations.png" alt="Logo" width="27.8" height="20">
+                    <span>Invoices</span>
+                </a>
+                <a href="/Dashboard/Quotations" class="nav-item active">
+                    <img src="~/images/invoice_quotations.png" alt="Logo" width="27.8" height="20">
+                    <span>Quotations</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <img src="~/images/payments.png" alt="Logo" width="27.8" height="20">
+                    <span>Payments</span>
+                </a>
+            </div>
+
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item">
+                    <img src="~/images/notifications.png" alt="Logo" width="27.8" height="20">
+                    <span>Notifications</span>
+                </a>
+                <a href="/Dashboard/Profile"class="nav-item">
+                    <img src="~/images/account.png" alt="Logo" width="27.8" height="20">
+                    <span>Account</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <img src="~/images/logout.png" alt="Logo" width="27.8" height="20">
+                    <span>Logout</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <img src="~/images/help.png" alt="Logo" width="27.8" height="20">
+                    <span>Help</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Added banner section and repositioned profile elements for Twitter/LinkedIn style layout -->
+            <div class="profile-banner">
+                
+            </div>
+            
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <div class="avatar-placeholder">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <button class="edit-button">Edit</button>
+                </div>
+                <div class="profile-info">
+                    <h1>My profile</h1>
+                    <h2>Craig Diedericks</h2>
+                </div>
+
+                <div class="banner-actions">
+                    <button class="cancel-button">Cancel</button>
+                    <button class="save-button">Save</button>
+                </div>
+            </div>
+
+            <div class="profile-content">
+                <div class="tabs">
+                    <!-- Added click handlers and data attributes for tab switching -->
+                    <button class="tab active" data-tab="personal" onclick="switchTab('personal')">Personal Details</button>
+                    <button class="tab" data-tab="password" onclick="switchTab('password')">Password</button>
+                </div>
+
+                <!-- Added tab content containers with IDs for switching -->
+                <div id="personal-tab" class="tab-content active">
+                    <form class="profile-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="fullname">Full name</label>
+                                <input type="text" id="fullname" value="Craig" />
+                            </div>
+                            <div class="form-group">
+                                <label for="role">Role</label>
+                                <input type="text" id="role" value="Manager" />
+                            </div>
+                            <div class="form-group">
+                                <label for="surname">Surname</label>
+                                <input type="text" id="surname" value="Diedericks" />
+                            </div>
+                            <div class="form-group">
+                                <label for="mobile">Mobile</label>
+                                <input type="text" id="mobile" value="072 815 7895" />
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" value="criag.diedericks@gmail.com" />
+                            </div>
+                            <div class="form-group">
+                                <label for="language">Language</label>
+                                <select id="language">
+                                    <option value="english">English</option>
+                                    <option value="afrikaans">Afrikaans</option>
+                                    <option value="french">French</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Added password tab content matching the screenshot -->
+                <div id="password-tab" class="tab-content">
+                    <div class="password-section">
+                        <h3>Password</h3>
+                        <p class="password-subtitle">Please enter your current password to change your password</p>
+                        
+                        <form class="password-form">
+                            <div class="form-group full-width">
+                                <label for="current-password">Current Password</label>
+                                <input type="password" id="current-password" placeholder="*************" />
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="new-password">New Password</label>
+                                <input type="password" id="new-password" placeholder="*************" />
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="confirm-password">Confirm Password</label>
+                                <input type="password" id="confirm-password" placeholder="*************" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Added JavaScript for tab switching functionality -->
+    <script>
+        function switchTab(tabName) {
+            // Remove active class from all tabs and tab contents
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Add active class to clicked tab and corresponding content
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+    </script>
+</body>
+</html>

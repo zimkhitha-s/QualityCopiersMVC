@@ -1,3 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
+
+/* Font setup (point to your font in wwwroot/fonts/) */
+@font-face {
+    font-family: 'Agrandir';
+    src: url('../fonts/Agrandir-Regular.otf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.custom-navbar {
+    background-color: white;
+    height: 70px;
+    border-bottom: 1px solid #ddd;
+}
+
+.nav-link-custom {
+    font-size: 13.3px;
+    font-family: 'Agrandir', sans-serif;
+    color: black;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    letter-spacing: 0.5px;
+    padding: 8px 12px;
+}
+
+    .nav-link-custom:hover {
+        color: #383838;
+        transform: translateY( -2px )/* change hover color if needed */
+    }
+
+.logo img {
+    display: block;
+    margin: 0 auto;
+    height: 45px;
+    transition: transform 0.3s ease;
+}
+.logo img:hover {
+    transform: scale(1.05);
+}
+
+/*Full-page background image*/
+.login-bg-full {
+    position: fixed; /* covers entire viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh; /* full viewport height */
+    background: url('../images/login-bg.jpg') no-repeat center center;
+    background-size: cover; /* make sure image fills entire area */
+    z-index: -1; 
+}
+/* Right-side transparent panel over the fixed background */
+.panel-right {
+    position: absolute;
+    top: 70px;
+    right: 0;
+    height: 100vh; /* full screen height */
+    width: 40vw; /* adjust to taste (e.g., 35vw, 45vw) */
+    min-width: 340px; /* optional floor so it doesn�t get too skinny */
+    background: rgba(255, 255, 255, 0.6); /* semi-transparent */
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: -8px 0 20px rgba(0,0,0,0.08); /* soft edge */
+    z-index: 2; /* sits above your background (which is -1) */
+    display: flex;
+    align-items: center; /* vertical centering for future content */
+    padding: 40px 32px; /* breathing room */
+}
+.login-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* spacing between elements inside */
+    padding: 40px;
+    color: #000;
+    max-width: 350px; /* keep text narrow */
+}
+
+.welcome-title {
+    font-family: 'Agrandir';
+    src: url('../fonts/Agrandir-GrandHeavy.otf') format('truetype');
+    font-size: 40.2px;
+    margin-bottom: 10px;
+}
+
+.login-title {
+    font-family: 'Agrandir';
+    src: url('../fonts/Agrandir-GrandHeavy.otf') format('truetype');
+    font-size: 25.6px;
+    margin-bottom: 12px;
+}
+
+.login-subtext {
+    font-family: 'Poppins';
+    font-size: 16.4px;
+    color: #333;
+}
+.login-form {
+    margin-top: 20px;
+}
+.form-group {
+    margin-bottom: 30px !important; /* space between inputs */
+}
+
+    .login-form .form-group {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .login-form label {
+        font-family: 'Poppins', sans-serif;
+        font-size: 16.6px;
+        margin-bottom: 6px;
+        color: #000;
+    }
+
+    .login-form input {
+        font-family: 'Poppins', sans-serif;
+        font-size: 16.6px;
+        padding: 10px 14px;
+        border: 1px solid #ccc;
+        border-radius: 20px;
+        outline: none;
+        transition: border-color 0.3s ease;
+    }
+        .login-form input:focus {
+            border-color: #000; /* highlight on focus */
+        }
+
+
+.btn-login {
+    font-family: 'Poppins', sans-serif;
+    font-size: 16.6px;
+    background-color: #000;
+    margin-top: 15px;
+    color: #fff;
+    border: none;
+    padding: 12px 14px;
+    border-radius: 20px;
+    width: 100%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    .btn-login:hover {
+        background-color: #333;
+    }
+
 ﻿/* Global Styles */
 body {
     font-family: 'Helvetica Neue', Arial, sans-serif;
