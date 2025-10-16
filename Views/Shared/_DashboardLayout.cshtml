@@ -7,7 +7,7 @@
 
     <link rel="icon" type="image/png" href="~/images/logo2.png" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/dashboard.css" />
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/clients.css" />
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-papq3tUj..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
@@ -33,21 +33,51 @@
             </div>
 
             <!-- Middle menu -->
-            <ul class="sidebar-menu">
-                <li><a href="@Url.Action("Index", "Dashboard")"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="@Url.Action("Index", "Clients")"><i class="fas fa-users"></i> Clients</a></li>
-                <li><a class="highlight-menu" href="#"><i class="fas fa-users"></i> Employees</a></li>
-                <li><a href="#"><i class="fas fa-user-tie"></i> Invoices</a></li>
-                <li><a href="#"><i class="fas fa-file-alt"></i> Quotations</a></li>
-                <li><a class="highlight-menu" href="#"><i class="fas fa-credit-card"></i> Payments</a></li>
+            <div class="sidebar-nav">
+                <a href="@Url.Action("Index", "Dashboard")" class="nav-item">
+                    <img src="~/images/dashboard.png" alt="Logo" width="27.8" height="20">
+                    <span>Dashboard</span>
+                </a>
+                <a href="@Url.Action("Index", "Clients")" class="nav-item">
+                    <img src="~/images/clients.png" alt="Logo" width="27.8" height="20">
+                    <span>Clients</span>
+                </a>
+                <a href="@Url.Action("Employees", "Dashboard")" class="nav-item">
+                    <img src="~/images/employees.png" alt="Logo" width="30" height="25">
+                    <span>Employees</span>
+                </a>
+                <a href="@Url.Action("Invoices", "Dashboard")" class="nav-item">
+                    <img src="~/images/invoice_quotations.png" alt="Logo" width="27.8" height="20">
+                    <span>Invoices</span>
+                </a>
+                <a href="@Url.Action("Quotations", "Dashboard")" class="nav-item active">
+                    <img src="~/images/invoice_quotations.png" alt="Logo" width="27.8" height="20">
+                    <span>Quotations</span>
+                </a>
+                <a href="@Url.Action("Payments", "Dashboard")" class="nav-item">
+                    <img src="~/images/payments.png" alt="Logo" width="27.8" height="20">
+                    <span>Payments</span>
+                </a>
+            </div>
 
-                <div class="menu-spacer"></div>
-
-                <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
-                <li><a href="#"><i class="fas fa-user-circle"></i> Account</a></li>
-                <li><a class="highlight-menu" href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                <li><a href="#"><i class="fas fa-question-circle"></i> Help</a></li>
-            </ul>
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item">
+                    <img src="~/images/notifications.png" alt="Logo" width="27.8" height="20">
+                    <span>Notifications</span>
+                </a>
+                <a href="/Dashboard/Profile" class="nav-item">
+                    <img src="~/images/account.png" alt="Logo" width="27.8" height="20">
+                    <span>Account</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <img src="~/images/logout.png" alt="Logo" width="27.8" height="20">
+                    <span>Logout</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <img src="~/images/help.png" alt="Logo" width="27.8" height="20">
+                    <span>Help</span>
+                </a>
+            </div>
 
         </aside>
 

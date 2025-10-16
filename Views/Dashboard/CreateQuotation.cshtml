@@ -1,5 +1,6 @@
 @{
-    Layout = null;
+    ViewBag.Title = "Create Quotations";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -9,81 +10,11 @@
     <title>Create New Quotation - Quality Copiers</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/quotations-styles.css" asp-append-version="true" />
-    
-    <!--Fonts-->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link href="https://fonts.cdnfonts.com/css/agrandir" rel="stylesheet">
 </head>
 <body>
     <div class="app-container">
-    <!-- Sidebar -->
-   <nav class="sidebar expanded">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <div class="logo-icon">QC</div>
-                    <span class="logo-text">Quality Copiers</span>
-                </div>
-            </div>
-            
-            <div class="user-profile">
-                <div class="user-avatar">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                </div>
-                <div class="user-info">
-                    <div class="user-name">Craig Diedericks</div>
-                    <div class="user-role">Manager</div>
-                </div>
-            </div>
-
-            <div class="sidebar-nav">
-                <a href="/Dashboard/Index" class="nav-item">
-                    <img src="~/images/dashboard.png" alt="Logo" width="27.8" height="20">
-                    <span>Dashboard</span>
-                </a>
-                <a href="/Clients/Index" class="nav-item">
-                    <img src="~/images/clients.png" alt="Logo" width="27.8" height="20">
-                    <span>Clients</span>
-                </a>
-                <a href="/Dashboard/Employees" class="nav-item">
-                    <img src="~/images/employees.png" alt="Logo" width="30" height="25">
-                    <span>Employees</span>
-                </a>
-                <a href="/Dashboard/Invoices" class="nav-item">
-                    <img src="~/images/invoice_quotations.png" alt="Logo" width="27.8" height="20">
-                    <span>Invoices</span>
-                </a>
-                <a href="/Dashboard/Quotations" class="nav-item active">
-                    <img src="~/images/invoice_quotations.png" alt="Logo" width="27.8" height="20">
-                    <span>Quotations</span>
-                </a>
-                <a href="#" class="nav-item">
-                    <img src="~/images/payments.png" alt="Logo" width="27.8" height="20">
-                    <span>Payments</span>
-                </a>
-            </div>
-
-            <div class="sidebar-footer">
-                <a href="#" class="nav-item">
-                    <img src="~/images/notifications.png" alt="Logo" width="27.8" height="20">
-                    <span>Notifications</span>
-                </a>
-                <a href="/Dashboard/Profile"class="nav-item">
-                    <img src="~/images/account.png" alt="Logo" width="27.8" height="20">
-                    <span>Account</span>
-                </a>
-                <a href="#" class="nav-item">
-                    <img src="~/images/logout.png" alt="Logo" width="27.8" height="20">
-                    <span>Logout</span>
-                </a>
-                <a href="#" class="nav-item">
-                    <img src="~/images/help.png" alt="Logo" width="27.8" height="20">
-                    <span>Help</span>
-                </a>
-            </div>
-        </nav>
 
     <!-- Main Content -->
     <div class="main-content">
