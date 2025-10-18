@@ -1,96 +1,72 @@
-﻿﻿
+﻿@*
+    Layout: Quality Copiers Main Layout
+    Author: Khanyi Mabuza
+    Description: Main site layout with header, footer, and body rendering.
+*@
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title> Quality Copiers</title>
+    <title>Quality Copiers</title>
     <link rel="icon" type="image/jpeg" href="~/images/logo2.png" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
+
 <body>
+    <!-- Header -->
     <header>
         <nav class="custom-navbar d-flex justify-content-between align-items-center px-4">
-            <!-- right links -->
+            <!-- Left Links -->
             <div class="d-flex gap-4">
                 <a href="/" class="nav-link-custom">Home</a>
                 <a href="/Home/Services" class="nav-link-custom">Services</a>
                 <a href="/Home/Products" class="nav-link-custom">Products</a>
             </div>
 
-
-            <!-- Logo in middle -->
+            <!-- Center Logo -->
             <div class="logo text-center">
-                <img src="~/images/logo.jpeg" alt="Logo" style="height:50px;">
+                <img src="~/images/logo.jpeg" alt="Quality Copiers Logo" style="height: 50px;">
             </div>
 
-            <!-- left links -->
+            <!-- Right Links -->
             <div class="d-flex gap-4">
-                <a href="/Home/About" class="nav-link-custom">About us</a>
+                <a href="/Home/About" class="nav-link-custom">About Us</a>
                 <a href="/Home/Contact" class="nav-link-custom">Contact</a>
-                <a href="/Account/Login" class="nav-link-custom">Sign in</a>
+                <a href="/Account/Login" class="nav-link-custom">Sign In</a>
             </div>
         </nav>
     </header>
 
-
-@* <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Quality Copiers</title>
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-</head>
-<body>
-    <!-- Header -->
-    <header>
-        <div class="top-nav">
-            <img src="~/images/logo.jpeg" alt="Quality Copiers Logo" style="height:50px;" />
-            <nav>
-                <ul>
-                    <li><a asp-controller="Home" asp-action="Index">Home</a></li>
-                    <li><a asp-controller="Home" asp-action="Services">Services</a></li>
-                    <li><a asp-controller="Home" asp-action="Products">Products</a></li>
-                    <li><a asp-controller="Home" asp-action="About">About Us</a></li>
-                    <li><a asp-controller="Home" asp-action="Contact">Contact</a></li>
-                    <li><a asp-controller="Home" asp-action="SignIn">Sign In</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header> *@
-
-    <!-- Page Content -->
-    <main role="main" class="container">
+    <!-- Main Content -->
+    <main role="main" class="container py-4">
         @RenderBody()
     </main>
 
     <!-- Footer -->
-    <footer style="background:#111; color:#eee; padding:40px 20px;">
-        <div style="display:flex; flex-wrap:wrap; justify-content:space-between;">
-
+    <footer class="site-footer">
+        <div class="footer-container">
             <!-- Left Column -->
-            <div style="flex:1; min-width:200px; margin-bottom:20px;">
-                <img src="~/images/logo.jpeg" alt="Quality Copiers Logo" style="height:40px; margin-bottom:10px;" />
-                <p>Your trusted partner for professional printing and copying solutions since 2007.</p>
+            <div class="footer-logo">
+                <div class="logo-text-wrapper">
+                    <img src="~/images/logo2.png" alt="Quality Copiers Logo" class="footer-logo-img" />
+                    <p class="logo-title">Quality Copiers</p>
+                </div>
+                <p class="logo-subtitle">Your trusted partner for professional printing and copying solutions since 2007.</p>
             </div>
 
-            <!-- Center Column -->
-            <div style="flex:1; min-width:200px; margin-bottom:20px;">
-                <h4>Quick Links</h4>
-                <ul style="list-style:none; padding:0">
-                    <li><a asp-controller="Home" asp-action="Index" style="color:#98b5df;">Home</a></li>
-                    <li><a asp-controller="Home" asp-action="About" style="color:#98b5df;">About Us</a></li>
-                    <li><a asp-controller="Home" asp-action="Services" style="color:#98b5df;">Services</a></li>
-                    <li><a asp-controller="Home" asp-action="Products" style="color:#98b5df;">Products</a></li>
-                    <li><a asp-controller="Home" asp-action="Contact" style="color:#98b5df;">Contact</a></li>
-                </ul>
+            <!-- Page Links -->
+            <div class="footer-links">
+                <a asp-controller="Home" asp-action="Index">Home</a>
+                <a asp-controller="Home" asp-action="Services">Services</a>
+                <a asp-controller="Home" asp-action="Products">Products</a>
+                <a asp-controller="Home" asp-action="About">About Us</a>
+                <a asp-controller="Home" asp-action="Contact">Contact</a>
             </div>
 
-            <!-- Right Column -->
-            <div style="flex:1; min-width:200px; margin-bottom:20px;">
-                <h4>Contact Us</h4>
+            <!-- Contact Details -->
+            <div class="footer-contact">
                 <p>134 Victoria Rd, Southfield, 7800, Cape Town</p>
                 <p>📞 +27 21 829 3819</p>
                 <p>📠 +27 86 509 9966</p>
@@ -98,9 +74,7 @@
             </div>
         </div>
 
-        <hr style="border: 0; border-top: 1px solid #444; margin:20px 0;" />
-
-        <div style="text-align:center;">
+        <div class="footer-bottom">
             <p>&copy; @DateTime.Now.Year Quality Copiers. All rights reserved.</p>
         </div>
     </footer>
@@ -108,56 +82,3 @@
     @RenderSection("Scripts", required: false)
 </body>
 </html>
-
-
-
-@* <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - INSY7315_ElevateDigitalStudios_POE</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/INSY7315_ElevateDigitalStudios_POE.styles.css" asp-append-version="true" />
-</head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">INSY7315_ElevateDigitalStudios_POE</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - INSY7315_ElevateDigitalStudios_POE - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
-</body>
-</html>
- *@
