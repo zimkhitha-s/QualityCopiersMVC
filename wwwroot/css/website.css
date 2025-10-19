@@ -6,8 +6,8 @@
 }
 section {
     margin: 0; /* remove default margins */
-    padding-top: 40px; /* slightly reduce padding */
-    padding-bottom: 40px; /* keep some breathing room */
+    padding-top: 20px; 
+    padding-bottom: 20px; 
 }
 
 /* ================= Homepage: Hero Section ================= */
@@ -302,6 +302,255 @@ brands .text-button {
         .cta a.btn-dark:hover {
             background-color: #ddd;
         }
+/* ================= Services page ================= */
+
+
+/* --- Services Header --- */
+.services-page-header {
+    background: none;
+    text-align: center;
+    color: #000;
+    font-family: 'Agrandir', sans-serif;
+    padding: 40px 20px;
+   
+}
+
+    .services-page-header h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 15px;
+        letter-spacing: 0.5px;
+    }
+
+    .services-page-header .subtitle {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        letter-spacing: 0.5px;
+    }
+    .services-page-header p {
+        font-size: 1.1rem;
+        max-width: 800px;
+        margin: 0 auto 10px auto;
+        letter-spacing: 0.5px; 
+    }
+
+/* --- Service Cards Grid --- */
+.services-page-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: auto;
+    margin-top: 40px 20px;
+    gap: 15px; /* space between cards */
+    justify-items: center;
+}
+
+.service-page-card {
+    background-color: #111;
+    color: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    transition: transform 0.3s;
+    width: 80%; /* make cards thinner than container */
+    max-width: 300px; /* optional, for consistent width */
+    margin: 0 auto; /* center in grid column */
+    min-height: 300px; /* slightly taller */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+    .service-page-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .service-page-card img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 0;
+        margin-bottom: 15px;
+        display: block;
+    }
+
+    .service-page-card h3 {
+        font-size: 1.5rem;
+        font-weight: 400;
+        margin-bottom: 10px;
+        font-family: 'Agrandir', sans-serif;
+        letter-spacing: 0.5px;
+    }
+
+    .service-page-card p {
+        font-size: 1rem;
+        margin-bottom: 10px;
+        font-family: 'Agrandir', sans-serif;
+        letter-spacing: 0.3px;
+    }
+
+    .service-page-card ul {
+        list-style: none;
+        padding: 0;
+        font-family: 'Agrandir', sans-serif;
+        letter-spacing: 0.3px;
+    }
+
+        .service-page-card ul li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 8px;
+        }
+
+            .service-page-card ul li::before {
+                content: "✔";
+                position: absolute;
+                left: 0;
+                color: #ADD8E6; 
+                font-weight: bold;
+            }
+
+/* --- Service Process --- */
+.service-page-process {
+    text-align: center;
+    color: #000;
+    font-family: 'Agrandir', sans-serif;
+    padding: 40px 20px;
+}
+
+    .service-page-process h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .service-page-process p {
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+    .service-page-process img {
+        width: 100%; /* full width */
+        max-width: 800px; /* optional max width */
+        height: auto; /* maintain aspect ratio */
+        display: block;
+        margin: 0 auto; /* center the image */
+    }
+
+
+/* --- FAQ Section --- */
+.faq {
+    display: flex;
+    flex-wrap: wrap;
+    background-color: #111;
+    color: #fff;
+    font-family: 'Agrandir', sans-serif;
+    padding: 40px 20px;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.faq-left {
+    flex: 1 1 300px;
+}
+
+    .faq-left h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .faq-left .highlight {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #ADD8E6;
+    }
+
+    .faq-left p {
+        font-size: 1rem;
+       
+    }
+
+.faq-right {
+    flex: 1 1 300px;
+    min-width: 280px;
+}
+
+.faq-item {
+    border-bottom: 1px solid #444;
+    padding: 15px 0;
+    border-bottom: 1px solid #444;
+    cursor: pointer;
+    position: relative;
+}
+
+    .faq-item h4 {
+    font-size: 1.1rem;
+        margin: 0;
+        font-weight: 400;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+        /* Drop-down arrow */
+        .faq-item h4::after {
+            content: "▸"; 
+            font-size: 0.9rem;
+            transition: transform 0.3s;
+        }
+    .faq-item.open h4::after {
+        transform: rotate(90deg);
+    }
+    .faq-item p {
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-top: 10px;
+        max-height: 0; /* hide by default */
+        overflow: hidden;
+        transition: max-height 0.4s ease, opacity 0.4s ease;
+        opacity: 0;
+    }
+
+    .faq-item.open p {
+        max-height: 500px; /* adjust as needed */
+        opacity: 1;
+    }
+/* Responsive */
+@media (max-width: 768px) {
+    .faq {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+
+/* --- Text Button Styling (reuse from homepage) --- */
+.text-button {
+    color: #fff;
+    text-decoration: none;
+    border: none;
+    border-bottom: 2px solid #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding-bottom: 3px;
+    transition: all 0.3s ease;
+}
+
+    .text-button:hover {
+        color: #007bff;
+        border-bottom-color: #007bff;
+    }
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .services-grid, .process-steps {
+        grid-template-columns: 1fr;
+    }
+
+    .faq {
+        flex-direction: column;
+    }
+}
+
 
 /* ================= Responsive ================= */
 @media (max-width: 992px) {
