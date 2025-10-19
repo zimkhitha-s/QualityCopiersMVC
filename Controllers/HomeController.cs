@@ -28,6 +28,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         {
             return View();
         }
+        public IActionResult About()
+        {
+            return View();
+        }
         public IActionResult Contact()
         {
             return View();

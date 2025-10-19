@@ -6,8 +6,8 @@
 }
 section {
     margin: 0; /* remove default margins */
-    padding-top: 20px; 
-    padding-bottom: 20px; 
+    padding-top: 5px; 
+    padding-bottom: 5px; 
 }
 
 /* ================= Homepage: Hero Section ================= */
@@ -162,7 +162,7 @@ body, html {
         font-weight: 600;
         margin-bottom: 20px;
         font-family: 'Agrandir', sans-serif;
-        color: #ADD8E6;
+        color: #8BB8F4;
     }
 
     .about-content p {
@@ -200,7 +200,7 @@ body, html {
             content: "✔"; /* checkmark */
             position: absolute;
             left: 0;
-            color: #ADD8E6; /* blue color */
+            color: #8BB8F4; /* blue color */
             font-weight: bold;
         }
 
@@ -463,7 +463,7 @@ brands .text-button {
         font-size: 1.2rem;
         font-weight: 600;
         margin-bottom: 15px;
-        color: #ADD8E6;
+        color: #8BB8F4;
     }
 
     .faq-left p {
@@ -647,7 +647,7 @@ brands .text-button {
     /* Text button */
     .products-page-left .text-button,
     .products-page-right .text-button {
-        color: #ADD8E6;
+        color: #8BB8F4;
         text-decoration: none;
         border-bottom: 1px solid #ADD8E6;
         font-family: 'Agrandir', sans-serif;
@@ -657,7 +657,7 @@ brands .text-button {
 
         .products-page-left .text-button:hover,
         .products-page-right .text-button:hover {
-            color: #ADD8E6;
+            color: #8BB8F4;
         }
 
     /* Images */
@@ -727,7 +727,7 @@ brands .text-button {
 
         /* Price in blue (last paragraph of each card) */
         .categories-card p:last-child {
-            color: #ADD8E6;
+            color: #8BB8F4;
             font-weight: 600;
         }
 
@@ -793,7 +793,7 @@ brands .text-button {
             left: 0;
             top: 0;
             color: white;
-            background-color: #ADD8E6; 
+            background-color: #8BB8F4;
             border-radius: 50%;
             width: 22px;
             height: 22px;
@@ -855,6 +855,207 @@ brands .text-button {
         color: #4da6ff;
         border-bottom: 2px solid #4da6ff;
     }
+
+/* ================= About Us page ================= */
+.aboutus-header {
+    background-color: #000;
+    color: #fff;
+    text-align: center;
+    font-family: 'Agrandir', sans-serif;
+    padding: 80px 20px;
+    letter-spacing: 0.8px;
+}
+
+    .aboutus-header h1 {
+        font-size: 2.4rem;
+        font-weight: 800;
+        margin-bottom: 15px;
+    }
+
+    .aboutus-header p {
+        font-family: 'Poppins', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 400;
+        max-width: 800px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+/* --- About Us: Company Profile Section --- */
+.aboutus-profile {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 10px 10px;
+    gap: 20px;
+}
+
+    .aboutus-profile img {
+        width: 50%;
+        height: 600px;
+        border-radius: 16px;
+        object-fit: cover;
+        margin-top: 0;
+    }
+    .aboutus-profile .text-content {
+        width: 45%; 
+    }
+
+    .aboutus-profile h2 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-top: 20px;
+        font-family: 'Agrandir', sans-serif;
+        letter-spacing: 0.5px;
+    }
+
+    .aboutus-profile p {
+        font-family: 'Poppins', sans-serif;
+        line-height: 1.6;
+        letter-spacing: 0.3px;
+        margin-bottom: 15px;
+        color: #111;
+    }
+
+    .aboutus-profile .text-button {
+        display: inline-block;
+        margin-top: 20px;
+        margin-right: 15px;
+        padding: 10px 25px;
+        border: none;
+        border-radius: 25px;
+        text-decoration: none;
+        font-family: 'Agrandir', sans-serif;
+        letter-spacing: 0.6px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        /* Contact button – black */
+        .aboutus-profile .text-button[href*="Contact"] {
+            background-color: #000;
+            color: #fff;
+        }
+
+        /* Services button – blue */
+        .aboutus-profile .text-button[href*="Services"] {
+            background-color: #8BB8F4;
+            color: #fff;
+        }
+
+        /* Hover effects */
+        .aboutus-profile .text-button:hover {
+            opacity: 0.85;
+            transform: translateY(-2px);
+        }
+
+.aboutus-cards {
+    display: flex;
+    justify-content: center; 
+    gap: 20px; 
+    background-color: #111; 
+    padding: 40px 60px;
+    border-radius: 16px; 
+    max-width: 1000px; 
+    margin: 40px auto; 
+}
+
+.aboutus-categories-card {
+    flex: 1;
+    text-align: center;
+    padding: 20px;
+    border-radius: 12px;
+    transition: transform 0.3s;
+    cursor: default;
+}
+
+    .aboutus-categories-card h3 {
+        font-size: 2rem; /* bigger than paragraph */
+        margin-bottom: 10px;
+        font-family: 'Agrandir', sans-serif;
+    }
+
+    .aboutus-categories-card p {
+        font-size: 1rem;
+        font-family: 'Agrandir', sans-serif;
+        margin: 0;
+    }
+
+  
+    .aboutus-categories-card:first-child {
+        background-color: #8BB8F4; /* first card blue */
+        color: #fff;
+    }
+
+    .aboutus-categories-card:not(:first-child) {
+        background-color: #fff; 
+        color: #111;
+    }
+
+
+.AboutUs-Values .values-header {
+    background-color: #111; 
+    text-align: center;
+    padding: 20px 10px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+    .AboutUs-Values .values-header h1 {
+        font-family: 'Agrandir', sans-serif;
+        font-size: 2.2rem;
+        font-weight: bold;
+        color: #fff;
+        margin-bottom: 10px;
+    }
+
+    .AboutUs-Values .values-header p {
+        font-family: 'Poppins', sans-serif;
+        font-size: 1.1rem;
+        color: #fff;
+    }
+
+.values-cards-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* space between cards */
+    margin: 0 auto 40px auto;
+    max-width: 1200px;
+}
+
+/* Individual Cards */
+.values-categories-card {
+    background-color: #111;
+    color: #fff;
+    padding: 30px 20px;
+    border-radius: 12px;
+    flex: 1;
+    min-width: 220px;
+    min-height: 180px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+    /* Card Icons */
+    .values-categories-card .icon-blue {
+        color: #8BB8F4; /* blue icons */
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .values-categories-card h3 {
+        font-family: 'Agrandir', sans-serif;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+
+    .values-categories-card p {
+        font-family: 'Poppins', sans-serif;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
 
 
 /* ================= Responsive ================= */
@@ -926,4 +1127,18 @@ brands .text-button {
         width: 100%;
     }
 }
+
+@media (max-width: 900px) {
+    .aboutus-profile {
+        flex-direction: column;
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+        .aboutus-profile img {
+            width: 100%;
+            margin-top: 30px;
+        }
+}
+
 
