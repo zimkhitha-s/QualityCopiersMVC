@@ -63,6 +63,7 @@
 .logo-text-wrapper {
     display: flex;
     align-items: center;
+    font-family: 'Agrandir', sans-serif;
     gap: 10px; /* space between logo and text */
 }
 
@@ -75,6 +76,7 @@
 /* First sentence next to logo */
 .logo-title {
     margin: 0;
+    font-family: 'Agrandir', sans-serif;
     font-size: 1.2rem;
     font-weight: 600;
 }
@@ -82,6 +84,7 @@
 /* Second sentence below logo/title */
 .logo-subtitle {
     margin-top: 5px;
+    font-family: 'Agrandir', sans-serif;
     font-size: 0.9rem;
     line-height: 1.3;
     max-width: 250px;
