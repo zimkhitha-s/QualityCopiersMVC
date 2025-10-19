@@ -1056,6 +1056,151 @@ brands .text-button {
         line-height: 1.5;
     }
 
+.contact-hero {
+    display: flex;
+    height: 800px; /* adjust as needed */
+    gap: 0;
+}
+
+/* Left: image with form */
+.contact-left-image {
+    position: relative;
+    background-image: url('../images/service2.jpeg');
+    width: 55%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+}
+
+.contact-form-container {
+    width: 100%;
+    max-width: 500px;
+    color: white;
+    gap: 20px;
+    font-family: 'Agrandir', sans-serif;
+}
+
+    .contact-form-container h1 {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #8BB8F4;
+    }
+    .contact-form-container h2 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+    .contact-form-container h3 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+
+    .contact-form-container p {
+        font-size: 1rem;
+        margin-bottom: 20px;
+    }
+
+.contact-form input[type="text"],
+.contact-form input[type="email"],
+.contact-form input[type="number"],
+.contact-form textarea {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid white;
+    color: white;
+    font-size: 1rem;
+    padding: 8px 5px;
+    width: 100%;
+    box-sizing: border-box;
+    line-height: 1.6;
+}
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder {
+        color: white;
+        opacity: 1; 
+    }
+.contact-form input[name="Name"],
+.contact-form input[name="Email"] {
+    width: 48%;
+}
+.contact-form input[name="number"],
+.contact-form input[name="Service"] {
+    width: 48%;
+}
+
+.contact-form textarea {
+    width: 100%;
+    margin-top: 10px;
+    resize: none;
+}
+
+.contact-form .btn-contact {
+    background-color: white;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    font-family: 'Agrandir', sans-serif;
+    cursor: pointer;
+    border-radius: 15px;
+    margin-top: 15px;
+    transition: 0.3s;
+}
+
+    .contact-form .btn-contact:hover {
+        background-color: #f0f0f0;
+    }
+
+/* Right black panel */
+.contact-right-panel {
+    background-color: #000;
+    color: #fff;
+    width: 45%;
+    padding: 40px 25px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: 'Agrandir', sans-serif;
+}
+
+    .contact-right-panel h2 {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+        font-weight: normal;
+    }
+
+    .contact-right-panel h3 {
+        font-size: 1.3rem;
+        margin: 10px 0 5px;
+        font-weight: normal;
+    }
+
+    .contact-right-panel p {
+        font-size: 1rem;
+        margin: 0 0 15px;
+    }
+    .contact-right-panel h3:first-of-type,
+    .contact-right-panel .btn-whatsapp {
+        color: #8BB8F4; 
+    }
+    .contact-right-panel ul {
+        list-style: none;
+        padding: 0;
+        margin: 10px 0 20px;
+    }
+
+        .contact-right-panel ul li {
+            margin-bottom: 8px;
+        }
+
+
+
 
 
 /* ================= Responsive ================= */
@@ -1140,5 +1285,24 @@ brands .text-button {
             margin-top: 30px;
         }
 }
+@media screen and (max-width: 992px) {
+    .contact-hero {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .contact-left-image,
+    .contact-right-panel {
+        width: 100%;
+    }
+
+    .contact-form-container {
+        width: 90%;
+        margin: 20px auto;
+    }
+}
+
+
+
 
 
