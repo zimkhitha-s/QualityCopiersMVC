@@ -1,0 +1,153 @@
+﻿@{
+    ViewData["Title"] = "Products";
+}
+@section PageCss {
+    <link rel="stylesheet" href="~/css/website.css" />
+}
+
+
+<!-- Products Intro -->
+<section class="products-page-header">
+    <h1>Our Products</h1>
+    <p class="subtitle">High Quality Printing Solutions</p>
+    <p>
+       We offer a wide range of high quality printing and copying equipment from leading
+       manufacturers, designed to meet the needs of businesses of all sizes.
+    </p>
+</section>
+
+<!-- Products Types -->
+<section class="products-page-items">
+    <div class="products-page-left">
+        <h1>Minolta</h1>
+        <img src="~/images/service5.jpeg" alt="Minolta" />
+        <p>
+            Minolta's professional-grade printing and copying solutions offer advanced features,durability,and
+            outstanding performance for demanding work environments.
+        </p>
+        <h3>Popular Models</h3>
+        <ul>
+            <li>Konica Minolta bizhub C336Oi</li>
+            <li>Konica Minolta 4700i</li>
+            <li>Konica Minolta AccurioPress C3080</li>
+        </ul>
+        <a asp-controller="Home" asp-action="Contact" class="text-button">Request a qoute</a>
+    </div>
+    <div class="products-page-right">
+        <h1>Ricoh & Gestetner</h1>
+        <img src="~/images/service6.jpeg" alt="Minolta" />
+        <p>
+           As specialits in Ricoh and Gestetner equipment, we offer their complete range of reliable printers,
+           copiers, and multifunction devices suitable for businesses of all sizes.
+        </p>
+        <h3>Popular Models</h3>
+        <ul>
+            <li>Epson WorkForce Pro WF-C5790</li>
+            <li>Epson EcoTank ET-5850</li>
+            <li>Epson SureColor P-Series (for graphics)</li>
+        </ul>
+        <a asp-controller="Home" asp-action="Contact" class="text-button">Request a qoute</a>
+    </div>
+  
+</section>
+
+<!-- Products Categories -->
+<section class="products-page categories-grid">
+    <h1>Product Categories</h1>
+    <p>Find the perfect solution for your business needs</p>
+
+    <div class="categories-cards-container">
+    <div class="categories-card">
+        <h3>Desktop Printers</h3>
+        <p> Compact efficient printers for small offices or personal workspaces.
+            These devices offer reliable printing for individuals or small teams with light 
+            to moderate printing needs.
+        </p>
+        <p class="price">Starting from R2,500</p>
+    </div>
+    <div class="categories-card">
+        <h3>Multifunctional Devices</h3>
+        <p>
+            All in one solutions combining printing, copying, scanning, and faxing capabilities in
+            a single device. Perfect for businesses looking to optimize office space and streamline document workflows.
+        </p>
+        <p class="price">Starting from R4,200</p>
+    </div>
+
+    <div class="categories-card">
+        <h3>Department Printers</h3>
+        <p>
+            High-capacity, robust printing solutions designed for busy departments or workgroups. 
+            These devices handle high volumes with speed and reliability, often supporting advanced 
+            finishing options.
+        </p>
+        <p class="price">Starting from R8,500</p>
+    </div>
+    <div class="categories-card">
+        <h3>Production Printers</h3>
+        <p>
+            Professional-grade printing systems for print shops, in-house print departments, or businesses 
+            with extremely high-volume needs. 
+            These systems offer superior quality and advanced finishing options
+        </p>
+        <p class="price">Contact for pricing</p>
+    </div>
+    <div class="categories-card">
+        <h3>Specialty Printers</h3>
+        <p>
+            Specialized printing solutions for specific applications such as wide-format printing,
+            label printing, or photo printing. These devices cater to unique business requirements.
+        </p>
+        <p class="price">Contact for pricing</p>
+    </div>
+    <div class="categories-card">
+        <h3>Refurbished Equipments</h3>
+        <p>
+            Quality-tested, professionally refurbished printers and copiers at competitive prices.
+            These devices offer excellent value while maintaining reliable performance for budget-conscious 
+            businesses.
+        </p>
+        <p class="price">Up to 60% off new prices</p>
+    </div>
+    </div>
+</section>
+
+<!--Product Consumables -->
+<section class="products-page-consumables">
+    <div class="consumables-container">
+        <div class="consumables-text">
+            <h1>Printer Consumables</h1>
+            <p>Quality supplies for all major printer brands</p>
+            <h2>Genuine & Compatible Options</h2>
+            <p>
+                We stock a comprehensive range of consumables for all the printer brands we support, including toner
+                cartridges, ink cartridges, drums, maintenance kits, and more. Our customers can choose between:
+            </p>
+
+            <ul>
+                <li><strong>OEM (Original Equipment Manufacturer)</strong></li>
+                <p>Genuine cartridges and supplies from the original manufacturer, ensuring perfect compatibility and optimal print quality.</p>
+            </ul>
+            <ul>
+                <li><strong>Compatible Alternatives</strong></li>
+                <p>
+                    High-quality compatible cartridges that meet or exceed OEM specifications at more affordable prices, perfect for
+                    cost-conscious businesses.
+                </p>
+            </ul>
+            <a asp-controller="Home" asp-action="Contact" class="text-button">Request Price List</a>
+        </div>
+        <div class="consumables-image">
+            <img src="~/images/header.png" alt="Consumables" />
+        </div> 
+    </div>
+</section>
+
+<section class="products-page-contact">
+    <h1>Need Help Choosing the Right Product?</h1>
+    <p>
+        Our team of experts is ready to help you find the best printing and copying solutions for your business needs.
+    </p>
+    <a asp-controller="Home" asp-action="Contact" class="text-button-line">Contact Us</a>
+</section>
+
