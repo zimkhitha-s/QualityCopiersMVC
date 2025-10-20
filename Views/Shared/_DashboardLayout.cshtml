@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/clients.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-papq3tUj..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
@@ -36,46 +37,47 @@
             <div class="sidebar-nav">
                 <a href="@Url.Action("Index", "Dashboard")" class="nav-item">
                     <img src="~/images/dashboard.png" alt="Logo" width="27.8" height="20">
-                    <span>Dashboard</span>
+                    <span class="nav-label-white">Dashboard</span>
                 </a>
-                <a href="@Url.Action("Index", "Clients")" class="nav-item">
+                <a href="@Url.Action("Clients", "Clients")" class="nav-item">
                     <img src="~/images/clients.png" alt="Logo" width="27.8" height="20">
-                    <span>Clients</span>
+                    <span class="nav-label-white">Clients</span>
                 </a>
-                <a href="@Url.Action("Employees", "Dashboard")" class="nav-item">
+                <a href="@Url.Action("Employees", "Employees")" class="nav-item">
                     <img src="~/images/employees.png" alt="Logo" width="30" height="25">
-                    <span>Employees</span>
+                    <span class="nav-label-blue">Employees</span>
                 </a>
-                <a href="@Url.Action("Invoices", "Dashboard")" class="nav-item">
+
+                <a href="@Url.Action("Invoices", "Invoices")" class="nav-item">
                     <img src="~/images/invoice_quotations.png" alt="Logo" width="27.8" height="20">
-                    <span>Invoices</span>
+                    <span class="nav-label-white">Invoices</span>
                 </a>
-                <a href="@Url.Action("Quotations", "Dashboard")" class="nav-item active">
+                <a href="@Url.Action("Quotations", "Quotations")" class="nav-item active">
                     <img src="~/images/invoice_quotations.png" alt="Logo" width="27.8" height="20">
-                    <span>Quotations</span>
+                    <span class="nav-label-white">Quotations</span>
                 </a>
                 <a href="@Url.Action("Payments", "Dashboard")" class="nav-item">
                     <img src="~/images/payments.png" alt="Logo" width="27.8" height="20">
-                    <span>Payments</span>
+                    <span class="nav-label-blue">Payments</span>
                 </a>
             </div>
 
             <div class="sidebar-footer">
                 <a href="#" class="nav-item">
                     <img src="~/images/notifications.png" alt="Logo" width="27.8" height="20">
-                    <span>Notifications</span>
+                    <span class="nav-label-white">Notifications</span>
                 </a>
                 <a href="/Dashboard/Profile" class="nav-item">
-                    <img src="~/images/account.png" alt="Logo" width="27.8" height="20">
-                    <span>Account</span>
+                    <img src="~/images/profile.png" alt="Logo" width="27.8" height="20">
+                    <span class="nav-label-white">Account</span>
                 </a>
                 <a href="#" class="nav-item">
                     <img src="~/images/logout.png" alt="Logo" width="27.8" height="20">
-                    <span>Logout</span>
+                    <span class="nav-label-blue">Logout</span>
                 </a>
                 <a href="#" class="nav-item">
                     <img src="~/images/help.png" alt="Logo" width="27.8" height="20">
-                    <span>Help</span>
+                    <span class="nav-label-white">Help</span>
                 </a>
             </div>
 
@@ -86,6 +88,8 @@
             @RenderBody()
         </main>
     </div>
+
+    @RenderSection("Scripts", required: false)
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

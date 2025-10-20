@@ -121,12 +121,12 @@
     box-sizing: border-box;
 }
 
-    .nav-item img {
-        width: 28px;
-        height: 20px;
-        flex-shrink: 0; /* ensures icon doesn’t resize */
+    .nav-item span {
+        display: block;
+        font-size: 14px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
     }
-
 
 /* When sidebar is expanded (for text + icon layout) */
 .sidebar.expanded .nav-item {
@@ -136,11 +136,12 @@
     gap: 12px;
 }
 
-/* Text inside the nav link */
-.nav-item span {
-    display: block;
+.nav-label-white {
     color: #ccc;
-    font-size: 16px;
+}
+
+.nav-label-blue {
+    color: #8bb8f4;
 }
 
 /* Show text when sidebar is expanded */

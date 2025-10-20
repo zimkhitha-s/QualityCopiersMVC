@@ -1,0 +1,64 @@
+﻿@{
+    ViewBag.Title = "Employees";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+
+
+<!-- delete employee modal popup -->
+<div id="deleteModal" class="modal-overlay" onclick="hideDeleteModal()">
+    <div class="delete-modal" onclick="event.stopPropagation()">
+        <button class="close-btn" onclick="hideDeleteModal()">&times;</button>
+        <div class="modal-header">
+            <h3 class="modal-title">Delete Employee</h3>
+
+        </div>
+        <p class="modal-message">Are you sure you would like to delete this employee?</p>
+        <div class="modal-actions">
+            <button class="btn-confirm" onclick="confirmDelete()">Yes</button>
+            <button class="btn-cancel" onclick="hideDeleteModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- filter employee modal popup -->
+<div id="filterModal" class="modal-overlay" onclick="hideFilterModal()">
+    <div class="filter-modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 class="modal-title">Filter Employees</h3>
+            <button class="close-btn" onclick="hideFilterModal()">×</button>
+        </div>
+        <div class="filter-options">
+            <div class="filter-option" onclick="applyFilter('alphabetical')">Alphabetical - A-Z</div>
+            <div class="filter-option" onclick="applyFilter('date-newest')">Date Added - Newest to Oldest</div>
+            <div class="filter-option" onclick="applyFilter('date-oldest')">Date Added - Oldest to Newest</div>
+            <div class="filter-option" onclick="applyFilter('recent')">Recently added</div>
+        </div>
+    </div>
+</div>
+
+<!-- add employee modal popup -->
+<div id="addEmployeeModal" class="modal-overlay" onclick="hideAddModal()">
+    <div class="add-modal" onclick="event.stopPropagation()">
+        <button class="close-btn" onclick="hideAddModal()">&times;</button>
+        <div class="modal-header">
+            <h3 class="modal-title">Add New Employee</h3>
+        </div>
+        <p class="modal-message"></p>
+        <div class="modal-form">
+            <form>
+                <p class="form-label">Employee Name</p>
+                <input type="text" class="form-input" placeholder="Jane Doe" required />
+                <p class="form-label">Password</p>
+                <input type="text" class="form-input" placeholder="**************" required />
+                <p class="form-label">Mobile Number</p>
+                <input type="text" class="form-input" placeholder="0123 456 789" required />
+                <p class="form-label">Email</p>
+                <input type="email" class="form-input" placeholder="jane.doe@gmail.com" required />
+                <p class="form-label">Position</p>
+                <input type="text" class="form-input" placeholder="Position" required />
+                <button type="submit" class="btn-confirm">Confirm</button>
+            </form>
+        </div>
+    </div>
+</div>

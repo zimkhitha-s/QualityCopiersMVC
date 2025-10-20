@@ -1,3 +1,5 @@
+﻿@model INSY7315_ElevateDigitalStudios_POE.Models.Client
+
 @{
     ViewBag.Title = "Add Client";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
@@ -10,37 +12,103 @@
         <p>Enter the client information below to add them to your system.</p>
     </div>
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-warning">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        </div>
+    }
+
     <div class="add-client-form-container">
-        <form asp-action="Create" asp-controller="AddClient" method="post" class="add-client-form">
+        <form asp-action="AddClients" asp-controller="Clients" method="post" class="add-client-form">
             <div class="form-group">
-                <label for="clientName">Client Name *</label>
-                <input type="text" id="clientName" name="clientName" class="form-control" required />
+                <label asp-for="name">Name *</label>
+                <input asp-for="name" class="form-control" required />
+                <span asp-validation-for="name" class="text-danger"></span>
             </div>
 
             <div class="form-group">
-                <label for="email">Email Address *</label>
-                <input type="email" id="email" name="email" class="form-control" required />
+                <label asp-for="surname">Surname *</label>
+                <input asp-for="surname" class="form-control" required />
+                <span asp-validation-for="surname" class="text-danger"></span>
             </div>
 
             <div class="form-group">
-                <label for="phone">Phone Number *</label>
-                <input type="tel" id="phone" name="phone" class="form-control" required />
+                <label asp-for="email">Email *</label>
+                <input asp-for="email" type="email" class="form-control" required />
+                <span asp-validation-for="email" class="text-danger"></span>
             </div>
 
             <div class="form-group">
-                <label for="address">Address</label>
-                <textarea id="address" name="address" class="form-control" rows="3"></textarea>
+                <label asp-for="phoneNumber">Phone Number *</label>
+                <input asp-for="phoneNumber" type="tel" class="form-control" required />
+                <span asp-validation-for="phoneNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="address">Address</label>
+                <input asp-for="address" class="form-control" required />
+                <span asp-validation-for="address" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="companyName">Company Name *</label>
+                <input asp-for="companyName" class="form-control" required />
+                <span asp-validation-for="companyName" class="text-danger"></span>
             </div>
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Add Client</button>
-                <a href="@Url.Action("Index", "Dashboard")" class="btn btn-secondary">Cancel</a>
+                <a class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
 </div>
 
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+
+
 <style>
+    .alert {
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+    }
+
+    .alert-success {
+        background-color: #d1f3d1;
+        color: #1a6b1a;
+        border: 1px solid #a7e0a7;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #842029;
+        border: 1px solid #f5c2c7;
+    }
+
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
     .add-client-container {
         padding: 2rem;
         background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
