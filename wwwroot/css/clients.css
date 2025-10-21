@@ -258,9 +258,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.35); /* reduced background blur intensity */
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+    background: rgba(0, 0, 0, 0.5);
     justify-content: center;
     align-items: center;
     z-index: 1000;
@@ -278,8 +276,8 @@
 .filter-popup-content {
     background: #98b5df;
     color: white;
-    width: 510px;
-    height: 245px;
+    width: 600px;
+    height: 300px;
     border-radius: 25px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
     padding: 2rem;
@@ -336,6 +334,112 @@
         .filter-options a:hover {
             color: black;
         }
+
+/* ===== EDIT CLIENT MODAL OVERLAY ===== */
+.edit-client-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(3px);
+    justify-content: center;
+    align-items: center;
+}
+
+/* ===== MODAL CONTENT ===== */
+.edit-client-content {
+    background-color: #000;
+    border-radius: 25px;
+    padding: 40px;
+    width: 380px;
+    color: white;
+    text-align: left;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+    /* ===== CLOSE BUTTON ===== */
+    .edit-client-content .close {
+        position: absolute;
+        top: 20px;
+        right: 25px;
+        color: white;
+        font-size: 26px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+/* ===== TITLE ===== */
+.edit-client-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+/* ===== FORM FIELDS ===== */
+.edit-client-content .form-group {
+    margin-bottom: 20px;
+}
+
+.edit-client-content label {
+    display: block;
+    font-size: 14px;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.edit-client-content input {
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: 'Poppins', sans-serif;
+    color: #000;
+    outline: none;
+}
+
+/* ===== CONFIRM BUTTON ===== */
+.edit-confirm-btn {
+    display: block; /* Make it a block element */
+    width: 50%;
+    margin: 20px auto 0 auto; /* Top margin + horizontal centering */
+    background-color: #A0B8E8;
+    color: #fff;
+    font-size: 15px;
+    font-family: 'Poppins', sans-serif;
+    border: none;
+    border-radius: 12px;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+    .edit-confirm-btn:hover {
+        background-color: #8faedc;
+    }
+
+
+/* ===== ANIMATION ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 
 
 
@@ -406,7 +510,7 @@
 
 /* Popup box */
 .modal-content {
-    background-color: #000; /* solid black */
+    background-color: #000; 
     color: #fff;
     width: 510px;
     height: 245px;

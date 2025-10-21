@@ -35,15 +35,17 @@
 
     <div class="add-client-form-container">
         <form asp-action="AddClients" asp-controller="Clients" method="post" class="add-client-form">
+            @Html.AntiForgeryToken()
+
             <div class="form-group">
                 <label asp-for="name">Name *</label>
-                <input asp-for="name" class="form-control" required />
+                <input asp-for="name" class="form-control" required pattern="[A-Za-z\s]+" title="Only letters allowed" />
                 <span asp-validation-for="name" class="text-danger"></span>
             </div>
 
             <div class="form-group">
                 <label asp-for="surname">Surname *</label>
-                <input asp-for="surname" class="form-control" required />
+                <input asp-for="surname" class="form-control" required pattern="[A-Za-z\s]+" title="Only letters allowed" />
                 <span asp-validation-for="surname" class="text-danger"></span>
             </div>
 

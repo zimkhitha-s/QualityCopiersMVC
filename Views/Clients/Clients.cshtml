@@ -1,11 +1,16 @@
 ﻿@model List<INSY7315_ElevateDigitalStudios_POE.Models.Client>
 
+
 @{
     ViewBag.Title = "Clients";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+
 <link rel="stylesheet" href="~/css/clients.css" />
+<meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+
 
 <div class="clients-page">
     <div class="clients-header">
@@ -39,22 +44,21 @@
                 {
                     foreach (var client in Model)
                     {
-                        <tr data-client-id="@client.id">
-                            <td>@(client.name + " " + client.surname)</td>
-                            <td>@client.phoneNumber</td>
-                            <td>@client.email</td>
-                            <td>@client.companyName</td>
+                        <tr data-client-id="@client.id" data-created-at="@client.createdAtDateTime.ToString("o")">
+                            <td class="client-name">@(client.name + " " + client.surname)</td>
+                            <td class="client-phone">@client.phoneNumber</td>
+                            <td class="client-email">@client.email</td>
+                            <td class="client-company">@client.companyName</td>
                             <td>
-                                <a href="#" class="edit-btn">
-                                    <img src="~/images/delete.png" alt="Logo" width="35" height="35">
+                                <a href="#" class="edit-btn" data-client-id="@client.id">
+                                    <img src="~/images/edit icon.png" alt="Logo" width="35" height="35">
                                 </a>
-
                                 <a href="#" class="delete-btn" data-client-id="@client.id">
                                     <img src="~/images/delete.png" alt="Delete" width="35" height="35">
                                 </a>
-
                             </td>
                         </tr>
+
                     }
                 }
                 else
@@ -82,7 +86,45 @@
             <li><a href="#" onclick="selectFilter('newest')">Date Added newest - oldest</a></li>
             <li><a href="#" onclick="selectFilter('oldest')">Date added oldest - newest</a></li>
             <li><a href="#" onclick="selectFilter('recent')">Recently added</a></li>
+            <li class="clear-filter"><a href="#" onclick="clearClientFilters()">Clear Filters</a></li>
         </ul>
+    </div>
+</div>
+
+<!-- Edit Client Modal -->
+<div id="editClientModal" class="edit-client-modal">
+    <div class="edit-client-content">
+        <span class="close" id="closeEditClient">&times;</span>
+        <h2 class="edit-client-title">Edit Client</h2>
+
+        <form id="editClientForm">
+            <div class="form-group">
+                <label for="editClientName">Client Name</label>
+                <input type="text" id="editClientName" name="name" placeholder="John Doe" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editCompanyName">Company Name</label>
+                <input type="text" id="editCompanyName" name="companyName" placeholder="Elevate Studios" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editPhoneNumber">Phone Number</label>
+                <input type="text" id="editPhoneNumber" name="phoneNumber" placeholder="072 944 0916" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editEmail">Email</label>
+                <input type="email" id="editEmail" name="email" placeholder="john.doe@gmail.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editAddress">Address</label>
+                <input type="text" id="editAddress" name="address" placeholder="johndoe@gmail.com" required>
+            </div>
+
+            <button type="submit" class="edit-confirm-btn">Confirm</button>
+        </form>
     </div>
 </div>
 
@@ -119,67 +161,10 @@
 
         /* ---------------- FILTER MENU ---------------- */
         // --- Filter Popup Controls ---
-        window.toggleFilterMenu = function () {
-            const filterMenu = document.getElementById("filterMenu");
-            filterMenu.style.display = filterMenu.style.display === "block" ? "none" : "block";
-        };
+        // --- Store original rows for reset ---
+        const originalClientRows = Array.from(document.querySelectorAll("tbody tr[data-client-id]"));
 
-        // Close filter popup when clicking outside
-        window.addEventListener("click", function (event) {
-            const filterMenu = document.getElementById("filterMenu");
-            const filterBtn = document.querySelector(".filter-btn");
-            if (event.target !== filterMenu && !filterMenu.contains(event.target) && event.target !== filterBtn) {
-                filterMenu.style.display = "none";
-            }
-        });
-
-        // --- Filtering Logic ---
-        window.selectFilter = function (filterType) {
-            const rows = Array.from(document.querySelectorAll("tbody tr[data-client-id]"));
-            const tbody = document.querySelector("tbody");
-
-            // Remove any existing "No clients found" message
-            const noClientsRow = tbody.querySelector("td[colspan='5']");
-            if (noClientsRow) noClientsRow.parentElement.remove();
-
-            // Reset order before filtering (optional)
-            rows.sort((a, b) => 0);
-
-            if (filterType === "alphabetical") {
-                rows.sort((a, b) => {
-                    const nameA = a.children[0].innerText.toLowerCase();
-                    const nameB = b.children[0].innerText.toLowerCase();
-                    return nameA.localeCompare(nameB);
-                });
-            }
-
-            else if (filterType === "newest") {
-                // Assuming rows are already rendered newest -> oldest by default
-                // Reverse if not
-                rows.reverse();
-            }
-
-            else if (filterType === "oldest") {
-                // Oldest -> newest (default order)
-                // You can keep as-is, but we’ll reset to default render order
-            }
-
-            else if (filterType === "recent") {
-                // Example: show last 3 added clients only
-                rows.sort((a, b) => b.rowIndex - a.rowIndex);
-                const recentRows = rows.slice(0, 3);
-                rows.length = 0;
-                rows.push(...recentRows);
-            }
-
-            // Clear and repopulate table
-            tbody.innerHTML = "";
-            rows.forEach(r => tbody.appendChild(r));
-
-            // Close popup after filter is applied
-            document.getElementById("filterMenu").style.display = "none";
-        }
-
+        // --- Show/Hide Filter Menu ---
         window.toggleFilterMenu = function () {
             const filterMenu = document.getElementById("filterMenu");
             filterMenu.classList.toggle("show");
@@ -189,14 +174,206 @@
             document.getElementById("filterMenu").classList.remove("show");
         };
 
-        // Close popup when clicking outside content
-        window.addEventListener("click", (event) => {
-            const filterMenu = document.getElementById("filterMenu");
-            const content = filterMenu.querySelector(".filter-popup-content");
-            if (event.target === filterMenu && !content.contains(event.target)) {
-                filterMenu.classList.remove("show");
+        // Close filter when clicking outside the content
+        function closeFilterMenuOutside(event) {
+            const content = document.querySelector(".filter-popup-content");
+            if (!content.contains(event.target)) {
+                closeFilterMenu();
+            }
+        }
+
+        // --- Parse created date from data attribute ---
+        function getRowDate(row) {
+            const dateAttr = row.dataset.createdAt;
+            if (!dateAttr) return new Date(0); // fallback
+            const parsed = new Date(dateAttr);
+            return isNaN(parsed) ? new Date(0) : parsed;
+        }
+
+        // --- Apply Filters ---
+        window.selectFilter = function (filterType) {
+            const tbody = document.querySelector("tbody");
+            let rows = [...originalClientRows];
+
+            switch (filterType) {
+                case "alphabetical":
+                    rows.sort((a, b) => {
+                        const nameA = a.children[0].innerText.trim().toLowerCase();
+                        const nameB = b.children[0].innerText.trim().toLowerCase();
+                        return nameA.localeCompare(nameB);
+                    });
+                    break;
+
+                case "newest":
+                    rows.sort((a, b) => getRowDate(b) - getRowDate(a)); // newest first
+                    break;
+
+                case "oldest":
+                    rows.sort((a, b) => getRowDate(a) - getRowDate(b)); // oldest first
+                    break;
+
+                case "recent":
+                    rows.sort((a, b) => getRowDate(b) - getRowDate(a)); // newest first
+                    rows = rows.slice(0, 3);
+                    break;
+            }
+
+            // Clear and reinsert rows
+            tbody.innerHTML = "";
+            rows.forEach(row => tbody.appendChild(row));
+
+            // Close filter popup
+            closeFilterMenu();
+        };
+
+        // --- Clear Filters ---
+        window.clearClientFilters = function () {
+            const tbody = document.querySelector("tbody");
+            tbody.innerHTML = "";
+            originalClientRows.forEach(row => tbody.appendChild(row));
+            closeFilterMenu();
+        };
+
+        // --- Allow closing with ESC key ---
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") closeFilterMenu();
+        });
+
+        /* -----------------------EDIT CLIENT DETAILS FUNCTIONALITY----------------- */
+
+        // --- Edit Client Modal Controls ---
+    const editClientModal = document.getElementById("editClientModal");
+    const closeEditClient = document.getElementById("closeEditClient");
+    const editClientForm = document.getElementById("editClientForm");
+
+    const editClientName = document.getElementById("editClientName");
+    const editCompanyName = document.getElementById("editCompanyName");
+    const editPhoneNumber = document.getElementById("editPhoneNumber");
+    const editEmail = document.getElementById("editEmail");
+    const editAddress = document.getElementById("editAddress");
+
+    let currentClientId = null;
+
+    // --- Open modal and fetch client details from database ---
+    document.querySelectorAll(".edit-btn").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+            e.preventDefault();
+
+            const clientId = btn.dataset.clientId;
+
+            // debug
+                console.log("Opening modal for client ID:", clientId);
+
+            try {
+                const response = await fetch(`/Clients/GetClient?id=${clientId}`);
+                if (!response.ok) throw new Error("Failed to fetch client data");
+
+                const client = await response.json();
+
+                // debug
+                    console.log("Fetched client:", client);
+
+                editClientName.value = `${client.name} ${client.surname}`;
+                editCompanyName.value = client.companyName;
+                editPhoneNumber.value = client.phoneNumber;
+                editEmail.value = client.email;
+                editAddress.value = client.address;
+
+                editClientModal.style.display = "flex";
+                currentClientId = client.id;
+
+                // debug
+                    console.log("Setting currentClientId to:", currentClientId);
+
+            } catch (err) {
+                console.error("Error loading client details:", err);
             }
         });
+    });
+
+    // --- Close modal ---
+    closeEditClient.onclick = () => editClientModal.style.display = "none";
+    window.onclick = (event) => {
+        if (event.target === editClientModal) editClientModal.style.display = "none";
+    };
+
+    // --- Submit form with validation ---
+        editClientForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            // Initial debug
+            console.log("Submit triggered for client ID:", currentClientId);
+
+            if (!currentClientId) {
+                console.warn("No current client ID, aborting submit");
+                return;
+            }
+
+            // Email validation debug
+            if (!editEmail.value.includes("\u0040") || !editEmail.value.includes(".")) {
+                console.warn("Email validation failed:", editEmail.value);
+                alert("Invalid email format");
+                return;
+            }
+
+            if (!editClientName.value.trim()) {
+                console.warn("Client name validation failed:", editClientName.value);
+                alert("Client name is required");
+                return;
+            }
+
+            const nameParts = editClientName.value.trim().split(" ");
+            const name = nameParts[0] || "";
+            const surname = nameParts.slice(1).join(" ") || "";
+
+            const updatedClient = {
+                Id: currentClientId,
+                FullName: editClientName.value.trim(),
+                CompanyName: editCompanyName.value.trim(),
+                PhoneNumber: editPhoneNumber.value.trim(),
+                Email: editEmail.value.trim(),
+                Address: editAddress.value.trim()
+            };
+
+            // Debug: log payload before sending
+            console.log("Payload to send:", updatedClient);
+
+            try {
+
+                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                const response = await fetch("/Clients/UpdateClient", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": token
+                    },
+                    body: JSON.stringify(updatedClient)
+                });
+
+
+                // Debug: log response status and body
+                console.log("Response status:", response.status);
+                const responseText = await response.text();
+                console.log("Response text:", responseText);
+
+                if (response.ok) {
+                    const row = document.querySelector(`tr[data-client-id="${currentClientId}"]`);
+                    row.querySelector(".client-name").innerText = updatedClient.FullName;
+                    row.querySelector(".client-company").innerText = updatedClient.CompanyName;
+                    row.querySelector(".client-phone").innerText = updatedClient.PhoneNumber;
+                    row.querySelector(".client-email").innerText = updatedClient.Email;
+
+                    editClientModal.style.display = "none";
+                    currentClientId = null;
+                } else {
+                    console.error("Failed to update client");
+                }
+            } catch (err) {
+                console.error("Error updating client:", err);
+            }
+        });
+
 
         /* ---------------- DELETE CONFIRMATION MODAL ---------------- */
 
@@ -212,7 +389,7 @@
             btn.addEventListener("click", (event) => {
                 event.preventDefault();
                 clientToDeleteId = btn.dataset.clientId;
-                deleteModal.classList.add("show"); // use the .show class instead of display:block
+                deleteModal.classList.add("show");
             });
         });
 
@@ -221,15 +398,21 @@
             if (!clientToDeleteId) return;
 
             try {
+                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
                 const response = await fetch('/Clients/DeleteClient', {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(clientToDeleteId)
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": token
+                    },
+                    body: JSON.stringify({ clientId: clientToDeleteId }) // ✅ wrapped in an object
                 });
 
                 const data = await response.json();
+
                 if (data.success) {
-                    // Remove row from table
+                    // Remove the deleted row
                     const row = document.querySelector(`tr[data-client-id='${clientToDeleteId}']`);
                     if (row) row.remove();
 
@@ -239,7 +422,7 @@
                 }
             } catch (error) {
                 console.error("Error deleting client:", error);
-                alert("An error occurred.");
+                alert("An error occurred while deleting the client.");
             }
 
             // Close modal

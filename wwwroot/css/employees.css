@@ -1,0 +1,136 @@
+﻿/* employees.css */
+
+/* Page container */
+.clients-page {
+    padding: 20px;
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+}
+
+/* Header */
+.clients-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+    .clients-header h1 {
+        font-size: 28px;
+        font-weight: 600;
+    }
+
+.search-container {
+    display: flex;
+    align-items: center;
+}
+
+.search-input {
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    padding: 8px 15px;
+    width: 250px;
+    font-size: 14px;
+    outline: none;
+}
+
+.search-icon img {
+    margin-left: -25px;
+}
+
+/* Actions (Add / Filter) */
+.clients-actions {
+    margin-bottom: 15px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-btn {
+    background-color: #a0b8e8;
+    color: #fff;
+    margin-right: 10px;
+}
+
+    .add-btn:hover {
+        background-color: #8aa0d4;
+    }
+
+.filter-btn {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+    .filter-btn:hover {
+        background-color: #e0e0e0;
+    }
+
+/* Table styling */
+.employees-table {
+    background-color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0,0,0,0.05);
+}
+
+    .employees-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .employees-table th,
+    .employees-table td {
+        padding: 12px 15px;
+        text-align: left;
+    }
+
+    .employees-table th {
+        background-color: #f9fafb;
+        font-weight: 500;
+        color: #555;
+    }
+
+    .employees-table tr:nth-child(even) {
+        background-color: #f5f5f5;
+    }
+
+    .employees-table tr:hover {
+        background-color: #e8f0fe;
+    }
+
+/* Employee name styling */
+.employee-name {
+    font-weight: 500;
+    color: #1a202c;
+}
+
+/* Operation buttons */
+.edit-btn img,
+.delete-btn img {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+    .edit-btn img:hover {
+        transform: scale(1.1);
+    }
+
+    .delete-btn img:hover {
+        transform: scale(1.1);
+    }
+
+/* No data row */
+.employees-table td[colspan="5"] {
+    font-style: italic;
+    color: #64748b;
+    text-align: center;
+    padding: 20px;
+}
