@@ -967,7 +967,6 @@ body {
 }
 
 /*Add New Employee Modal*/
-/* Overlay (dark background blur) */
 
 /* Modal box */
 .add-modal {
@@ -1058,3 +1057,6 @@ body {
   background: #8bb8f4;
 }
 
+.filter-modal-Payments{
+  
+}
