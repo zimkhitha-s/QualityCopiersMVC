@@ -30,7 +30,7 @@
             </div>
             
             <div class="action-buttons">
-                <button class="btn btn-secondary" onclick="showInvoiceDetailsModal()">
+                <button class="btn btn-secondary" onclick="showFilterModal()">
                     <a class="btn-icon">
                         <img src="~/images/filter-btn.png" width="20" height="20">
                     </a>
@@ -48,17 +48,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
+                        <tr onclick="showInvoiceDetailsModal()">
                             <td>John Doe</td>
                             <td>#102515510</td>
                             <td><span class="status status-progress">Paid</span></td>
                         </tr>
-                        <tr>
+                        <tr onclick="showDeleteInvoiceModal()">
                             <td>John Doe</td>
                             <td>#102515510</td>
                             <td><span class="status status-progress">Unpaid</span></td>
                         </tr>
-                        <tr>
+                        <tr onclick="showInvoiceOptionsModal()">
                             <td>John Doe</td>
                             <td>#102515510</td>
                             <td><span class="status status-progress">Unpaid</span></td>
@@ -88,10 +88,10 @@
     <div id="filterModal" class="modal-overlay" onclick="hideFilterModal()">
         <div class="filter-modal-Payments" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h3 class="modal-title">Filter Payments</h3>
+                <h3 class="title">Filter Payments</h3>
                 <button class="close-btn" onclick="hideFilterModal()">×</button>
             </div>
-            <div class="filter-options">
+            <div class="payment-filter-options">
                 <div class="filter-option" onclick="applyFilter('alphabetical')">Alphabetical - A-Z</div>
                 <div class="filter-option" onclick="applyFilter('date-newest')">Date Added - Newest to Oldest</div>
                 <div class="filter-option" onclick="applyFilter('date-oldest')">Date Added - Oldest to Newest</div>
@@ -104,7 +104,7 @@
     <div id="invoiceDetailsModal" class="modal-overlay" onclick="hideInvoiceDetailsModal()">
         <div class="filter-modal-Payments" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h3 class="modal-title">Invoice #102515510</h3>
+                <h3 class="title">Invoice #102515510</h3>
                 <button class="close-btn" onclick="hideInvoiceDetailsModal()">×</button>
             </div>
             <div class="invoice-details">
@@ -118,6 +118,35 @@
                 <div class="details"></div>
                 <div class="detail-title" >Amount</div>
                 <div class="details"></div>
+            </div>
+        </div>
+    </div>
+
+    <!--Delete Payment Modal-->
+    <div id="deletePaymentModal" class="modal-overlay" onclick="hideDeleteInvoiceModal()">
+        <div class="filter-modal-Payments" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="delete-title">Are you sure you would like to delete this invoice?</h3>
+                <button class="close-btn" onclick="hideDeleteInvoiceModal()">×</button>
+            </div>
+            <div class="payment-filter-options">
+                <div class="filter-option" >Yes</div>
+                <div class="filter-option" onclick="hideDeleteInvoiceModal()">Cancel</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice options modal -->
+    <div id="invoiceOptionsModal" class="modal-overlay" onclick="hideInvoiceOptionsModal()">
+        <div class="filter-modal-Payments" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="delete-title"></h3>
+                <button class="close-btn" onclick="hideInvoiceOptionsModal()">×</button>
+            </div>
+            <div class="payment-filter-options">
+                <div class="filter-option" >View Invoice</div>
+                <div class="filter-option" >Delete</div>
+                <div class="filter-option" >Mark as Paid</div>
             </div>
         </div>
     </div>
@@ -140,7 +169,22 @@
         function hideInvoiceDetailsModal() {
             document.getElementById('invoiceDetailsModal').style.display = 'none';
         }
+
+        function showDeleteInvoiceModal(){
+            document.getElementById('deletePaymentModal').style.display = 'flex';
+        }
+
+         function hideDeleteInvoiceModal(){
+            document.getElementById('deletePaymentModal').style.display = 'none';
+        }
         
+        function showInvoiceOptionsModal(){
+            document.getElementById('invoiceOptionsModal').style.display = 'flex';
+        }
+
+         function hideInvoiceOptionsModal(){
+            document.getElementById('invoiceOptionsModal').style.display = 'none';
+        }
         // Close modal when pressing Escape key
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
