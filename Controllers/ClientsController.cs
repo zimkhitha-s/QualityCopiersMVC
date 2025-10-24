@@ -24,8 +24,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         {
             try
             {
-                string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
-                var clients = await _firebaseService.GetClientsAsync(userId);
+                var clients = await _firebaseService.GetClientsAsync();
                 return View(clients);
             }
             catch (Exception ex)
@@ -138,8 +137,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 
             try
             {
-                string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2"; // your user ID
-                await _firebaseService.DeleteClientAsync(userId, request.ClientId);
+                await _firebaseService.DeleteClientAsync(request.ClientId);
 
                 return Ok(new { success = true });
             }

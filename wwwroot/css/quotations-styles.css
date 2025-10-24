@@ -797,72 +797,109 @@ body {
             }
         }
 
-/* Modal overlay (dark background) */
+/* ===== Overlay ===== */
 .modal-overlay {
-    display: none; 
+    display: none;
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.5); 
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
     justify-content: center;
     align-items: center;
     z-index: 1000;
 }
 
-/* Popup box */
+/* ===== Modal Container ===== */
 .filter-modal {
     background: #98b5df;
-    padding: 20px 30px;
-    border-radius: 40px;
-    width: 506px;
-    max-width: 90%;
-    font-family: 'Agrandir', sans-serif;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    position: relative
+    padding: 25px 40px;
+    border-radius: 25px;
+    width: 500px;
+    font-family: 'Poppins', sans-serif;
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+    position: relative;
+    animation: popIn 0.25s ease-out;
 }
 
-/* Header */
+/* Smooth open animation */
+@keyframes popIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ===== Header ===== */
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    position: relative;
 }
 
 .modal-title {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
-    padding-bottom: 5px;
+    color: #000;
 }
 
-/* Close button */
+/* ===== Close Button ===== */
 .close-btn {
-    background: none;
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #000;
+    color: #fff;
     border: none;
-    font-size: 22px;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
     cursor: pointer;
-    color: #FFF;
+    transition: all 0.2s ease;
 }
 
-/* Filter options */
+.close-btn:hover {
+    background: #333;
+    transform: scale(1.1);
+}
+
+/* ===== Filter Options ===== */
 .filter-options {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-left: 35px;
-    font-family: 'Poppins', sans-serif;
+    gap: 10px;
 }
 
 .filter-option {
-    padding: 8px 12px;
+    color: white;
+    font-size: 16px;
     cursor: pointer;
-    border-radius: 8px;
-    color: #FFF;
-    transition: background 0.2s;
+    transition: all 0.2s ease;
+    padding: 4px 0;
+    border-radius: 5px;
 }
 
 .filter-option:hover {
-    background: #a5baff;
+    color: black;
+}
+
+/* ===== Clear filter button (optional style) ===== */
+.clear-filter {
+    margin-top: 10px;
+    color: #222;
+    font-weight: 500;
 }
 
 /* Dark delete modal */
