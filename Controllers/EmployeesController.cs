@@ -37,7 +37,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         }
 
         [HttpPost]
-        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddEmployees(Employee employee)
         {

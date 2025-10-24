@@ -1,0 +1,82 @@
+﻿@{
+    ViewBag.Title = "Status Confirmation";
+    var status = ViewBag.Status as string ?? "unknown";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .confirmation-container {
+            background-color: #fff;
+            padding: 40px 50px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        p {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 30px;
+        }
+        .status-accepted {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .status-declined {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .home-btn {
+            display: inline-block;
+            padding: 10px 25px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .home-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="confirmation-container">
+        <h1>Quotation Status</h1>
+
+        @if (status.ToLower() == "accept")
+        {
+            <p class="status-accepted">You have <strong>accepted</strong> this quotation.</p>
+            <p>Thank you for your confirmation. Our team will process your order shortly.</p>
+        }
+        else if (status.ToLower() == "decline")
+        {
+            <p class="status-declined">You have <strong>declined</strong> this quotation.</p>
+            <p>If you have any questions, please contact our support team.</p>
+        }
+        else
+        {
+            <p>Status not recognized.</p>
+        }
+
+        <a class="home-btn" href="@Url.Action("Index", "Home")">Return to Homepage</a>
+    </div>
+</body>
+</html>

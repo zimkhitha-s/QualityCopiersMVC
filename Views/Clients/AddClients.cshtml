@@ -33,51 +33,55 @@
         </div>
     }
 
-    <div class="add-client-form-container">
-        <form asp-action="AddClients" asp-controller="Clients" method="post" class="add-client-form">
-            @Html.AntiForgeryToken()
+    <div class="add-client-form-wrapper">
+        <div class="add-client-form-container">
+            <form asp-action="AddClients" asp-controller="Clients" method="post" class="add-client-form">
+                @Html.AntiForgeryToken()
 
-            <div class="form-group">
-                <label asp-for="name">Name *</label>
-                <input asp-for="name" class="form-control" required pattern="[A-Za-z\s]+" title="Only letters allowed" />
-                <span asp-validation-for="name" class="text-danger"></span>
-            </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label asp-for="name">Name *</label>
+                        <input asp-for="name" class="form-control" required pattern="[A-Za-z\s]+" title="Only letters allowed" />
+                        <span asp-validation-for="name" class="text-danger"></span>
+                    </div>
 
-            <div class="form-group">
-                <label asp-for="surname">Surname *</label>
-                <input asp-for="surname" class="form-control" required pattern="[A-Za-z\s]+" title="Only letters allowed" />
-                <span asp-validation-for="surname" class="text-danger"></span>
-            </div>
+                    <div class="form-group">
+                        <label asp-for="surname">Surname *</label>
+                        <input asp-for="surname" class="form-control" required pattern="[A-Za-z\s]+" title="Only letters allowed" />
+                        <span asp-validation-for="surname" class="text-danger"></span>
+                    </div>
 
-            <div class="form-group">
-                <label asp-for="email">Email *</label>
-                <input asp-for="email" type="email" class="form-control" required />
-                <span asp-validation-for="email" class="text-danger"></span>
-            </div>
+                    <div class="form-group">
+                        <label asp-for="email">Email *</label>
+                        <input asp-for="email" type="email" class="form-control" required />
+                        <span asp-validation-for="email" class="text-danger"></span>
+                    </div>
 
-            <div class="form-group">
-                <label asp-for="phoneNumber">Phone Number *</label>
-                <input asp-for="phoneNumber" type="tel" class="form-control" required />
-                <span asp-validation-for="phoneNumber" class="text-danger"></span>
-            </div>
+                    <div class="form-group">
+                        <label asp-for="phoneNumber">Phone Number *</label>
+                        <input asp-for="phoneNumber" type="tel" class="form-control" required />
+                        <span asp-validation-for="phoneNumber" class="text-danger"></span>
+                    </div>
 
-            <div class="form-group">
-                <label asp-for="address">Address</label>
-                <input asp-for="address" class="form-control" required />
-                <span asp-validation-for="address" class="text-danger"></span>
-            </div>
+                    <div class="form-group">
+                        <label asp-for="address">Address</label>
+                        <input asp-for="address" class="form-control" required />
+                        <span asp-validation-for="address" class="text-danger"></span>
+                    </div>
 
-            <div class="form-group">
-                <label asp-for="companyName">Company Name *</label>
-                <input asp-for="companyName" class="form-control" required />
-                <span asp-validation-for="companyName" class="text-danger"></span>
-            </div>
+                    <div class="form-group">
+                        <label asp-for="companyName">Company Name *</label>
+                        <input asp-for="companyName" class="form-control" required />
+                        <span asp-validation-for="companyName" class="text-danger"></span>
+                    </div>
+                </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Add Client</button>
-                <a class="btn btn-secondary">Cancel</a>
-            </div>
-        </form>
+                <div class="form-actions">
+                    <a class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Add Client</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -87,6 +91,7 @@
 
 
 <style>
+    /* === ALERT STYLES === */
     .alert {
         padding: 10px 15px;
         border-radius: 6px;
@@ -111,15 +116,21 @@
         border: 1px solid #ffeeba;
     }
 
-    .add-client-container {
-        padding: 2rem;
+    /* === MAIN PAGE CONTAINER === */
+    .add-client-form-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 90vh;
         background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        min-height: 100vh;
         font-family: 'Agrandir', sans-serif;
+        padding: 2rem;
     }
 
+    /* === HEADER SECTION === */
     .add-client-header {
         margin-bottom: 2rem;
+        text-align: center;
     }
 
     .add-client-header h1 {
@@ -138,17 +149,29 @@
         margin: 0;
     }
 
+    /* === FORM CONTAINER === */
     .add-client-form-container {
         background: #ffffff;
         border-radius: 16px;
         padding: 2.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        max-width: 600px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        max-width: 800px;
+        width: 100%;
         border: 1px solid #e2e8f0;
+        transition: all 0.3s ease-in-out;
     }
 
-    .add-client-form .form-group {
-        margin-bottom: 1.5rem;
+    /* === FORM GRID (2 columns, 3 rows) === */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem 2rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
     }
 
     .add-client-form label {
@@ -188,9 +211,10 @@
         min-height: 100px;
     }
 
+    /* === BUTTONS AREA === */
     .form-actions {
         display: flex;
-        gap: 1rem;
+        justify-content: space-between;
         margin-top: 2rem;
     }
 
@@ -206,7 +230,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.2s ease-in-out;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
@@ -235,13 +259,10 @@
         color: #ffffff;
     }
 
-    /* Smooth transitions */
-    .add-client-container {
-        opacity: 1;
-        transition: opacity 0.3s ease-in-out;
-    }
-
-    .add-client-container > * {
+    /* === SMOOTH TRANSITIONS === */
+    .add-client-form-container,
+    .add-client-form-container > * {
         transition: all 0.3s ease-in-out;
     }
+
 </style>
