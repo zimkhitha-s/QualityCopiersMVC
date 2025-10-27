@@ -821,18 +821,33 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         public async Task MarkInvoiceAsPaidAsync(string invoiceId)
         {
             string userId = "vz4maSc0vOgouOGPhtdkFzBlceK2"; // Replace with dynamic user ID if applicable
+
             try
             {
-                var invoiceRef = _firestoreDb.Collection("users").Document(userId).Collection("invoices").Document(invoiceId);
+                Console.WriteLine($"🔍 Trying to mark as paid - User: {userId}, Invoice: {invoiceId}");
+
+                var invoiceRef = _firestoreDb.Collection("users")
+                    .Document(userId)
+                    .Collection("invoices")
+                    .Document(invoiceId);
+
+                var snapshot = await invoiceRef.GetSnapshotAsync();
+
+                if (!snapshot.Exists)
+                {
+                    Console.WriteLine($"❌ Invoice not found at path: users/{userId}/invoices/{invoiceId}");
+                    throw new Exception("Invoice document does not exist in Firestore.");
+                }
+
                 await invoiceRef.UpdateAsync("status", "Paid");
-            }catch (Exception ex)
+                Console.WriteLine("✅ Invoice successfully marked as paid!");
+            }
+            catch (Exception ex)
             {
-                Console.WriteLine("Firestore update failed: " + ex.Message);
+                Console.WriteLine("🔥 Firestore update failed: " + ex.Message);
                 throw;
             }
-            
-
-            //await invoiceRef.UpdateAsync("status", "Paid");
         }
+
     }
 }

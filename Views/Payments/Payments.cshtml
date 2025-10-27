@@ -41,6 +41,9 @@
             </div>
             
             <div class="table-container">
+
+            @Html.AntiForgeryToken()
+
                 <table id="paymentsTable" class="quotations-table">
                     <thead>
                         <tr>
@@ -138,7 +141,7 @@
             <div class="payment-filter-options">
                 <div class="filter-option" onclick="showInvoiceDetailsModal()">View Invoice</div>
                 <div class="filter-option" onclick="showDeleteInvoiceModal()" >Delete</div>
-                <div class="filter-option" onclick="markAsPaid(selectedInvoiceID)">Mark as Paid</div>
+                <div class="filter-option" onclick="markAsPaid(invoiceId)">Mark as Paid</div>
             </div>
         </div>
     </div>
@@ -282,11 +285,9 @@
             document.getElementById('invoiceOptionsModal').style.display = 'none';
         }
         
-        async function markAsPaid(invoiceId) {
-            if (!invoiceId) {
-                alert("No invoice selected.");
-                return;
-            }
+       async function markAsPaid(invoiceId) {
+        
+            if (!invoiceId) return alert("No invoice selected.");
 
             try {
                 const response = await fetch(`/Payments/MarkAsPaid/${invoiceId}`, {
@@ -294,23 +295,20 @@
                 });
 
                 if (response.ok) {
-                    alert("Invoice marked as paid ✅");
-                    
-                    // Optionally update UI instantly without refreshing
+                    alert("✅ Invoice marked as paid!");
+                    // Update UI
                     const statusCell = document.querySelector(`#invoice-status-${invoiceId}`);
                     if (statusCell) {
                         statusCell.textContent = "Paid";
-                        statusCell.classList.add("paid-status"); // Optional styling
+                        statusCell.classList.add("paid-status");
                     }
-
-                    hideInvoiceOptionsModal();
                 } else {
-                    const error = await response.text();
-                    alert("Failed to update: " + error);
+                    console.error(await response.text());
+                    alert("Failed to update invoice.");
                 }
-            } catch (err) {
-                console.error(err);
-                alert("An error occurred while marking as paid.");
+            } catch (error) {
+                console.error("Error marking as paid:", error);
+                alert("An error occurred while marking the invoice as paid.");
             }
         }
         // Close modal when pressing Escape key
