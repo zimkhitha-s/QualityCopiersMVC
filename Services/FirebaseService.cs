@@ -595,6 +595,46 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             return invoices;
         }
 
+        //Get invoice details by ID for payments
+        public async Task<Invoice?> GetInvoiceDetailsAsync(string id)
+        {
+            string userId = "vz4maSc0vOgouOGPhtdkFzBlceK2";
+            try
+            {
+                var invoiceRef = _firestoreDb.Collection("users").Document(userId).Collection("invoices").Document(id);
+
+                var snapshot = await invoiceRef.GetSnapshotAsync();
+
+                if (!snapshot.Exists)
+                {
+                    return null; // or throw new Exception("Invoice not found");
+                }
+
+                var invoice = snapshot.ConvertTo<Invoice>();
+
+                // Decrypt sensitive fields
+                invoice.ClientName = _encryptionHelper.Decrypt(invoice.ClientName);
+                invoice.CompanyName = _encryptionHelper.Decrypt(invoice.CompanyName);
+                invoice.Phone = _encryptionHelper.Decrypt(invoice.Phone);
+                invoice.QuoteNumber = _encryptionHelper.Decrypt(invoice.QuoteNumber ?? string.Empty);
+
+                if (invoice.Items != null)
+                {
+                    foreach (var item in invoice.Items)
+                    {
+                        item.Description = _encryptionHelper.Decrypt(item.Description);
+                    }
+                }
+
+                return invoice;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving invoice: {ex.Message}");
+                throw;
+            }
+        }
+
         public async Task<bool> GenerateAndSendInvoiceAsync(Invoice invoice)
         {
             try
@@ -776,6 +816,23 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             {
                 Console.WriteLine($"Error deleting quotation: {ex.Message}");
             }
+        }
+
+        public async Task MarkInvoiceAsPaidAsync(string invoiceId)
+        {
+            string userId = "vz4maSc0vOgouOGPhtdkFzBlceK2"; // Replace with dynamic user ID if applicable
+            try
+            {
+                var invoiceRef = _firestoreDb.Collection("users").Document(userId).Collection("invoices").Document(invoiceId);
+                await invoiceRef.UpdateAsync("status", "Paid");
+            }catch (Exception ex)
+            {
+                Console.WriteLine("Firestore update failed: " + ex.Message);
+                throw;
+            }
+            
+
+            //await invoiceRef.UpdateAsync("status", "Paid");
         }
     }
 }

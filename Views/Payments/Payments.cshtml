@@ -1,3 +1,5 @@
+@model List<INSY7315_ElevateDigitalStudios_POE.Models.Invoice>
+
 @{
     ViewBag.Title = "Payments";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
@@ -39,45 +41,35 @@
             </div>
             
             <div class="table-container">
-                <table class="quotations-table">
+                <table id="paymentsTable" class="quotations-table">
                     <thead>
                         <tr>
                             <th>Client Name</th>
-                            <th>Invoice number</th>
+                            <th>Invoice Number</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr onclick="showInvoiceDetailsModal()">
-                            <td>John Doe</td>
-                            <td>#102515510</td>
-                            <td><span class="status status-progress">Paid</span></td>
-                        </tr>
-                        <tr onclick="showDeleteInvoiceModal()">
-                            <td>John Doe</td>
-                            <td>#102515510</td>
-                            <td><span class="status status-progress">Unpaid</span></td>
-                        </tr>
-                        <tr onclick="showInvoiceOptionsModal()">
-                            <td>John Doe</td>
-                            <td>#102515510</td>
-                            <td><span class="status status-progress">Unpaid</span></td>
-                        </tr>
+                        @if (Model != null && Model.Any())
+                    {
+                        @foreach (var invoice in Model)
+                        {
+                            <tr onclick="showInvoiceOptionsModal('@invoice.Id')" data-invoice-id="@invoice.Id">
+
+                                <td>@invoice.ClientName</td>
+                                <td>#@invoice.InvoiceNumber</td>
+                                <td id="invoice-status-@invoice.Id" >@invoice.Status</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
                         <tr>
-                            <td>John Doe</td>
-                            <td>#102515510</td>
-                            <td><span class="status status-progress">Unpaid</span></td>
+                            <td colspan="6" style="text-align:center; padding:20px; font-weight:500; color:#999;">
+                                "No Payments Yet."
+                            </td>
                         </tr>
-                        <tr>
-                            <td>John Doe</td>
-                            <td>#102515510</td>
-                            <td><span class="status status-progress">Paid</span></td>
-                        </tr>
-                        <tr>
-                            <td>John Doe</td>
-                            <td>#102515510</td>
-                            <td><span class="status status-progress">Unpaid</span></td>
-                        </tr>
+                    }
                     </tbody>
                 </table>
             </div>
@@ -130,7 +122,7 @@
                 <button class="close-btn" onclick="hideDeleteInvoiceModal()">×</button>
             </div>
             <div class="payment-filter-options">
-                <div class="filter-option" >Yes</div>
+                <div id="confirmDeleteBtn" class="filter-option" >Yes</div>
                 <div class="filter-option" onclick="hideDeleteInvoiceModal()">Cancel</div>
             </div>
         </div>
@@ -144,15 +136,18 @@
                 <button class="close-btn" onclick="hideInvoiceOptionsModal()">×</button>
             </div>
             <div class="payment-filter-options">
-                <div class="filter-option" >View Invoice</div>
-                <div class="filter-option" >Delete</div>
-                <div class="filter-option" >Mark as Paid</div>
+                <div class="filter-option" onclick="showInvoiceDetailsModal()">View Invoice</div>
+                <div class="filter-option" onclick="showDeleteInvoiceModal()" >Delete</div>
+                <div class="filter-option" onclick="markAsPaid(selectedInvoiceID)">Mark as Paid</div>
             </div>
         </div>
     </div>
     
     <!-- Added JavaScript for modal functionality -->
     <script>
+        let selectedInvoiceID = null;
+        const tableBody = document.querySelector('.quotations-table tbody');
+        const originalRows = Array.from(tableBody.querySelectorAll('tr')).map(r => r.cloneNode(true));
     
          function showFilterModal() {
             document.getElementById('filterModal').style.display = 'flex';
@@ -162,8 +157,69 @@
             document.getElementById('filterModal').style.display = 'none';
         }
 
-         function showInvoiceDetailsModal() {
-            document.getElementById('invoiceDetailsModal').style.display = 'flex';
+        function applyFilter(filterType) {
+            const table = document.getElementById("paymentsTable"); // ID of your table
+            const rows = Array.from(table.querySelectorAll("tbody tr")); // Get all rows inside tbody
+
+           switch (filterType) {
+                    case 'alphabetical':
+                        rows.sort((a, b) => a.querySelector('.client-name').textContent.trim().localeCompare(b.querySelector('.client-name').textContent.trim()));
+                        break;
+                    case 'date-newest':
+                    case 'date-oldest':
+                        rows.sort((a, b) => new Date(a.dataset.createdAt) - new Date(b.dataset.createdAt));
+                        break;
+                    case 'recent':
+                        rows.sort((a, b) => new Date(b.dataset.createdAt) - new Date(a.dataset.createdAt));
+                        break;
+                }
+            // Clear existing rows and re-append sorted ones
+            const tbody = table.querySelector("tbody");
+            tbody.innerHTML = "";
+            rows.forEach(row => tbody.appendChild(row));
+
+            // Hide modal after applying filter
+            hideFilterModal();
+        }
+
+         async function showInvoiceDetailsModal() {
+            if (!selectedInvoiceID) return;
+
+            // Hide the options modal
+            document.getElementById('invoiceOptionsModal').style.display = 'none';
+
+            const modal = document.getElementById('invoiceDetailsModal');
+            const title = modal.querySelector('.title');
+            const details = modal.querySelectorAll('.invoice-details .details');
+
+            // Loading state
+            title.textContent = "Loading invoice...";
+            details.forEach(d => d.textContent = "—");
+            modal.style.display = 'flex';
+
+            try {
+                // Fetch details from controller
+                const response = await fetch(`/Payments/GetInvoiceDetails?id=${selectedInvoiceID}`);
+
+                if (!response.ok) {
+                    title.textContent = "Error loading invoice";
+                    console.error(await response.text());
+                    return;
+                }
+
+                const data = await response.json();
+
+                title.textContent = `Invoice #${data.invoiceNumber || selectedInvoiceID}`;
+                details[0].textContent = data.companyName || "N/A";
+                details[1].textContent = data.clientName || "N/A";
+                details[2].textContent = data.phone || "N/A";
+                details[3].textContent = data.address || "N/A";
+                details[4].textContent = data.totalAmount ? `R ${data.totalAmount}` : "N/A";
+
+            } catch (error) {
+                console.error("Error fetching invoice:", error);
+                title.textContent = "Error loading invoice";
+            }
         }
         
         function hideInvoiceDetailsModal() {
@@ -171,19 +227,91 @@
         }
 
         function showDeleteInvoiceModal(){
+            document.getElementById('invoiceOptionsModal').style.display = 'none';
             document.getElementById('deletePaymentModal').style.display = 'flex';
+
+            document.getElementById('confirmDeleteBtn').addEventListener('click', async function () {
+                if (!selectedInvoiceID) return;
+                try {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenInput ? tokenInput.value : '';
+                if (!token) {
+                    alert('CSRF token not found. Cannot delete invoice.');
+                    return;
+                }
+
+                const resp = await fetch('@Url.Action("DeleteInvoice", "Invoices")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ invoiceId: selectedInvoiceID })
+                });
+
+                const data = await resp.json();
+
+                if (resp.ok && data && data.success) {
+                    const row = tableBody.querySelector(`tr[data-invoice-id="${selectedInvoiceID}"]`);
+                    if (row) row.remove();
+                    alert('Invoice deleted successfully.');
+                } else {
+                    alert('Failed to delete invoice.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error deleting invoice.');
+            } finally {
+                hideDeleteModal();
+                selectedInvoiceID = null;
+            }
+            });
         }
 
          function hideDeleteInvoiceModal(){
             document.getElementById('deletePaymentModal').style.display = 'none';
         }
         
-        function showInvoiceOptionsModal(){
-            document.getElementById('invoiceOptionsModal').style.display = 'flex';
+        function showInvoiceOptionsModal(invoiceID) {
+            selectedInvoiceID = invoiceID;
+            const modal = document.getElementById('invoiceOptionsModal');
+            modal.style.display = 'flex';
         }
 
          function hideInvoiceOptionsModal(){
             document.getElementById('invoiceOptionsModal').style.display = 'none';
+        }
+        
+        async function markAsPaid(invoiceId) {
+            if (!invoiceId) {
+                alert("No invoice selected.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Payments/MarkAsPaid/${invoiceId}`, {
+                    method: "POST"
+                });
+
+                if (response.ok) {
+                    alert("Invoice marked as paid ✅");
+                    
+                    // Optionally update UI instantly without refreshing
+                    const statusCell = document.querySelector(`#invoice-status-${invoiceId}`);
+                    if (statusCell) {
+                        statusCell.textContent = "Paid";
+                        statusCell.classList.add("paid-status"); // Optional styling
+                    }
+
+                    hideInvoiceOptionsModal();
+                } else {
+                    const error = await response.text();
+                    alert("Failed to update: " + error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("An error occurred while marking as paid.");
+            }
         }
         // Close modal when pressing Escape key
         document.addEventListener('keydown', function(event) {
