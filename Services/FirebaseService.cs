@@ -849,5 +849,31 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
+        public async Task<Dictionary<string, object>> GetManagerDataAsync(string userId)
+        {
+            var docRef = _firestoreDb
+                .Collection("users")
+                .Document(userId)
+                .Collection("manager_data")
+                .Document(userId);
+
+            var snapshot = await docRef.GetSnapshotAsync();
+
+            if (snapshot.Exists)
+                return snapshot.ToDictionary();
+            else
+                throw new Exception("User data not found in Firestore.");
+        }
+
+        public async Task UpdateManagerDataAsync(string userId, Dictionary<string, object> updatedData)
+        {
+            var docRef = _firestoreDb
+                .Collection("users")
+                .Document(userId)
+                .Collection("manager_data")
+                .Document(userId);
+
+            await docRef.SetAsync(updatedData, SetOptions.MergeAll);
+        }
     }
 }
