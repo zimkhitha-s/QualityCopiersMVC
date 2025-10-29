@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <link rel="icon" type="image/png" href="~/images/logo2.png" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/clients.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-papq3tUj..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar stays in layout -->
+        <aside class="dashboard-sidebar">
+
+            <!-- Top -->
+            <div class="sidebar-top">
+                <img src="~/images/logo2.png" alt="Logo" class="sidebar-logo" />
+                <span class="sidebar-company">Quality Copiers</span>
+            </div>
+
+            <!-- Account -->
+            <div class="sidebar-account">
+                <img src="~/images/usericon.jpeg" alt="User Icon" class="user-icon" />
+                <div class="user-details">
+                    <span class="user-name">Craig Diedricks</span>
+                    <span class="user-job">Manager</span>
+                </div>
+            </div>
+
+            <!-- Middle menu -->
+            <div class="sidebar-nav">
+                <a href="@Url.Action("Index", "Dashboard")" class="nav-item">
+                    <img src="~/images/dashboard.png" alt="Logo" width="27.8" height="20">
+                    <span class="nav-label-white">Dashboard</span>
+                </a>
+                <a href="@Url.Action("Clients", "Clients")" class="nav-item">
+                    <img src="~/images/clients.png" alt="Logo" width="27.8" height="20">
+                    <span class="nav-label-white">Clients</span>
+                </a>
+                <a href="@Url.Action("Employees", "Employees")" class="nav-item">
+                    <img src="~/images/employees.png" alt="Logo" width="30" height="25">
+                    <span class="nav-label-blue">Employees</span>
+                </a>
+
+                <a href="@Url.Action("Invoices", "Invoices")" class="nav-item">
+                    <img src="~/images/invoice_quotations.png" alt="Logo" width="27.8" height="20">
+                    <span class="nav-label-white">Invoices</span>
+                </a>
+                <a href="@Url.Action("Quotations", "Quotations")" class="nav-item">
+                    <img src="~/images/invoice_quotations.png" alt="Logo" width="27.8" height="20">
+                    <span class="nav-label-white">Quotations</span>
+                </a>
+                <a href="@Url.Action("Payments", "Payments")" class="nav-item">
+                    <img src="~/images/payments.png" alt="Logo" width="27.8" height="20">
+                    <span class="nav-label-blue">Payments</span>
+                </a>
+            </div>
+
+            <div class="sidebar-footer">
+                <a href="@Url.Action("Notifications", "Notifications")" class="nav-item">
+                    <img src="~/images/notifications.png" alt="Logo" width="27.8" height="20">
+                    <span class="nav-label-white">Notifications</span>
+                </a>
+                <a href="@Url.Action("Profile", "Account")" class="nav-item">
+                    <img src="~/images/profile.png" alt="Logo" width="27.8" height="20">
+                    <span class="nav-label-white">Account</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <img src="~/images/logout.png" alt="Logo" width="27.8" height="20">
+                    <span class="nav-label-blue">Logout</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <img src="~/images/help.png" alt="Logo" width="27.8" height="20">
+                    <span class="nav-label-white">Help</span>
+                </a>
+            </div>
+
+        </aside>
+
+        <!-- Main content: THIS IS WHERE VIEWS LOAD -->
+        <main class="dashboard-main">
+            @RenderBody()
+        </main>
+    </div>
+
+    @RenderSection("Scripts", required: false)
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

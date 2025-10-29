@@ -1,0 +1,369 @@
+﻿@font-face {
+    font-family: 'Orbitron';
+    src: url('../fonts/Orbitron-VariableFont_wght.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Dashboard container */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+}
+.dashboard-main {
+    flex: 1;
+    background-color: #f5f5f5;
+    box-sizing: border-box;
+}
+
+.dashboard-main-content {
+    font-family: 'Agrandir', sans-serif;
+    flex: 1;
+    margin-left: 0px;
+    padding: 30px;
+    background-color: #f8f9fa;
+}
+
+
+/* Sidebar styling */
+.dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 280px;
+    background-color: #000;
+    color: #fff;
+    padding: 20px;
+    font-family: 'Poppins', sans-serif;
+    align-items: stretch;
+}
+
+/* Sidebar top (logo + company) */
+.sidebar-top {
+    display: flex;
+    align-items: center;
+    margin-bottom: 40px;
+    justify-content: center;
+    gap: 10px;
+}
+
+.sidebar-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.sidebar-company {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px;
+    margin: 0;
+    color: #fff;
+}
+
+/* Account section */
+.sidebar-account {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.user-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.user-name {
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    color: #fff;
+    font-weight: 500;
+}
+
+.user-job {
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    color: #98b5df;
+}
+
+/* Main Sidebar Navigation Container */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+}
+
+/* Each navigation item */
+.nav-item {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* align everything to the same left column */
+    color: #666;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    gap: 12px; /* consistent spacing between icon and text */
+    padding-left: 30px; /* add a nice uniform left margin */
+    box-sizing: border-box;
+}
+
+    .nav-item span {
+        display: block;
+        font-size: 14px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+    }
+
+/* When sidebar is expanded (for text + icon layout) */
+.sidebar.expanded .nav-item {
+    width: auto;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    gap: 12px;
+}
+
+.nav-label-white {
+    color: #ccc;
+}
+
+.nav-label-blue {
+    color: #8bb8f4;
+}
+
+/* Show text when sidebar is expanded */
+.sidebar.expanded .nav-item span {
+    display: block;
+}
+
+/* Hover effect */
+.nav-item:hover {
+    background-color: #333;
+    color: #fff;
+}
+
+.sidebar.expanded .nav-item:hover span {
+    color: #fff;
+}
+
+/* Active (highlighted) menu item */
+.nav-item.active {
+    background-color: #4a90e2;
+    color: white;
+}
+
+.sidebar.expanded .nav-item.active span {
+    color: white;
+}
+
+/* Sidebar footer (bottom section of nav) */
+.sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #333;
+}
+
+/* Footer visible only when expanded */
+.sidebar.expanded .sidebar-footer {
+    display: flex;
+}
+
+/* Footer hidden when collapsed */
+.sidebar:not(.expanded) .sidebar-footer {
+    display: none;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+    .dashboard-header h1 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+.dashboard-search {
+    padding: 8px 15px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    width: 250px;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Custom grid layout to accommodate different card sizes */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* responsive grid */
+    gap: 25px; /* spacing between cards */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+
+/* Basic dashboard card styling */
+.dashboard-card {
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-card.image-card {
+    background: #fff;
+}
+
+    .dashboard-card.image-card.first-row {
+        position: relative;
+        display: flex;
+        justify-content: center; /* center horizontally */
+        align-items: flex-end; /* move content to the bottom */
+        overflow: hidden;
+    }
+
+.payments-btn {
+    display: inline-block;
+    background-color: #98B5DF;
+    padding: 10px 20px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    margin-bottom: 25px; /* control how far from the bottom it sits */
+    transition: all 0.3s ease;
+}
+
+    .payments-btn:hover {
+        background-color: #7ba2de;
+        transform: translateY(-3px);
+    }
+
+.dashboard-card.placeholder {
+    background: #e0e0e0;
+}
+
+.dashboard-card .card-label {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* First row cards */
+.dashboard-card.first-row {
+    width: 350px;
+    height: 304.5px;
+}
+
+    /* First row */
+    .dashboard-card.first-row:nth-child(1) {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+    }
+
+    .dashboard-card.first-row:nth-child(2) {
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
+    }
+
+    .dashboard-card.first-row:nth-child(3) {
+        grid-column: 3 / 4;
+        grid-row: 1 / 2;
+    }
+
+/* Payments button */
+.payments-btn {
+    display: inline-block;
+    background-color: #98B5DF;
+    padding: 8px 14px;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Blue cards exact shade */
+.dashboard-card.blue {
+    background-color: #8BB8F4;
+}
+
+/* Fourth card */
+.dashboard-card.fourth-card {
+    grid-column: 1 / 2;
+    grid-row: 2 / 4;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    border-radius: 12px;
+}
+
+/* Last 4 smaller cards */
+/* 4 right-side cards (bigger now) */
+.dashboard-card.small-card {
+    height: 200px;
+    border-radius: 12px;
+}
+
+    /* Positions of the 4 right cards */
+    .dashboard-card.small-card:nth-child(5) {
+        grid-column: 2 / 3;
+        grid-row: 2 / 3;
+    }
+
+    .dashboard-card.small-card:nth-child(6) {
+        grid-column: 3 / 4;
+        grid-row: 2 / 3;
+    }
+
+    .dashboard-card.small-card:nth-child(7) {
+        grid-column: 2 / 3;
+        grid-row: 3 / 4;
+    }
+
+    .dashboard-card.small-card:nth-child(8) {
+        grid-column: 3 / 4;
+        grid-row: 3 / 4;
+    }
+
+/* Clickable card styling */
+.clickable-card {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.clickable-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.clickable-card:active {
+    transform: translateY(0);
+}
+

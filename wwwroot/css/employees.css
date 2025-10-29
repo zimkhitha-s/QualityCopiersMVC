@@ -1,0 +1,138 @@
+﻿/* employees.css */
+
+/* Page container */
+.clients-page {
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+}
+
+/* Header */
+.clients-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+    .clients-header h1 {
+        font-size: 28px;
+        font-weight: 600;
+    }
+
+.search-container {
+    display: flex;
+    align-items: center;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 45px 12px 20px;
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.search-icon img {
+    margin-left: -25px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Agrandir', sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.01em;
+}
+
+.add-btn {
+    background: linear-gradient(135deg, #98B5DF 0%, #8BB8F4 100%);
+    color: #ffffff;
+}
+
+    .add-btn:hover {
+        background-color: #8aa0d4;
+    }
+
+.filter-btn {
+    background: linear-gradient(135deg, #98B5DF 0%, #8BB8F4 100%);
+    color: #ffffff;
+}
+
+    .filter-btn:hover {
+        background-color: #e0e0e0;
+    }
+
+/* Table styling */
+.employees-table {
+    background-color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0,0,0,0.05);
+}
+
+    .employees-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .employees-table th,
+    .employees-table td {
+        padding: 12px 15px;
+        text-align: left;
+    }
+
+    .employees-table th {
+        background-color: #f9fafb;
+        font-weight: 500;
+        color: #555;
+    }
+
+    .employees-table tr:nth-child(even) {
+        background-color: #f5f5f5;
+    }
+
+    .employees-table tr:hover {
+        background-color: #e8f0fe;
+    }
+
+/* Employee name styling */
+.employee-name {
+    font-weight: 500;
+    color: #1a202c;
+}
+
+/* Operation buttons */
+.edit-btn img,
+.delete-btn img {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+    .edit-btn img:hover {
+        transform: scale(1.1);
+    }
+
+    .delete-btn img:hover {
+        transform: scale(1.1);
+    }
+
+/* No data row */
+.employees-table td[colspan="5"] {
+    font-style: italic;
+    color: #64748b;
+    text-align: center;
+    padding: 20px;
+}
+
+
