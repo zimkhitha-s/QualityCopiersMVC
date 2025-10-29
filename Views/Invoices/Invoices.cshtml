@@ -16,7 +16,7 @@
 </head>
 <body>
 
-    <!-- Main Content -->
+    <!-- main content -->
     <main class="main-content">
         <div class="content-header">
             <h1 class="page-title">Invoices</h1>
@@ -66,10 +66,20 @@
                                 <td>@invoice.Email</td>
                                 <td>@(invoice.CreatedAt?.ToDateTime().ToLocalTime().ToString("yyyy/MM/dd") ?? "N/A")</td>
                                 <td>#@invoice.InvoiceNumber</td>
-                                <td>@invoice.Status</td>
                                 <td>
-                                    <a href="#" class="send-btn text-success" data-invoice-id="@invoice.InvoiceNumber" title="Send Invoice">
-                                        <img src="~/images/delete.png" alt="Delete" width="35" height="35">
+                                    <select class="status-dropdown" data-invoice-id="@invoice.Id">
+                                        <option value="Unpaid" selected="@(invoice.Status == "Unpaid")">Unpaid</option>
+                                        <option value="Paid" selected="@(invoice.Status == "Paid")">Paid</option>
+                                    </select>
+                                </td>
+
+                                <td>
+                                    <a href="#" class="save-btn text-success" data-invoice-id="@invoice.Id" title="SaveInvoice">
+                                        <img src="~/images/save_button.png" alt="Delete" width="35" height="35">
+                                    </a>
+
+                                    <a href="#" class="send-btn text-success" data-invoice-id="@invoice.Id" title="SendInvoice">
+                                        <img src="~/images/share_button.png" alt="Delete" width="35" height="35">
                                     </a>
 
                                     <a href="#" class="delete-btn" title="Delete" data-invoice-id="@invoice.Id">
@@ -83,7 +93,7 @@
                     {
                         <tr>
                             <td colspan="6" style="text-align:center; padding:20px; font-weight:500; color:#999;">
-                                "No Quotations Yet."
+                                "No Invoices Yet."
                             </td>
                         </tr>
                     }
@@ -92,7 +102,7 @@
         </div>
     </main>
 
-    <!-- FILTER Modal -->
+    <!-- filter Modal -->
     <div id="filterModal" class="modal-overlay" onclick="hideFilterModal()">
         <div class="filter-modal" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -109,7 +119,35 @@
         </div>
     </div>
 
-    <!-- Delete confirmation modal (unchanged) -->
+    <!-- Save confirmation modal -->
+    <div id="saveModal" class="modal-overlay" style="display:none;">
+        <div class="delete-modal" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="hideSaveModal()">&times;</button>
+            <div class="modal-header"><h3 class="modal-title">Save Invoice</h3></div>
+            <p class="modal-message">Would you like to download this invoice as a PDF?</p>
+            <div class="modal-actions">
+                <button class="btn btn-success" id="confirmSaveBtn">Yes, Download</button>
+                <button class="btn btn-secondary" onclick="hideSaveModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Share confirmation modal -->
+    <div id="shareModal" class="modal-overlay" style="display:none;">
+        <div class="delete-modal" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="hideShareModal()">&times;</button>
+            <div class="modal-header"><h3 class="modal-title">Send Invoice</h3></div>
+            <p class="modal-message">Are you sure you want to send this invoice to the client?</p>
+            <div class="modal-actions">
+                <button class="btn btn-success" id="confirmShareBtn">Yes, Send</button>
+                <button class="btn btn-secondary" onclick="hideShareModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Delete confirmation modal -->
     <div id="deleteModal" class="modal-overlay" style="display:none;">
         <div class="delete-modal" onclick="event.stopPropagation()">
             <button class="close-btn" onclick="hideDeleteModal()">&times;</button>
@@ -122,13 +160,12 @@
         </div>
     </div>
 
-
-    <!-- Scripts for displaying and hiding filter popup-->
     <script>
+        // initial setup
         const tableBody = document.querySelector('.quotations-table tbody');
         const originalRows = Array.from(tableBody.querySelectorAll('tr')).map(r => r.cloneNode(true));
 
-        // --- SHOW/HIDE Filter Modal ---
+        // show or hide the filter modal
         function showFilterModal() {
             document.getElementById('filterModal').style.display = 'flex';
         }
@@ -137,13 +174,13 @@
             document.getElementById('filterModal').style.display = 'none';
         }
 
-        // --- SEARCH FUNCTIONALITY ---
+        // SEARCH FUNCTIONALITY
         const searchInput = document.querySelector('.search-input');
         searchInput?.addEventListener('input', function () {
             applySearchAndFilter(this.value.trim().toLowerCase());
         });
 
-        // --- FILTER FUNCTIONALITY ---
+        // FILTER FUNCTIONALITY
         window.applyFilter = function (filterType) {
             currentFilter = filterType;
             applySearchAndFilter(searchInput?.value.trim().toLowerCase() || '');
@@ -156,15 +193,15 @@
             hideFilterModal();
         };
 
-        // Track current filter
+        // tracking current filter
         let currentFilter = null;
 
-        // SEARCH and FILTER
+        // search and filter
         function applySearchAndFilter(searchQuery) {
             let rows = originalRows.map(r => r.cloneNode(true))
                 .filter(r => !r.querySelector('td[colspan]'));
 
-            // --- APPLY FILTER ---
+            // applying the filter
             if (currentFilter) {
                 switch (currentFilter) {
                     case 'alphabetical':
@@ -184,7 +221,7 @@
                 }
             }
 
-            // --- APPLY SEARCH ---
+            // applying the search
             if (searchQuery) {
                 rows = rows.filter(row => {
                     const clientName = (row.querySelector('td:nth-child(1)')?.textContent || '').toLowerCase();
@@ -195,7 +232,7 @@
                 });
             }
 
-            // --- UPDATE TABLE BODY ---
+            // updating the table body
             tableBody.innerHTML = '';
             if (rows.length) {
                 rows.forEach(r => tableBody.appendChild(r));
@@ -207,43 +244,184 @@
             }
         }
 
-        // --- CLOSE MODAL ON ESCAPE ---
+        // closing the model on escape
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
                 hideFilterModal();
             }
         });
 
-         document.addEventListener('click', function(e) {
-    const btn = e.target.closest('.send-btn');
-    if (!btn) return;
+        // Use event delegation on the table body to handle dynamic rows
+tableBody.addEventListener("change", function(e) {
+    const dropdown = e.target.closest(".status-dropdown");
+    if (!dropdown) return;
 
-    e.preventDefault();
-    const invoiceId = btn.dataset.invoiceId;
+    const invoiceId = dropdown.dataset.invoiceId;
+    const newStatus = dropdown.value;
 
-    fetch('@Url.Action("SendInvoice", "Invoices")', {
+    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+    const token = tokenInput ? tokenInput.value : '';
+
+    fetch('/Invoices/UpdateStatus', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ InvoiceId: invoiceId })
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': token
+        },
+        body: JSON.stringify({
+            invoiceId: invoiceId,
+            status: newStatus
+        })
     })
-    .then(async resp => {
-        let res = {};
-        try {
-            res = await resp.json();
-        } catch {
-            res = {};
-        }
-
-        if (resp.ok && res.success) {
-            alert('Invoice sent successfully!');
-        } else {
-            alert(res.message || 'Failed to send invoice.');
-        }
+    .then(resp => {
+        if (!resp.ok) throw new Error("Failed to update invoice status.");
+        return resp.json();
+    })
+    .then(data => {
+        alert("Invoice status updated successfully!");
     })
     .catch(err => {
-        alert('Error sending invoice: ' + (err.message || err));
+        console.error(err);
+        alert("Failed to update invoice status.");
+        // Optional: revert dropdown value if needed
     });
 });
+
+
+        let selectedInvoiceIdForSave = null;
+
+        // delegating events for the save buttons in the table
+        tableBody.addEventListener('click', function (e) {
+            const saveBtn = e.target.closest('.save-btn');
+            if (!saveBtn) return;
+
+            e.preventDefault();
+
+            selectedInvoiceIdForSave = saveBtn.dataset.invoiceId;
+            console.log("Selected Invoice ID:", selectedInvoiceIdForSave);
+
+            if (!selectedInvoiceIdForSave) {
+                alert("Invalid invoice ID.");
+                return;
+            }
+
+            // showing the save confirmation modal
+            document.getElementById('saveModal').style.display = 'flex';
+        });
+
+        // hiding the save modal
+        function hideSaveModal() {
+            document.getElementById('saveModal').style.display = 'none';
+        }
+
+        // save confirmation - download the invoice
+        document.getElementById('confirmSaveBtn').addEventListener('click', async function () {
+            if (!selectedInvoiceIdForSave) return alert("Invalid invoice ID.");
+
+            try {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenInput ? tokenInput.value : '';
+
+                const payload = { InvoiceId: selectedInvoiceIdForSave };
+                const response = await fetch('/Invoices/SaveInvoice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    return alert(err.message || "Failed to download invoice.");
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Invoice_${selectedInvoiceIdForSave}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+
+                hideSaveModal();
+            } catch (err) {
+                console.error("Error downloading invoice:", err);
+                alert("An error occurred while downloading the invoice.");
+            } finally {
+                selectedInvoiceIdForSave = null;
+            }
+        });
+
+        let invoiceToShare = null;
+
+        function showShareModal() {
+            document.getElementById('shareModal').style.display = 'flex';
+        }
+
+        function hideShareModal() {
+            document.getElementById('shareModal').style.display = 'none';
+        }
+
+        // click event delegation for share buttons
+        tableBody.addEventListener('click', function (e) {
+            const btn = e.target.closest('.send-btn, .send-btn *');
+            if (!btn) return;
+
+            e.preventDefault();
+            const anchor = btn.closest('.send-btn');
+            invoiceToShare = anchor?.dataset.invoiceId;
+            if (!invoiceToShare) return;
+
+            showShareModal();
+        });
+
+        // send confirmation
+        document.getElementById('confirmShareBtn').addEventListener('click', async function () {
+            if (!invoiceToShare) return;
+
+            hideShareModal();
+
+            try {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenInput ? tokenInput.value : '';
+                if (!token) {
+                    alert('CSRF token not found. Cannot send invoice.');
+                    return;
+                }
+
+                const resp = await fetch('@Url.Action("SendInvoice", "Invoices")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ InvoiceId: invoiceToShare })
+                });
+
+                const data = await resp.json();
+
+                if (resp.ok && data && data.success) {
+                    alert('Invoice successfully sent to the client.');
+                } else {
+                    alert(data.message || 'Failed to send invoice.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error sending invoice.');
+            } finally {
+                invoiceToShare = null;
+            }
+        });
+
+        // closing the modal on escape key
+        document.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Escape') hideShareModal();
+        });
+
 
         let invoiceToDelete = null;
 
@@ -255,7 +433,7 @@
             document.getElementById('deleteModal').style.display = 'none';
         }
 
-        // Click event delegation for delete buttons
+        // click event delegation for delete buttons
         tableBody.addEventListener('click', function (e) {
             const btn = e.target.closest('.delete-btn, .delete-btn *');
             if (!btn) return;
@@ -268,7 +446,7 @@
             showDeleteModal();
         });
 
-        // Confirm delete
+        // delete confrimation
         document.getElementById('confirmDeleteBtn').addEventListener('click', async function () {
             if (!invoiceToDelete) return;
 

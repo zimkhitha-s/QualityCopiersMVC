@@ -3,5 +3,6 @@
     public class InvoiceRequest
     {
         public string InvoiceId { get; set; }
+        public string? Status { get; set; }
     }
 }
