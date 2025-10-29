@@ -1,10 +1,8 @@
 ﻿using INSY7315_ElevateDigitalStudios_POE.Models;
 using INSY7315_ElevateDigitalStudios_POE.Models.Requests;
 using INSY7315_ElevateDigitalStudios_POE.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using System.Text;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 {
@@ -51,6 +49,58 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> SaveInvoice([FromBody] InvoiceRequest request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.InvoiceId))
+                return BadRequest(new { message = "Invalid invoice ID" });
+
+            var invoices = await _firebaseService.GetInvoicesAsync();
+            var invoice = invoices.FirstOrDefault(i => i.Id == request.InvoiceId);
+
+            if (invoice == null)
+                return NotFound(new { message = "Invoice not found" });
+
+            try
+            {
+                var pdfBytes = await _firebaseService.GenerateInvoicePdfBytesAsync(invoice);
+
+                string safeClientName = string.IsNullOrWhiteSpace(invoice.ClientName) ? "Client" :
+                                        string.Join("_", invoice.ClientName.Split(Path.GetInvalidFileNameChars()));
+                string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                string pdfFileName = $"Invoice_{safeClientName}_{invoice.InvoiceNumber}_{timestamp}.pdf";
+
+                return File(pdfBytes, "application/pdf", pdfFileName);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error generating invoice: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStatus([FromBody] InvoiceRequest request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.InvoiceId))
+                return BadRequest("Invalid request");
+
+            try
+            {
+                // Call your Firebase service to update the invoice
+                await _firebaseService.UpdateInvoiceStatusAsync(request.InvoiceId, request.Status);
+
+                return Ok(new { message = "Status updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SendInvoice([FromBody] InvoiceRequest request)
         {
             if (request == null || string.IsNullOrEmpty(request.InvoiceId))
@@ -58,14 +108,14 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 
             try
             {
-                // Retrieve the invoice by ID
+                // retrieve the invoice by document ID
                 var invoices = await _firebaseService.GetInvoicesAsync();
-                var invoice = invoices.FirstOrDefault(i => i.InvoiceNumber == request.InvoiceId);
+                var invoice = invoices.FirstOrDefault(i => i.Id == request.InvoiceId);
 
                 if (invoice == null)
                     return NotFound(new { message = "Invoice not found" });
 
-                // Generate PDF and send email
+                // generate pdf and send email
                 bool success = await _firebaseService.GenerateAndSendInvoiceAsync(invoice);
 
                 if (!success)
@@ -78,6 +128,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
 
         [HttpPost]
         public async Task<IActionResult> DeleteInvoice([FromBody] InvoiceRequest request)

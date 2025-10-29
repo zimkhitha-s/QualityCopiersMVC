@@ -7,33 +7,13 @@
 <link rel="stylesheet" href="~/css/dashboard.css" />
 
 <div class="add-client-container">
-    <div class="add-client-header">
-        <h1>Add New Client</h1>
-        <p>Enter the client information below to add them to your system.</p>
-    </div>
-
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">
-            @TempData["SuccessMessage"]
-        </div>
-    }
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger">
-            @TempData["ErrorMessage"]
-        </div>
-    }
-
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div class="alert alert-warning">
-            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        </div>
-    }
 
     <div class="add-client-form-wrapper">
+        <div class="add-client-header">
+            <h1>Add New Client</h1>
+            <p>Enter the client information below to add them to your system.</p>
+        </div>
+
         <div class="add-client-form-container">
             <form asp-action="AddClients" asp-controller="Clients" method="post" class="add-client-form">
                 @Html.AntiForgeryToken()
@@ -118,7 +98,7 @@
 
     /* === MAIN PAGE CONTAINER === */
     .add-client-form-wrapper {
-        display: flex;
+        display: block;
         justify-content: center;
         align-items: center;
         min-height: 90vh;
@@ -129,8 +109,9 @@
 
     /* === HEADER SECTION === */
     .add-client-header {
-        margin-bottom: 2rem;
+        padding-bottom: 4rem;
         text-align: center;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     }
 
     .add-client-header h1 {
@@ -160,6 +141,7 @@
         width: 100%;
         border: 1px solid #e2e8f0;
         transition: all 0.3s ease-in-out;
+        margin: 0 auto;
     }
 
     /* === FORM GRID (2 columns, 3 rows) === */

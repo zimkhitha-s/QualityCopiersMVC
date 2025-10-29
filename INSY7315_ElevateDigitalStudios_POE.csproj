@@ -8,12 +8,13 @@
 
   <ItemGroup>
     <None Remove="Templates\InvoiceTemplate.docx" />
+    <None Remove="Templates\Invoice\InvoiceTemplate.docx" />
     <None Remove="Templates\QuotationTemplate.docx" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Templates\Invoice\InvoiceTemplate.docx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Templates\Quotation\QuotationTemplate.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -26,6 +27,7 @@
     <PackageReference Include="MailKit" Version="4.14.1" />
     <PackageReference Include="QuestPDF" Version="2025.7.3" />
     <PackageReference Include="Spire.Doc" Version="13.9.10" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.10" />
   </ItemGroup>
 
 </Project>

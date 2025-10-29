@@ -1,4 +1,6 @@
 ﻿using INSY7315_ElevateDigitalStudios_POE.Models;
+using INSY7315_ElevateDigitalStudios_POE.Models.Dtos;
+using INSY7315_ElevateDigitalStudios_POE.Models.Requests;
 using INSY7315_ElevateDigitalStudios_POE.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,7 +30,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 return View(new List<Employee>());
             }
         }
-
 
         [HttpGet]
         public IActionResult AddEmployees()
@@ -75,6 +76,65 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             {
                 TempData["ErrorMessage"] = $"Error adding employee: {ex.Message}";
                 return View(employee);
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetEmployee(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return BadRequest("Employee ID is required.");
+
+            Employee employee = await _firebaseService.GetEmployeeByIdAsync(id);
+            if (employee == null) return NotFound();
+
+            return Json(employee);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateEmployee([FromBody] EmployeeUpdateDto dto)
+        {
+            if (dto == null || string.IsNullOrEmpty(dto.Id))
+                return BadRequest("Invalid employee data.");
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(new { message = "Validation failed", errors });
+            }
+
+            try
+            {
+                // Sanitize inputs
+                dto.FullName = System.Net.WebUtility.HtmlEncode(dto.FullName?.Trim());
+                dto.Email = System.Net.WebUtility.HtmlEncode(dto.Email?.Trim().ToLower());
+                dto.PhoneNumber = System.Net.WebUtility.HtmlEncode(dto.PhoneNumber?.Trim());
+
+                await _firebaseService.UpdateEmployeeAsync(dto);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error updating employee: {ex.Message}");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteEmployee([FromBody] DeleteEmployeeRequest request)
+        {
+            if (string.IsNullOrEmpty(request?.EmployeeId))
+                return BadRequest("Employee ID is missing.");
+
+            try
+            {
+                await _firebaseService.DeleteEmployeeAsync(request.EmployeeId);
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
     }

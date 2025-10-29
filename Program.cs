@@ -17,8 +17,6 @@ namespace INSY7315_ElevateDigitalStudios_POE
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
-            builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
-
 
             // Add global anti-forgery token validation
             builder.Services.AddControllersWithViews(options =>
@@ -45,13 +43,7 @@ namespace INSY7315_ElevateDigitalStudios_POE
 
 
             // Encryption Helper
-            // Encryption Helper
-            builder.Services.AddSingleton<EncryptionHelper>(sp =>
-            {
-                var config = sp.GetRequiredService<IConfiguration>();
-                var key = config.GetValue<string>("AppSettings:EncryptionKey");
-                return new EncryptionHelper(key);
-            });
+            builder.Services.AddSingleton<EncryptionHelper>();
 
             var app = builder.Build();
 

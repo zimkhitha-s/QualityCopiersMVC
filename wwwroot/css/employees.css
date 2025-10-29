@@ -2,7 +2,6 @@
 
 /* Page container */
 .clients-page {
-    padding: 20px;
     font-family: 'Poppins', sans-serif;
     color: #333;
 }
@@ -12,7 +11,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 
     .clients-header h1 {
@@ -26,38 +25,39 @@
 }
 
 .search-input {
-    border: 1px solid #ccc;
-    border-radius: 20px;
-    padding: 8px 15px;
-    width: 250px;
+    width: 100%;
+    padding: 12px 45px 12px 20px;
+    border: 2px solid #ddd;
+    border-radius: 25px;
     font-size: 14px;
     outline: none;
+    transition: border-color 0.2s ease;
 }
 
 .search-icon img {
     margin-left: -25px;
 }
 
-/* Actions (Add / Filter) */
-.clients-actions {
-    margin-bottom: 15px;
-}
-
 .btn {
     display: inline-flex;
     align-items: center;
-    padding: 6px 12px;
-    border-radius: 8px;
-    text-decoration: none;
+    gap: 0.5rem;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
     font-size: 14px;
+    font-weight: 500;
+    font-family: 'Agrandir', sans-serif;
+    text-decoration: none;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.01em;
 }
 
 .add-btn {
-    background-color: #a0b8e8;
-    color: #fff;
-    margin-right: 10px;
+    background: linear-gradient(135deg, #98B5DF 0%, #8BB8F4 100%);
+    color: #ffffff;
 }
 
     .add-btn:hover {
@@ -65,8 +65,8 @@
     }
 
 .filter-btn {
-    background-color: #f0f0f0;
-    color: #333;
+    background: linear-gradient(135deg, #98B5DF 0%, #8BB8F4 100%);
+    color: #ffffff;
 }
 
     .filter-btn:hover {
@@ -134,3 +134,5 @@
     text-align: center;
     padding: 20px;
 }
+
+

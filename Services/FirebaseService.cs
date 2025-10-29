@@ -45,10 +45,15 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         // method to add a new client to firestore
         public async Task AddClientAsync(Client client)
         {
+            // Assign unique ID
+            client.id = Guid.NewGuid().ToString();
             // encrypting the sensitive fields
-            client.email = _encryptionHelper.Encrypt(client.email);
+            client.name = _encryptionHelper.Encrypt(client.name);
+            client.surname = _encryptionHelper.Encrypt(client.surname);
+            client.email = client.email;
             client.phoneNumber = _encryptionHelper.Encrypt(client.phoneNumber);
             client.address = _encryptionHelper.Encrypt(client.address);
+            client.companyName = _encryptionHelper.Encrypt(client.companyName);
 
             var clientsRef = GetClientsCollection();
 
@@ -70,9 +75,12 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 client.id = doc.Id;
 
                 // Decrypt sensitive fields
-                client.email = _encryptionHelper.Decrypt(client.email);
-                client.phoneNumber = _encryptionHelper.Decrypt(client.phoneNumber);
-                client.address = _encryptionHelper.Decrypt(client.address);
+                client.name = _encryptionHelper.Decrypt(client.name).Trim();
+                client.surname = _encryptionHelper.Decrypt(client.surname).Trim();
+                client.email = client.email.Trim();
+                client.phoneNumber = _encryptionHelper.Decrypt(client.phoneNumber).Trim();
+                client.address = _encryptionHelper.Decrypt(client.address).Trim();
+                client.companyName = _encryptionHelper.Decrypt(client.companyName).Trim();
 
                 // Handle createdAt safely
                 if (client.createdAt is Timestamp ts)
@@ -101,9 +109,12 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             client.id = snapshot.Id;
 
             // Decrypt sensitive fields
-            client.email = _encryptionHelper.Decrypt(client.email);
-            client.phoneNumber = _encryptionHelper.Decrypt(client.phoneNumber);
-            client.address = _encryptionHelper.Decrypt(client.address);
+            client.name = _encryptionHelper.Decrypt(client.name).Trim();
+            client.surname = _encryptionHelper.Decrypt(client.surname).Trim();
+            client.email = client.email.Trim();
+            client.phoneNumber = _encryptionHelper.Decrypt(client.phoneNumber).Trim();
+            client.address = _encryptionHelper.Decrypt(client.address).Trim()   ;
+            client.companyName = _encryptionHelper.Decrypt(client.companyName).Trim();
 
             // Handle createdAt safely
             if (client.createdAt is Timestamp ts)
@@ -131,13 +142,15 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             if (!string.IsNullOrWhiteSpace(dto.FullName))
             {
                 var nameParts = dto.FullName.Trim().Split(' ', 2);
-                client.name = nameParts.Length > 0 ? nameParts[0] : client.name;
-                client.surname = nameParts.Length > 1 ? nameParts[1] : client.surname;
+                if (nameParts.Length > 0)
+                    client.name = _encryptionHelper.Encrypt(nameParts[0]);
+                if (nameParts.Length > 1)
+                    client.surname = _encryptionHelper.Encrypt(nameParts[1]);
             }
 
             // Update only provided fields
             if (!string.IsNullOrWhiteSpace(dto.CompanyName))
-                client.companyName = dto.CompanyName;
+                client.companyName = _encryptionHelper.Encrypt(dto.CompanyName);
 
             if (!string.IsNullOrWhiteSpace(dto.Email))
                 client.email = _encryptionHelper.Encrypt(dto.Email);
@@ -199,11 +212,11 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 var encryptedEmployee = new Employee
                 {
                     Uid = employee.Uid,
-                    IdNumber = employee.IdNumber,
+                    IdNumber = _encryptionHelper.Encrypt(employee.IdNumber),
                     Name = _encryptionHelper.Encrypt(employee.Name),
                     Surname = _encryptionHelper.Encrypt(employee.Surname),
-                    FullName = _encryptionHelper.Encrypt(employee.FullName),
-                    Email = _encryptionHelper.Encrypt(employee.Email),
+                    FullName = _encryptionHelper.Encrypt(employee.FullName ?? string.Empty),
+                    Email = employee.Email,
                     PhoneNumber = _encryptionHelper.Encrypt(employee.PhoneNumber),
                     Role = employee.Role,
                     CreatedAt = employee.CreatedAtDateTime
@@ -245,9 +258,11 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     // Decrypt sensitive fields
                     employee.Name = _encryptionHelper.Decrypt(employee.Name);
                     employee.Surname = _encryptionHelper.Decrypt(employee.Surname);
-                    employee.FullName = _encryptionHelper.Decrypt(employee.FullName);
-                    employee.Email = _encryptionHelper.Decrypt(employee.Email);
+                    employee.FullName = _encryptionHelper.Decrypt(employee.FullName ?? string.Empty);
+                    employee.IdNumber = _encryptionHelper.Decrypt(employee.IdNumber);
+                    employee.Email = employee.Email;
                     employee.PhoneNumber = _encryptionHelper.Decrypt(employee.PhoneNumber);
+                    employee.Role = employee.Role;
 
                     // Convert CreatedAt to CreatedAtDateTime for display
                     if (employee.CreatedAt != null)
@@ -271,6 +286,82 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
+        public async Task<Employee> GetEmployeeByIdAsync(string employeeId)
+        {
+            var employeesRef = GetEmployeesCollection();
+            DocumentReference employeeDocRef = employeesRef.Document(employeeId);
+
+            DocumentSnapshot snapshot = await employeeDocRef.GetSnapshotAsync();
+            if (!snapshot.Exists) return null;
+
+            Employee employee = snapshot.ConvertTo<Employee>();
+            employee.Uid = snapshot.Id;
+
+            // Decrypt sensitive fields
+            employee.Name = _encryptionHelper.Decrypt(employee.Name).Trim();
+            employee.Surname = _encryptionHelper.Decrypt(employee.Surname).Trim();
+            employee.Email = employee.Email.Trim();
+            employee.PhoneNumber = _encryptionHelper.Decrypt(employee.PhoneNumber).Trim();
+
+            // Handle createdAt safely
+            if (employee.CreatedAt is Timestamp ts)
+                employee.CreatedAtDateTime = ts.ToDateTime();
+            else if (employee.CreatedAt is long unixTimestamp)
+                employee.CreatedAtDateTime = DateTimeOffset.FromUnixTimeSeconds(unixTimestamp).UtcDateTime;
+            else
+                employee.CreatedAtDateTime = DateTime.UtcNow;
+
+            return employee;
+        }
+
+
+        public async Task UpdateEmployeeAsync(EmployeeUpdateDto dto)
+        {
+            var employeesRef = GetEmployeesCollection();
+            DocumentReference employeeDocRef = employeesRef.Document(dto.Id);
+
+            DocumentSnapshot snapshot = await employeeDocRef.GetSnapshotAsync();
+            if (!snapshot.Exists) throw new Exception("Employee not found");
+
+            Employee employee = snapshot.ConvertTo<Employee>();
+
+            // Split full name into first + last name if provided
+            if (!string.IsNullOrWhiteSpace(dto.FullName))
+            {
+                var nameParts = dto.FullName.Trim().Split(' ', 2);
+                if (nameParts.Length > 0)
+                    employee.Name = _encryptionHelper.Encrypt(nameParts[0]);
+                if (nameParts.Length > 1)
+                    employee.Surname = _encryptionHelper.Encrypt(nameParts[1]);
+            }
+
+            // Update other fields if provided
+            if (!string.IsNullOrWhiteSpace(dto.Email))
+                employee.Email = dto.Email;
+
+            if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
+                employee.PhoneNumber = _encryptionHelper.Encrypt(dto.PhoneNumber);
+
+            await employeeDocRef.SetAsync(employee, SetOptions.Overwrite);
+        }
+
+        public async Task DeleteEmployeeAsync(string employeeId)
+        {
+            try
+            {
+                var employeesRef = GetEmployeesCollection();
+                DocumentReference employeeDocRef = employeesRef.Document(employeeId);
+
+                await employeeDocRef.DeleteAsync();
+                Console.WriteLine($"Employee {employeeId} deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting employee: {ex.Message}");
+                throw; // propagate error so controller can return 500
+            }
+        }
+
         private CollectionReference GetEmployeesCollection(string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2")
         {
             return _firestoreDb.Collection("users").Document(userId).Collection("employees");
@@ -284,7 +375,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     return (false, "Quotation was null", null);
 
                 // Firestore setup
-                string userId = "vz4maSc0vOgouOGPhtdkFzBlceK2";
+                string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
                 DocumentReference userDocRef = _firestoreDb.Collection("users").Document(userId);
                 CollectionReference quotesRef = userDocRef.Collection("quotes");
 
@@ -501,7 +592,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         {
             try
             {
-                string userId = "vz4maSc0vOgouOGPhtdkFzBlceK2";
+                string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
                 var quotesRef = _firestoreDb.Collection("users").Document(userId).Collection("quotes");
                 var snapshot = await quotesRef.GetSnapshotAsync();
 
@@ -546,7 +637,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         {
             try
             {
-                string userId = "vz4maSc0vOgouOGPhtdkFzBlceK2";
+                string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
                 DocumentReference quoteDoc = _firestoreDb
                     .Collection("users")
                     .Document(userId)
@@ -564,7 +655,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
         public async Task<List<Invoice>> GetInvoicesAsync()
         {
-            string userId = "vz4maSc0vOgouOGPhtdkFzBlceK2";
+            string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
             var invoicesRef = _firestoreDb.Collection("users").Document(userId).Collection("invoices");
             var snapshot = await invoicesRef.GetSnapshotAsync();
 
@@ -635,45 +726,144 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
+        // Generating invoice PDF bytes - used for downloading/saving invoice
+
+        public async Task<byte[]> GenerateInvoicePdfBytesAsync(Invoice invoice)
+        {
+            // validating the invoice
+            if (invoice == null || invoice.Items == null || !invoice.Items.Any())
+                throw new ArgumentException("Invoice is invalid");
+
+            // defining the paths
+            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Invoice", "InvoiceTemplate.docx");
+            if (!File.Exists(templatePath))
+                throw new FileNotFoundException("Invoice template not found.", templatePath);
+
+            // defining the output directory and file names
+            string generatedDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GeneratedInvoicePdfs");
+            Directory.CreateDirectory(generatedDir);
+
+            // sanitizing client name for file system
+            string safeClientName = string.IsNullOrWhiteSpace(invoice.ClientName) ? "Client" :
+                                    string.Join("_", invoice.ClientName.Split(Path.GetInvalidFileNameChars()));
+            string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            string pdfFileName = $"Invoice_{safeClientName}_{invoice.InvoiceNumber}_{timestamp}.pdf";
+
+            string tempDocxPath = Path.Combine(generatedDir, $"{Path.GetFileNameWithoutExtension(pdfFileName)}.docx");
+            string outputPdfPath = Path.Combine(generatedDir, pdfFileName);
+
+            // generating the pdf
+            GenerateInvoicePdf(invoice, templatePath, tempDocxPath, outputPdfPath);
+
+            if (!File.Exists(outputPdfPath))
+                throw new FileNotFoundException("Failed to generate invoice PDF", outputPdfPath);
+
+            // reading the bytes
+            var pdfBytes = await File.ReadAllBytesAsync(outputPdfPath);
+
+            // cleaning up the files
+            if (File.Exists(tempDocxPath))
+                File.Delete(tempDocxPath);
+
+            // returning the pdf bytes
+            return pdfBytes;
+        }
+
+
         public async Task<bool> GenerateAndSendInvoiceAsync(Invoice invoice)
         {
             try
             {
+                // validating invoice
+                if (invoice == null)
+                    throw new ArgumentNullException(nameof(invoice), "Invoice cannot be null.");
+                if (invoice.Items == null || !invoice.Items.Any())
+                    throw new ArgumentException("Invoice items are missing.", nameof(invoice));
+
+                // defining the file paths ---
                 string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Invoice", "InvoiceTemplate.docx");
+                if (!File.Exists(templatePath))
+                    throw new FileNotFoundException("Invoice template not found.", templatePath);
+
+                // defining output directory and file names
                 string generatedDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GeneratedInvoicePdfs");
                 Directory.CreateDirectory(generatedDir);
 
+                // sanitizing client name for file system
                 string safeClientName = string.IsNullOrWhiteSpace(invoice.ClientName)
                     ? "Client"
                     : string.Join("_", invoice.ClientName.Split(Path.GetInvalidFileNameChars()));
-                string pdfFileName = $"Invoice {safeClientName} {invoice.InvoiceNumber}.pdf";
 
+                // unique timestamp for file name
+                string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                string pdfFileName = $"Invoice {safeClientName} {invoice.InvoiceNumber} {timestamp}.pdf";
+
+                // temporary DOCX and final PDF paths
                 string tempDocxPath = Path.Combine(generatedDir, $"{Path.GetFileNameWithoutExtension(pdfFileName)}.docx");
                 string outputPdfPath = Path.Combine(generatedDir, pdfFileName);
 
+                // generating the pdf 
                 GenerateInvoicePdf(invoice, templatePath, tempDocxPath, outputPdfPath);
+
+                // validating the pdf file content before sending
+                if (!File.Exists(outputPdfPath))
+                    throw new FileNotFoundException("Failed to generate invoice PDF.", outputPdfPath);
+
+                // basic file checks
+                var fi = new FileInfo(outputPdfPath);
+                Console.WriteLine($"[DEBUG] Generated PDF size: {fi.Length} bytes at {outputPdfPath}");
+                if (fi.Length < 100)
+                    throw new InvalidOperationException($"Generated PDF seems too small ({fi.Length} bytes).");
+
+                // quick header check
+                using (var fs = File.OpenRead(outputPdfPath))
+                {
+                    var header = new byte[5];
+                    fs.Read(header, 0, header.Length);
+                    var headerStr = System.Text.Encoding.ASCII.GetString(header);
+                    Console.WriteLine($"[DEBUG] PDF header: {headerStr}");
+                    if (!headerStr.StartsWith("%PDF"))
+                        throw new InvalidOperationException("Generated file is not a valid PDF (missing %PDF header).");
+                }
+
+                // sending the email
                 await SendInvoiceEmailAsync(invoice, outputPdfPath);
 
-                // Clean up DOCX
-                if (File.Exists(tempDocxPath)) File.Delete(tempDocxPath);
+                // cleaning up the temp docx file
+                if (File.Exists(tempDocxPath))
+                    File.Delete(tempDocxPath);
 
+                Console.WriteLine($"Invoice {invoice.InvoiceNumber} successfully generated and sent.");
                 return true;
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Validation failed: {ex.Message}");
+                return false;
+            }
+            catch (FileNotFoundException ex)
+            {
+                Console.WriteLine($"File error: {ex.Message} (File: {ex.FileName})");
+                return false;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to generate or send invoice {invoice.InvoiceNumber}: {ex.Message}");
+                Console.WriteLine($"Failed to generate/send invoice {invoice?.InvoiceNumber ?? "N/A"}: {ex}");
                 return false;
             }
         }
 
-
         private void GenerateInvoicePdf(Invoice invoice, string templatePath, string tempDocxPath, string outputPdfPath)
         {
-            // Load template
+            if (invoice == null) throw new ArgumentNullException(nameof(invoice));
+            if (invoice.Items == null || !invoice.Items.Any())
+                throw new ArgumentException("Invoice must have at least one item.", nameof(invoice));
+
+            // load the word template
             Document wordDoc = new Document();
             wordDoc.LoadFromFile(templatePath);
 
-            // Helper method to replace text
+            // Helper to replace placeholders
             void ReplaceText(string placeholder, string value)
             {
                 TextSelection selection = wordDoc.FindString(placeholder, true, true);
@@ -684,24 +874,24 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     range.CharacterFormat.FontName = "Poppins";
                     range.CharacterFormat.FontSize = 11;
                 }
+                else
+                {
+                    Console.WriteLine($"[DEBUG] Placeholder '{placeholder}' not found in template.");
+                }
             }
 
-            // Replace static placeholders
             ReplaceText("{{ClientName}}", invoice.ClientName);
             ReplaceText("{{ClientEmail}}", invoice.Email);
             ReplaceText("{{InvoiceNumber}}", invoice.InvoiceNumber);
-
-            // Handle CreatedAt properly (Firestore Timestamp → DateTime)
-            DateTime invoiceDate = invoice.CreatedAt.HasValue
-                ? invoice.CreatedAt.Value.ToDateTime()
-                : DateTime.UtcNow;
+            DateTime invoiceDate = invoice.CreatedAt.HasValue ? invoice.CreatedAt.Value.ToDateTime() : DateTime.UtcNow;
             ReplaceText("{{InvoiceDate}}", invoiceDate.ToString("yyyy/MM/dd"));
 
             // Build Items Table
             Section section = wordDoc.Sections[0];
             Table itemsTable = section.AddTable(true);
 
-            int totalRows = (invoice.Items?.Count ?? 0) + 2;
+            int itemCount = invoice.Items.Count;
+            int totalRows = itemCount + 2; // header + items + total
             itemsTable.ResetCells(totalRows, 4);
 
             // Table header
@@ -719,16 +909,18 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             // Item rows
             double totalAmount = 0;
-            for (int i = 0; i < (invoice.Items?.Count ?? 0); i++)
+            for (int i = 0; i < itemCount; i++)
             {
                 var item = invoice.Items[i];
-                double rowTotal = item.Quantity * item.UnitPrice;
+                double qty = Math.Max(0, item.Quantity);
+                double price = Math.Max(0, item.UnitPrice);
+                double rowTotal = qty * price;
                 totalAmount += rowTotal;
 
                 TableRow row = itemsTable.Rows[i + 1];
-                row.Cells[0].AddParagraph().AppendText(item.Quantity.ToString()).CharacterFormat.FontName = "Poppins";
+                row.Cells[0].AddParagraph().AppendText(qty.ToString()).CharacterFormat.FontName = "Poppins";
                 row.Cells[1].AddParagraph().AppendText(item.Description ?? string.Empty).CharacterFormat.FontName = "Poppins";
-                row.Cells[2].AddParagraph().AppendText($"R{item.UnitPrice:0.00}").CharacterFormat.FontName = "Poppins";
+                row.Cells[2].AddParagraph().AppendText($"R{price:0.00}").CharacterFormat.FontName = "Poppins";
                 row.Cells[3].AddParagraph().AppendText($"R{rowTotal:0.00}").CharacterFormat.FontName = "Poppins";
             }
 
@@ -739,7 +931,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             totalRow.Cells[3].AddParagraph().AppendText($"R{totalAmount:0.00}").CharacterFormat.Bold = true;
             totalRow.Cells[3].Paragraphs[0].Format.HorizontalAlignment = HorizontalAlignment.Right;
 
-            // Invoice Table 
+            // Insert table at placeholder
             TextSelection placeholder = wordDoc.FindString("{{ItemsTable}}", true, true);
             if (placeholder != null)
             {
@@ -748,11 +940,21 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 int index = body.ChildObjects.IndexOf(para);
                 body.ChildObjects.Remove(para);
                 body.ChildObjects.Insert(index, itemsTable);
+                Console.WriteLine("[DEBUG] Inserted items table at placeholder.");
+            }
+            else
+            {
+                // fallback: append to section body (log so you can inspect template)
+                section.Body.ChildObjects.Add(itemsTable);
+                Console.WriteLine("[DEBUG] Placeholder '{{ItemsTable}}' not found — appended table to section body.");
             }
 
-            // Save generated files
+            // Save files
             wordDoc.SaveToFile(tempDocxPath, FileFormat.Docx);
             wordDoc.SaveToFile(outputPdfPath, FileFormat.PDF);
+
+            Console.WriteLine($"[DEBUG] Saved DOCX: {tempDocxPath}");
+            Console.WriteLine($"[DEBUG] Saved PDF: {outputPdfPath}");
         }
 
         private async Task SendInvoiceEmailAsync(Invoice invoice, string pdfPath)
@@ -767,42 +969,66 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             emailMessage.Subject = $"Invoice {invoice.InvoiceNumber}";
 
             var builder = new BodyBuilder();
-
-            // HTML body
             builder.HtmlBody = $@"
-            <p>Dear {System.Net.WebUtility.HtmlEncode(invoice.ClientName)},</p>
-            <p>Thank you for your business. Please find your invoice attached.</p>
-            <p>The status of this invoice is <strong>{System.Net.WebUtility.HtmlEncode(invoice.Status)}</strong>.</p>
-            <p>Kind regards,<br/>Quality Copiers</p>";
+                 <p>Dear {System.Net.WebUtility.HtmlEncode(invoice.ClientName)},</p>
+                 <p>Thank you for your business. Please find your invoice attached.</p>
+                 <p>The status of this invoice is <strong>{System.Net.WebUtility.HtmlEncode(invoice.Status)}</strong>.</p>
+                 <p>Kind regards,<br/>Quality Copiers</p>";
 
-            // Attach PDF
-            var pdfAttachment = new MimePart("application", "pdf")
+            // Attach PDF using a FileStream kept open for the send operation
+            using (var pdfStream = File.OpenRead(pdfPath))
             {
-                Content = new MimeContent(File.OpenRead(pdfPath), ContentEncoding.Base64),
-                ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
-                ContentTransferEncoding = ContentEncoding.Base64,
-                FileName = Path.GetFileName(pdfPath)
-            };
+                // Use MimePart with MimeContent constructed from the stream (like your quotations code)
+                var pdfAttachment = new MimePart("application", "pdf")
+                {
+                    Content = new MimeContent(pdfStream, ContentEncoding.Default), // let MimeKit set encoding on transfer
+                    ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
+                    ContentTransferEncoding = ContentEncoding.Base64,
+                    FileName = Path.GetFileName(pdfPath)
+                };
 
-            var multipart = new Multipart("mixed");
-            multipart.Add(new TextPart("html") { Text = builder.HtmlBody });
-            multipart.Add(pdfAttachment);
+                var multipart = new Multipart("mixed");
+                multipart.Add(new TextPart("html") { Text = builder.HtmlBody });
+                multipart.Add(pdfAttachment);
 
-            emailMessage.Body = multipart;
+                emailMessage.Body = multipart;
 
-            // Send email via Gmail SMTP
-            using var smtp = new MailKit.Net.Smtp.SmtpClient();
-            await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-            await smtp.AuthenticateAsync("zimkhitha.sasanti@gmail.com", "pflq gfdg xyeb pitx");
-            await smtp.SendAsync(emailMessage);
-            await smtp.DisconnectAsync(true);
+                // Now send (stream must remain open until SendAsync completes)
+                using var smtp = new MailKit.Net.Smtp.SmtpClient();
+                await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+                await smtp.AuthenticateAsync("zimkhitha.sasanti@gmail.com", "pflq gfdg xyeb pitx");
+                await smtp.SendAsync(emailMessage);
+                await smtp.DisconnectAsync(true);
+            }
         }
+
+        public async Task UpdateInvoiceStatusAsync(string invoiceId, string status)
+        {
+            // Replace with the correct user ID
+            string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
+
+            // Access the invoice document inside the user's "invoices" subcollection
+            var docRef = _firestoreDb
+                .Collection("users")
+                .Document(userId)
+                .Collection("invoices")
+                .Document(invoiceId);
+
+            var updates = new Dictionary<string, object>
+    {
+        { "Status", status }
+    };
+
+            await docRef.UpdateAsync(updates);
+        }
+
+
 
         public async Task DeleteInvoiceAsync(string invoiceId)
         {
             try
             {
-                string userId = "vz4maSc0vOgouOGPhtdkFzBlceK2";
+                string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
                 DocumentReference invoiceDoc = _firestoreDb
                     .Collection("users")
                     .Document(userId)

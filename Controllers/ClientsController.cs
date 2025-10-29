@@ -67,8 +67,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                     return View(client);
                 }
 
-                // Assign unique ID
-                client.id = Guid.NewGuid().ToString();
+                
 
                 // Save to Firebase (encryption handled inside the service)
                 await _firebaseService.AddClientAsync(client);

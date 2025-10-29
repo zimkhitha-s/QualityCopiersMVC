@@ -12,20 +12,6 @@
         <p>Enter the employees information below to add them to your system.</p>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">
-            @TempData["SuccessMessage"]
-        </div>
-    }
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger">
-            @TempData["ErrorMessage"]
-        </div>
-    }
-
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="alert alert-warning">
