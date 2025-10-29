@@ -2,11 +2,11 @@
     ViewData["Title"] = "Home";
 }
 
+@section PageCss {
+    <link rel="stylesheet" href="~/css/website.css" />
+}
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+
 <!-- Hero Section -->
 <section class="hero">
     <div class="hero-content">
@@ -27,30 +27,32 @@
 
     <div class="services-grid">
         <div class="service-card">
-            <h3>Technical Support</h3>
-            <img src="~/images/tools.jpeg" alt="Technical Support" />
+            <h3>Technical<br>Support</h3>
+            <img src="~/images/technical_support.png" alt="Technical Support" />
             <p>Expert repair and maintenance for all types of printers and copiers.</p>
         </div>
 
         <div class="service-card">
-            <h3>Machine Sales</h3>
-            <img src="~/images/printer.jpeg" alt="Machine Sales" />          
+            <h3>Machine<br>Sales</h3>
+            <img src="~/images/machine_sales.png" alt="Machine Sales" />
             <p>Quality printers and copiers from leading brands at competitive prices.</p>
         </div>
 
         <div class="service-card">
-            <h3>Consumable Sales</h3>
-            <img src="~/images/consumables.jpeg" alt="Consumables" />            
+            <h3>Consumable<br>Sales</h3>
+            <img src="~/images/consumable_sales.png" alt="Consumables" />
             <p>Genuine and compatible toners, inks, and other printing supplies.</p>
         </div>
 
         <div class="service-card">
-            <h3>Maintenance Contracts</h3>
-            <img src="~/images/maintenance.jpeg" alt="Maintenance Contracts" />           
+            <h3>Maintenance<br>Contracts</h3>
+            <img src="~/images/maintenance_contracts.png" alt="Maintenance Contracts" />
             <p>Regular service plans to keep your equipment running smoothly.</p>
         </div>
     </div>
-    <a asp-controller="Home" asp-action="Services" class="btn btn-outline-dark">View All Services</a>
+
+    <a asp-controller="Home" asp-action="Services" class="services-button" colo>View All Services</a>
+
 </section>
 
 <!-- About Section -->
@@ -61,113 +63,35 @@
         <p class="subtitle">Since 2007</p>
         <p>Quality Copiers was established over fifteen years ago, with management boasting more than thirty years of experience in the office automation industry. Under new ownership since October 2007, we continue to provide exceptional services to businesses of all sizes. </p>
         <p>Our specialty is Ricoh/Gestetner printers and copiers, but we also have experience servicing and maintaining various other brands, including HP-Hewlett Packard, Xerox, Minolta, Epson, Canon, and many others. </p>
-        <ul>
-            <li>✔ Expert Technicians</li>
-            <li>✔ Fast Response</li>
-            <li>✔ Quality Parts</li>
-            <li>✔ Competitive Pricing</li>
+
+        <br />
+        <ul class="about-features">
+            <li> Expert Technicians <br /><br /><p style="color:#828282;"> Skilled <br />professional with <br />years of <br />experience</p></li>
+            <li> Fast Response<br /><br /><p style="color:#828282;"> Quick service to<br /> minimize <br /> downtime</p></li>
+            <li> Quality Parts<br /><br /><p style="color:#828282;"> Genuine and <br /> compatible high- <br /> quality <br />components</p></li>
+            <li> Competitive Pricing<br /><br /><p style="color:#828282;"> Fair rates without <br /> compromising <br /> quality</p></li>
         </ul>
-        <a asp-controller="Home" asp-action="About" class="btn btn-dark">More About Us</a>
+        <br />
+
+        <a asp-controller="Home" asp-action="About" class="about-button">More About Us</a>
     </div>
 </section>
 
-<!-- Brands Section -->
 <section class="brands">
-    <h1>Brands We Service</h1>
-    <p>We specialize in Ricoh/Gestetner equipment, but we service a wide range of printer and copier brands to meet all your needs.</p>
-    <div class="brand-logos">
+    <div class="brands-text">
+        <h1>Brands We Service</h1>
+        <p>We specialize in Ricoh/Gestetner equipment, but we service a wide range of printer and copier brands to meet all your needs.</p>
+    </div>
+
+    <div class="brands-image">
         <img src="~/images/brands.png" alt="Brand Logos" />
     </div>
-    <a asp-controller="Home" asp-action="Products" class="btn btn-outline-light">View Our Products</a>
 </section>
+
 
 <!-- Call to Action -->
 <section class="cta">
-    <h1>Ready to optimize your printing infrastructure?</h1>
-    <p>Contact us today for a free consultation and let our experts help you find the perfect printing solution for your business.</p>
-    <a asp-controller="Home" asp-action="Contact" class="btn btn-dark">Get in Touch</a>
+    <h1>Ready to optimize your printing <br />infrastructure?</h1>
+    <p>Contact us today for a free consultation and let our experts help you find the perfect <br />printing solution for your business.</p>
+    <a asp-controller="Home" asp-action="Contact" class="calltoaction-button">Get in Touch</a>
 </section>
-
-
-
-@* @{
-    ViewData["Title"] = "Home";
-}
-
-<!-- Hero Section -->
-<section style="background: url('~/images/header.png') no-repeat center center; background-size: cover; color: white; padding: 120px 20px; text-align: center;">
-    <h1>Professional Printing & Copying Solutions</h1>
-    <p>Quality Copiers offers reliable, honest, and cost-effective service with over 30 years of experience in the office automation industry.</p>
-    <a asp-controller="Home" asp-action="Contact" class="btn btn-light">Get in Touch</a>
-    <a asp-controller="Home" asp-action="Services" class="btn btn-dark">Our Services</a>
-</section>
-
-<!-- Services Section -->
-<section style="padding: 60px 20px; text-align:center;">
-    <h2>Our Expert Services</h2>
-    <p>With over 30 years of industry experience, we provide comprehensive printer and copier solutions to businesses across Cape Town.</p>
-
-    <div class="services-grid">
-        <div class="service-card">
-            <img src="~/images/tools.jpeg" alt="Technical Support" />
-            <h3>Technical Support</h3>
-            <p>Expert repair and maintenance for all types of printers and copiers.</p>
-        </div>
-
-        <div class="service-card">
-            <img src="~/images/printer.jpeg" alt="Machine Sales" />
-            <h3>Machine Sales</h3>
-            <p>Quality printers and copiers from leading brands at competitive prices.</p>
-        </div>
-
-        <div class="service-card">
-            <img src="~/images/consumables.jpeg" alt="Consumables" />
-            <h3>Consumable Sales</h3>
-            <p>Genuine and compatible toners, inks, and other printing supplies.</p>
-        </div>
-
-        <div class="service-card">
-            <img src="~/images/maintenance.jpeg" alt="Maintenance Contracts" />
-            <h3>Maintenance Contracts</h3>
-            <p>Regular service plans to keep your equipment running smoothly.</p>
-        </div>
-    </div>
-    <a asp-controller="Home" asp-action="Services" class="btn btn-outline-dark">View All Services</a>
-</section>
-
-<!-- About Section -->
-<section style="padding:60px 20px; display:flex; align-items:center; gap:40px;">
-    <img src="~/images/about.png" alt="About Us" style="width:50%; border-radius:10px;" />
-    <div>
-        <h2>Reliable Printer & Copier Solutions</h2>
-        <p><em>Since 2007</em></p>
-        <p>Quality Copiers was established over fifteen years ago, with management boasting more than thirty years of experience in the office automation industry.</p>
-        <ul>
-            <li>✔ Expert Technicians</li>
-            <li>✔ Fast Response</li>
-            <li>✔ Quality Parts</li>
-            <li>✔ Competitive Pricing</li>
-        </ul>
-        <a asp-controller="Home" asp-action="About" class="btn btn-dark">More About Us</a>
-    </div>
-</section>
-
-<!-- Brands Section -->
-<section style="background:black; color:white; padding:60px 20px; text-align:center;">
-    <h2>Brands We Service</h2>
-    <p>We specialize in Ricoh/Gestetner equipment, but we service a wide range of printer and copier brands to meet all your needs.</p>
-    <div class="brand-logos">
-        <img src="~/images/brands.png" alt="Brand Logos" />
-        
-    </div>
-    <a asp-controller="Home" asp-action="Products" class="btn btn-outline-light">View Our Products</a>
-</section>
-
-<!-- Call to Action -->
-<section style="padding:60px 20px; text-align:center;">
-    <h2>Ready to optimize your printing infrastructure?</h2>
-    <p>Contact us today for a free consultation and let our experts help you find the perfect printing solution for your business.</p>
-    <a asp-controller="Home" asp-action="Contact" class="btn btn-dark">Get in Touch</a>
-</section>
-
- *@
