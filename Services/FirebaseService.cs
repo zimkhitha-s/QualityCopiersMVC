@@ -374,217 +374,218 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 if (quotation == null)
                     return (false, "Quotation was null", null);
 
-                // Firestore setup
                 string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
-                DocumentReference userDocRef = _firestoreDb.Collection("users").Document(userId);
-                CollectionReference quotesRef = userDocRef.Collection("quotes");
 
-                // Reserve Firestore document ID early
-                DocumentReference reservedDocRef = quotesRef.Document();
-                quotation.id = reservedDocRef.Id;
+                // 1️⃣ Prepare quotation metadata & totals
+                PrepareQuotationMetadata(quotation);
+                CalculateQuotationTotals(quotation);
 
-                // Generate metadata
-                quotation.quoteNumber = $"#{DateTime.UtcNow.Ticks % 1000000:D6}";
-                quotation.createdAt = Timestamp.FromDateTime(DateTime.UtcNow);
-                quotation.secureToken = Guid.NewGuid().ToString("N");
-
-                // Calculate total amount
-                double totalAmount = 0.0;
-                if (quotation.Items != null && quotation.Items.Any())
-                {
-                    foreach (var item in quotation.Items)
-                    {
-                        if (item == null) continue;
-                        item.quantity = Math.Max(item.quantity, 0);
-                        item.unitPrice = Math.Max(item.unitPrice, 0.0);
-                        item.amount = item.quantity * item.unitPrice;
-                        totalAmount += item.amount;
-                    }
-                }
-                quotation.amount = totalAmount;
-
-                // File naming
-                string safeClientName = string.IsNullOrWhiteSpace(quotation.clientName)
-                    ? "Client"
-                    : string.Join("_", quotation.clientName.Split(Path.GetInvalidFileNameChars()));
-                quotation.pdfFileName = $"Quotation {safeClientName} {quotation.quoteNumber}.pdf";
-
-                // Template paths
-                string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Quotation", "QuotationTemplate.docx");
-                string generatedDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GeneratedQuotationPdfs");
-                Directory.CreateDirectory(generatedDir);
-
-                string tempDocxPath = Path.Combine(generatedDir, $"{Path.GetFileNameWithoutExtension(quotation.pdfFileName)}.docx");
-                string outputPdfPath = Path.Combine(generatedDir, quotation.pdfFileName);
-
-                // Load and populate Word template
-                Document wordDoc = new Document();
-                wordDoc.LoadFromFile(templatePath);
-
-                void ReplaceText(string placeholder, string value)
-                {
-                    TextSelection selection = wordDoc.FindString(placeholder, true, true);
-                    if (selection != null)
-                    {
-                        TextRange range = selection.GetAsOneRange();
-                        range.Text = value ?? string.Empty;
-                        range.CharacterFormat.FontName = "Poppins";
-                        range.CharacterFormat.FontSize = 11;
-                    }
-                }
-
-                ReplaceText("{{ClientName}}", quotation.clientName);
-                ReplaceText("{{ClientEmail}}", quotation.email);
-                ReplaceText("{{QuoteNumber}}", quotation.quoteNumber);
-                ReplaceText("{{QuoteDate}}", quotation.createdAt.ToDateTime().ToString("yyyy/MM/dd"));
-
-                // Build Items Table
-                Section section = wordDoc.Sections[0];
-                Table itemsTable = section.AddTable(true);
-
-                int totalRows = (quotation.Items?.Count ?? 0) + 2;
-                itemsTable.ResetCells(totalRows, 4);
-
-                // Header row
-                string[] headers = { "QTY", "PRODUCT DESCRIPTION", "UNIT PRICE", "AMOUNT" };
-                TableRow headerRow = itemsTable.Rows[0];
-                for (int i = 0; i < headers.Length; i++)
-                {
-                    TextRange headerText = headerRow.Cells[i].AddParagraph().AppendText(headers[i]);
-                    headerText.CharacterFormat.Bold = true;
-                    headerText.CharacterFormat.FontName = "Poppins";
-                    headerText.CharacterFormat.FontSize = 11;
-                    headerRow.Cells[i].CellFormat.VerticalAlignment = VerticalAlignment.Middle;
-                    headerRow.Cells[i].Width = i == 1 ? 220f : 80f;
-                }
-
-                // Item rows
-                for (int i = 0; i < (quotation.Items?.Count ?? 0); i++)
-                {
-                    var item = quotation.Items[i];
-                    TableRow row = itemsTable.Rows[i + 1];
-                    double rowTotal = item.quantity * item.unitPrice;
-
-                    row.Cells[0].AddParagraph().AppendText(item.quantity.ToString()).CharacterFormat.FontName = "Poppins";
-                    row.Cells[1].AddParagraph().AppendText(item.description ?? string.Empty).CharacterFormat.FontName = "Poppins";
-                    row.Cells[2].AddParagraph().AppendText($"R{item.unitPrice:0.00}").CharacterFormat.FontName = "Poppins";
-                    row.Cells[3].AddParagraph().AppendText($"R{rowTotal:0.00}").CharacterFormat.FontName = "Poppins";
-                }
-
-                // Total row
-                TableRow totalRow = itemsTable.Rows[totalRows - 1];
-                totalRow.Cells[2].AddParagraph().AppendText("Total Amount:").CharacterFormat.Bold = true;
-                totalRow.Cells[2].Paragraphs[0].Format.HorizontalAlignment = HorizontalAlignment.Right;
-                totalRow.Cells[3].AddParagraph().AppendText($"R{totalAmount:0.00}").CharacterFormat.Bold = true;
-                totalRow.Cells[3].Paragraphs[0].Format.HorizontalAlignment = HorizontalAlignment.Right;
-
-                // Replace placeholder
-                TextSelection placeholder = wordDoc.FindString("{{ItemsTable}}", true, true);
-                if (placeholder != null)
-                {
-                    Paragraph para = placeholder.GetAsOneRange().OwnerParagraph;
-                    Body body = para.OwnerTextBody;
-                    int index = body.ChildObjects.IndexOf(para);
-                    body.ChildObjects.Remove(para);
-                    body.ChildObjects.Insert(index, itemsTable);
-                }
-
-                // --- Save files ---
-                wordDoc.SaveToFile(tempDocxPath, FileFormat.Docx);
-                wordDoc.SaveToFile(outputPdfPath, FileFormat.PDF);
+                // 2️⃣ Generate PDF
+                string outputPdfPath = await GenerateQuotationPdfAsync(quotation);
 
                 if (!File.Exists(outputPdfPath))
-                    return (false, $"PDF generation failed. File not found at {outputPdfPath}", null);
+                    return (false, $"PDF generation failed at {outputPdfPath}", null);
 
-                // --- Build URLs ---
-                string baseUrl = "https://updatequotestatus-qfn3uqj3ya-uc.a.run.app";
-                string acceptUrl = $"{baseUrl}?userId={userId}&quoteId={quotation.id}&status=Accepted&token={quotation.secureToken}";
-                string declineUrl = $"{baseUrl}?userId={userId}&quoteId={quotation.id}&status=Declined&token={quotation.secureToken}";
+                // 3️⃣ Send quotation email
+                await SendQuotationEmailAsync(quotation, userId, outputPdfPath);
 
-                Console.WriteLine($"Accept URL: {acceptUrl}");
-                Console.WriteLine($"Decline URL: {declineUrl}");
-
-                // --- Build MailKit email ---
-                var emailMessage = new MimeMessage();
-                emailMessage.From.Add(new MailboxAddress("Quality Copiers", "zimkhitha.sasanti@gmail.com"));
-                emailMessage.To.Add(new MailboxAddress(quotation.clientName, quotation.email));
-                emailMessage.Subject = $"Quotation {quotation.quoteNumber}";
-
-                var builder = new BodyBuilder();
-
-                var htmlBodyPart = new TextPart("html")
-                {
-                    Text = $@"
-                        <p>Dear {System.Net.WebUtility.HtmlEncode(quotation.clientName)},</p>
-                        <p>Please review your quotation.</p>
-                        <p>
-                            Please follow this link to 
-                            <a href='{acceptUrl}'>Accept the Quotation</a>.
-                        </p>
-                        <p>
-                            Alternatively, you can 
-                            <a href='{declineUrl}'>Decline this Quotation</a>.
-                        </p>
-
-                        <p>The PDF is attached for your reference.</p>
-                        <p>Kind Regards,<br/>Quality Copiers</p>"
-                };
-
-
-                // Create the PDF attachment
-                var pdfAttachment = new MimePart("application", "pdf")
-                {
-                    Content = new MimeContent(File.OpenRead(outputPdfPath)),
-                    ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
-                    ContentTransferEncoding = ContentEncoding.Base64,
-                    FileName = Path.GetFileName(outputPdfPath)
-                };
-
-                // Combine HTML + PDF in multipart/mixed
-                var multipart = new Multipart("mixed");
-                multipart.Add(htmlBodyPart);
-                multipart.Add(pdfAttachment);
-
-                emailMessage.Body = multipart;
-
-                //Send via Gmail SMTP
-                using var smtp = new MailKit.Net.Smtp.SmtpClient();
-                await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-                await smtp.AuthenticateAsync("zimkhitha.sasanti@gmail.com", "pflq gfdg xyeb pitx");
-                await smtp.SendAsync(emailMessage);
-                await smtp.DisconnectAsync(true);
-
-                // Encrypt and store in Firestore
-                var encrypted = new Quotation
-                {
-                    id = _encryptionHelper.Encrypt(quotation.id ?? string.Empty),
-                    clientName = _encryptionHelper.Encrypt(quotation.clientName ?? string.Empty),
-                    companyName = _encryptionHelper.Encrypt(quotation.companyName ?? string.Empty),
-                    email = _encryptionHelper.Encrypt(quotation.email ?? string.Empty),
-                    phone = _encryptionHelper.Encrypt(quotation.phone ?? string.Empty),
-                    quoteNumber = _encryptionHelper.Encrypt(quotation.quoteNumber ?? string.Empty),
-                    createdAt = quotation.createdAt,
-                    amount = quotation.amount,
-                    secureToken = quotation.secureToken ?? string.Empty,
-                    pdfFileName = _encryptionHelper.Encrypt(quotation.pdfFileName ?? string.Empty),
-                    Items = quotation.Items
-                };
-
-                if (encrypted.Items != null)
-                {
-                    foreach (var it in encrypted.Items)
-                        it.description = _encryptionHelper.Encrypt(it.description ?? string.Empty);
-                }
-
-                await reservedDocRef.SetAsync(encrypted);
-                await reservedDocRef.UpdateAsync("id", quotation.id);
+                // 4️⃣ Encrypt & store in Firestore
+                await SaveQuotationToFirestoreAsync(quotation, userId);
 
                 return (true, null, quotation.id);
             }
             catch (Exception ex)
             {
-                return (false, $"Error adding quotation: {ex}", null);
+                return (false, $"Error adding quotation: {ex.Message}", null);
             }
+        }
+
+        private void PrepareQuotationMetadata(Quotation quotation)
+        {
+            string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
+            var quotesRef = _firestoreDb.Collection("users").Document(userId).Collection("quotes");
+            var reservedDocRef = quotesRef.Document();
+            quotation.id = reservedDocRef.Id;
+
+            quotation.quoteNumber = $"#{DateTime.UtcNow.Ticks % 1000000:D6}";
+            quotation.createdAt = Timestamp.FromDateTime(DateTime.UtcNow);
+            quotation.secureToken = Guid.NewGuid().ToString("N");
+        }
+
+        private void CalculateQuotationTotals(Quotation quotation)
+        {
+            double total = 0.0;
+            if (quotation.Items == null) return;
+
+            foreach (var item in quotation.Items)
+            {
+                if (item == null) continue;
+                item.quantity = Math.Max(item.quantity, 0);
+                item.unitPrice = Math.Max(item.unitPrice, 0);
+                item.amount = item.quantity * item.unitPrice;
+                total += item.amount;
+            }
+
+            quotation.amount = total;
+        }
+
+        private async Task<string> GenerateQuotationPdfAsync(Quotation quotation)
+        {
+            string safeClientName = string.IsNullOrWhiteSpace(quotation.clientName)
+                ? "Client"
+                : string.Join("_", quotation.clientName.Split(Path.GetInvalidFileNameChars()));
+
+            quotation.pdfFileName = $"Quotation_{safeClientName}_{quotation.quoteNumber}.pdf";
+
+            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Quotation", "QuotationTemplate.docx");
+            string outputDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GeneratedQuotationPdfs");
+            Directory.CreateDirectory(outputDir);
+
+            string docxPath = Path.Combine(outputDir, $"{Path.GetFileNameWithoutExtension(quotation.pdfFileName)}.docx");
+            string pdfPath = Path.Combine(outputDir, quotation.pdfFileName);
+
+            var wordDoc = new Document();
+            wordDoc.LoadFromFile(templatePath);
+
+            ReplaceText(wordDoc, "{{ClientName}}", quotation.clientName);
+            ReplaceText(wordDoc, "{{ClientEmail}}", quotation.email);
+            ReplaceText(wordDoc, "{{QuoteNumber}}", quotation.quoteNumber);
+            ReplaceText(wordDoc, "{{QuoteDate}}", quotation.createdAt.ToDateTime().ToString("yyyy/MM/dd"));
+
+            InsertItemsTable(wordDoc, quotation);
+
+            wordDoc.SaveToFile(docxPath, FileFormat.Docx);
+            wordDoc.SaveToFile(pdfPath, FileFormat.PDF);
+
+            return pdfPath;
+        }
+
+        private void ReplaceText(Document wordDoc, string placeholder, string value)
+        {
+            var selection = wordDoc.FindString(placeholder, true, true);
+            if (selection != null)
+            {
+                var range = selection.GetAsOneRange();
+                range.Text = value ?? string.Empty;
+                range.CharacterFormat.FontName = "Poppins";
+                range.CharacterFormat.FontSize = 11;
+            }
+        }
+
+        private void InsertItemsTable(Document wordDoc, Quotation quotation)
+        {
+            var section = wordDoc.Sections[0];
+            var itemsTable = section.AddTable(true);
+            int totalRows = (quotation.Items?.Count ?? 0) + 2;
+            itemsTable.ResetCells(totalRows, 4);
+
+            // Header row
+            string[] headers = { "QTY", "PRODUCT DESCRIPTION", "UNIT PRICE", "AMOUNT" };
+            var headerRow = itemsTable.Rows[0];
+            for (int i = 0; i < headers.Length; i++)
+            {
+                var text = headerRow.Cells[i].AddParagraph().AppendText(headers[i]);
+                text.CharacterFormat.Bold = true;
+                text.CharacterFormat.FontName = "Poppins";
+                text.CharacterFormat.FontSize = 11;
+            }
+
+            // Item rows
+            for (int i = 0; i < (quotation.Items?.Count ?? 0); i++)
+            {
+                var item = quotation.Items[i];
+                var row = itemsTable.Rows[i + 1];
+
+                row.Cells[0].AddParagraph().AppendText(item.quantity.ToString());
+                row.Cells[1].AddParagraph().AppendText(item.description ?? "");
+                row.Cells[2].AddParagraph().AppendText($"R{item.unitPrice:0.00}");
+                row.Cells[3].AddParagraph().AppendText($"R{item.amount:0.00}");
+            }
+
+            // Total row
+            var totalRow = itemsTable.Rows[totalRows - 1];
+            totalRow.Cells[2].AddParagraph().AppendText("Total Amount:").CharacterFormat.Bold = true;
+            totalRow.Cells[3].AddParagraph().AppendText($"R{quotation.amount:0.00}").CharacterFormat.Bold = true;
+
+            // Replace placeholder
+            var placeholder = wordDoc.FindString("{{ItemsTable}}", true, true);
+            if (placeholder != null)
+            {
+                var para = placeholder.GetAsOneRange().OwnerParagraph;
+                var body = para.OwnerTextBody;
+                int idx = body.ChildObjects.IndexOf(para);
+                body.ChildObjects.Remove(para);
+                body.ChildObjects.Insert(idx, itemsTable);
+            }
+        }
+
+        private async Task SendQuotationEmailAsync(Quotation quotation, string userId, string pdfPath)
+        {
+            string baseUrl = "https://updatequotestatus-qfn3uqj3ya-uc.a.run.app";
+            string acceptUrl = $"{baseUrl}?userId={userId}&quoteId={quotation.id}&status=Accepted&token={quotation.secureToken}";
+            string declineUrl = $"{baseUrl}?userId={userId}&quoteId={quotation.id}&status=Declined&token={quotation.secureToken}";
+
+            var email = new MimeMessage();
+            email.From.Add(new MailboxAddress("Quality Copiers", "zimkhitha.sasanti@gmail.com"));
+            email.To.Add(new MailboxAddress(quotation.clientName, quotation.email));
+            email.Subject = $"Quotation {quotation.quoteNumber}";
+
+            var builder = new BodyBuilder();
+            var htmlBody = $@"
+                <p>Dear {System.Net.WebUtility.HtmlEncode(quotation.clientName)},</p>
+                <p>Please review your quotation.</p>
+                <p>
+                    Please follow this link to 
+                    <a href='{acceptUrl}'>Accept the Quotation</a>.
+                </p>
+                <p>
+                    Alternatively, you can 
+                    <a href='{declineUrl}'>Decline this Quotation</a>.
+                </p>
+
+                <p>The PDF is attached for your reference.</p>
+                <p>Kind Regards,<br/>Quality Copiers</p>";
+
+            builder.HtmlBody = htmlBody;
+            builder.Attachments.Add(pdfPath);
+
+            email.Body = builder.ToMessageBody();
+
+            using var smtp = new MailKit.Net.Smtp.SmtpClient();
+            await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+            await smtp.AuthenticateAsync("zimkhitha.sasanti@gmail.com", "pflq gfdg xyeb pitx");
+            await smtp.SendAsync(email);
+            await smtp.DisconnectAsync(true);
+        }
+
+        private async Task SaveQuotationToFirestoreAsync(Quotation quotation, string userId)
+        {
+            var quotesRef = _firestoreDb.Collection("users").Document(userId).Collection("quotes");
+            var docRef = quotesRef.Document(quotation.id);
+
+            var encrypted = new Quotation
+            {
+                id = _encryptionHelper.Encrypt(quotation.id ?? ""),
+                clientName = _encryptionHelper.Encrypt(quotation.clientName ?? ""),
+                companyName = _encryptionHelper.Encrypt(quotation.companyName ?? ""),
+                email = _encryptionHelper.Encrypt(quotation.email ?? ""),
+                phone = _encryptionHelper.Encrypt(quotation.phone ?? ""),
+                quoteNumber = _encryptionHelper.Encrypt(quotation.quoteNumber ?? ""),
+                createdAt = quotation.createdAt,
+                amount = quotation.amount,
+                secureToken = quotation.secureToken ?? "",
+                pdfFileName = _encryptionHelper.Encrypt(quotation.pdfFileName ?? ""),
+                Items = quotation.Items?.Select(i => new QuotationItem
+                {
+                    description = _encryptionHelper.Encrypt(i.description ?? ""),
+                    quantity = i.quantity,
+                    unitPrice = i.unitPrice,
+                    amount = i.amount
+                }).ToList() ?? new List<QuotationItem>()
+            };
+
+            await docRef.SetAsync(encrypted);
+            await docRef.UpdateAsync("id", quotation.id);
         }
 
 
@@ -632,6 +633,31 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 return new List<Quotation>();
             }
         }
+
+        public async Task<(byte[] PdfBytes, string PdfFileName)> GenerateQuotationPdfBytesAsync(Quotation quotation)
+        {
+            if (quotation == null || quotation.Items == null || !quotation.Items.Any())
+                throw new ArgumentException("Quotation is invalid");
+
+            // Generate the PDF and get the path
+            string pdfPath = await GenerateQuotationPdfAsync(quotation);
+
+            if (!File.Exists(pdfPath))
+                throw new FileNotFoundException("Failed to generate quotation PDF", pdfPath);
+
+            // Read the PDF bytes
+            byte[] pdfBytes = await File.ReadAllBytesAsync(pdfPath);
+
+            // Optionally, clean up DOCX if you want
+            string docxPath = Path.Combine(Path.GetDirectoryName(pdfPath), Path.GetFileNameWithoutExtension(pdfPath) + ".docx");
+            if (File.Exists(docxPath))
+                File.Delete(docxPath);
+
+            // Return bytes and filename
+            return (pdfBytes, quotation.pdfFileName);
+        }
+
+
 
         public async Task DeleteQuotationAsync(string quoteId)
         {
@@ -728,46 +754,49 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
         // Generating invoice PDF bytes - used for downloading/saving invoice
 
-        public async Task<byte[]> GenerateInvoicePdfBytesAsync(Invoice invoice)
+        public async Task<(byte[] PdfBytes, string PdfFileName)> GenerateInvoicePdfBytesAsync(Invoice invoice)
         {
-            // validating the invoice
+            // Validate the invoice
             if (invoice == null || invoice.Items == null || !invoice.Items.Any())
                 throw new ArgumentException("Invoice is invalid");
 
-            // defining the paths
+            // Define template path
             string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Invoice", "InvoiceTemplate.docx");
             if (!File.Exists(templatePath))
                 throw new FileNotFoundException("Invoice template not found.", templatePath);
 
-            // defining the output directory and file names
+            // Define output directory
             string generatedDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GeneratedInvoicePdfs");
             Directory.CreateDirectory(generatedDir);
 
-            // sanitizing client name for file system
-            string safeClientName = string.IsNullOrWhiteSpace(invoice.ClientName) ? "Client" :
-                                    string.Join("_", invoice.ClientName.Split(Path.GetInvalidFileNameChars()));
+            // Create safe client name and unique filename
+            string safeClientName = string.IsNullOrWhiteSpace(invoice.ClientName)
+                ? "Client"
+                : string.Join("_", invoice.ClientName.Split(Path.GetInvalidFileNameChars()));
+
             string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
             string pdfFileName = $"Invoice_{safeClientName}_{invoice.InvoiceNumber}_{timestamp}.pdf";
 
             string tempDocxPath = Path.Combine(generatedDir, $"{Path.GetFileNameWithoutExtension(pdfFileName)}.docx");
             string outputPdfPath = Path.Combine(generatedDir, pdfFileName);
 
-            // generating the pdf
+            // Generate the PDF
             GenerateInvoicePdf(invoice, templatePath, tempDocxPath, outputPdfPath);
 
             if (!File.Exists(outputPdfPath))
                 throw new FileNotFoundException("Failed to generate invoice PDF", outputPdfPath);
 
-            // reading the bytes
+            // Read the bytes
             var pdfBytes = await File.ReadAllBytesAsync(outputPdfPath);
 
-            // cleaning up the files
+            // Clean up temporary files
             if (File.Exists(tempDocxPath))
                 File.Delete(tempDocxPath);
 
-            // returning the pdf bytes
-            return pdfBytes;
+            // Return both the PDF bytes and filename
+            return (pdfBytes, pdfFileName);
         }
+
 
 
         public async Task<bool> GenerateAndSendInvoiceAsync(Invoice invoice)
@@ -1015,14 +1044,12 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 .Document(invoiceId);
 
             var updates = new Dictionary<string, object>
-    {
-        { "Status", status }
-    };
+            {
+                { "Status", status }
+            };
 
             await docRef.UpdateAsync(updates);
         }
-
-
 
         public async Task DeleteInvoiceAsync(string invoiceId)
         {

@@ -35,11 +35,11 @@ namespace INSY7315_ElevateDigitalStudios_POE
 
             var credentialsPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
             
-            FirebaseApp.Create(new AppOptions
+           /* FirebaseApp.Create(new AppOptions
             {
                 Credential = GoogleCredential.FromFile("/Users/thando/VSCode Projects/INSY7315_ElevateDigitalStudios_POE/Database/firebase-key.json"),
                 ProjectId = builder.Configuration["Firebase:ProjectId"]
-            });
+            });*/
 
 
             // Encryption Helper
@@ -75,7 +75,7 @@ namespace INSY7315_ElevateDigitalStudios_POE
             // Map your routes
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Quotations}/{action=Quotations}/{id?}");
 
             app.Run();
         }

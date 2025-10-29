@@ -138,7 +138,30 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteQuotation([FromBody] DeleteQuotationRequest request)
+        public async Task<IActionResult> DownloadQuotation([FromBody] QuotationRequest request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.QuotationId))
+                return BadRequest(new { message = "Invalid quotation ID" });
+
+            var quotations = await _firebaseService.GetQuotationsAsync();
+            var quotation = quotations.FirstOrDefault(q => q.id == request.QuotationId);
+
+            if (quotation == null)
+                return NotFound(new { message = "Quotation not found" });
+
+            try
+            {
+                var (pdfBytes, pdfFileName) = await _firebaseService.GenerateQuotationPdfBytesAsync(quotation);
+                return File(pdfBytes, "application/pdf", pdfFileName);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error generating quotation: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteQuotation([FromBody] QuotationRequest request)
         {
             if (request == null || string.IsNullOrEmpty(request.QuotationId))
                 return BadRequest(new { message = "Invalid quotation ID" });

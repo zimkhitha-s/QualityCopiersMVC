@@ -63,6 +63,10 @@
                                 <td class="status-text">@quotation.status</td>
 
                                 <td>
+                                    <a href="#" class="download-quotation-btn text-success" data-quotation-id="@quotation.id" title="Download Quotation">
+                                        <img src="~/images/save_button.png" alt="Download" width="35" height="35">
+                                    </a>
+
                                     <a href="#" class="delete-btn text-danger" data-quote-id="@quotation.id" title="Delete">
                                         <img src="@Url.Content("~/images/delete.png")" alt="Delete" width="28" height="28">
                                     </a>
@@ -103,6 +107,22 @@
         </div>
     </div>
 </div>
+
+<!-- Download Quotation Modal -->
+<div id="quotationDownloadModal" class="modal-overlay" style="display:none;">
+    <div class="delete-modal" onclick="event.stopPropagation()">
+        <button class="close-btn" onclick="hideQuotationDownloadModal()">&times;</button>
+        <div class="modal-header">
+            <h3 class="modal-title">Download Quotation</h3>
+        </div>
+        <p class="modal-message">Would you like to download this quotation as a PDF?</p>
+        <div class="modal-actions">
+            <button class="btn btn-success" id="confirmDownloadQuotationBtn">Yes, Download</button>
+            <button class="btn btn-secondary" onclick="hideQuotationDownloadModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
 
 <!-- Delete confirmation modal -->
 <div id="deleteModal" class="modal-overlay" style="display:none;">
@@ -183,6 +203,92 @@
                 originalRows.forEach(r => tableBody.appendChild(r.cloneNode(true)));
                 hideFilterModal();
             };
+
+            let selectedQuotationIdForDownload = null;
+const quotationTableBody = document.getElementById("quotationTableBody"); // change to your actual table body ID
+
+// handle download button click
+quotationTableBody.addEventListener('click', function (e) {
+    const btn = e.target.closest('.download-quotation-btn');
+    if (!btn) return;
+
+    e.preventDefault();
+    selectedQuotationIdForDownload = btn.dataset.quotationId;
+
+    if (!selectedQuotationIdForDownload) {
+        alert("Invalid quotation ID.");
+        return;
+    }
+
+    document.getElementById('quotationDownloadModal').style.display = 'flex';
+});
+
+// hide modal
+function hideQuotationDownloadModal() {
+    document.getElementById('quotationDownloadModal').style.display = 'none';
+}
+
+// confirm download
+document.getElementById('confirmDownloadQuotationBtn').addEventListener('click', async function () {
+    if (!selectedQuotationIdForDownload) return alert("Invalid quotation ID.");
+
+    const confirmBtn = this;
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Downloading...';
+
+    try {
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        const token = tokenInput ? tokenInput.value : '';
+
+        const payload = { QuotationId: selectedQuotationIdForDownload };
+        const response = await fetch('/Quotations/DownloadQuotation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error("Download error response:", errText);
+            alert("Failed to download quotation.");
+            return;
+        }
+
+        // get PDF blob and trigger download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+
+        // get filename from backend if provided
+        const disposition = response.headers.get('Content-Disposition');
+        let fileName = `Quotation_${selectedQuotationIdForDownload}.pdf`; // fallback
+
+        if (disposition && disposition.includes('filename=')) {
+            fileName = disposition.split('filename=')[1].replace(/"/g, '');
+        }
+
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        window.URL.revokeObjectURL(url);
+        hideQuotationDownloadModal();
+    } catch (err) {
+        console.error("Error downloading quotation:", err);
+        alert("An error occurred while downloading the quotation.");
+    } finally {
+        selectedQuotationIdForDownload = null;
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Yes, Download';
+    }
+});
+
+
 
             // Delete Functionality
             let quoteToDelete = null;

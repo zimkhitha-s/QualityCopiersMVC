@@ -1,6 +1,6 @@
 ﻿namespace INSY7315_ElevateDigitalStudios_POE.Models.Requests
 {
-    public class DeleteQuotationRequest
+    public class QuotationRequest
     {
         public string QuotationId { get; set; }
     }

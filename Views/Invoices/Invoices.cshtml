@@ -68,8 +68,8 @@
                                 <td>#@invoice.InvoiceNumber</td>
                                 <td>
                                     <select class="status-dropdown" data-invoice-id="@invoice.Id">
-                                        <option value="Unpaid" selected="@(invoice.Status == "Unpaid")">Unpaid</option>
-                                        <option value="Paid" selected="@(invoice.Status == "Paid")">Paid</option>
+                                        <option value="Unpaid" selected="@(invoice.Status == "Unpaid" ? "selected" : "")">Unpaid</option>
+                                        <option value="Paid" selected="@(invoice.Status == "Paid" ? "selected" : "")">Paid</option>
                                     </select>
                                 </td>
 
@@ -252,40 +252,40 @@
         });
 
         // Use event delegation on the table body to handle dynamic rows
-tableBody.addEventListener("change", function(e) {
-    const dropdown = e.target.closest(".status-dropdown");
-    if (!dropdown) return;
+        tableBody.addEventListener("change", function(e) {
+            const dropdown = e.target.closest(".status-dropdown");
+            if (!dropdown) return;
 
-    const invoiceId = dropdown.dataset.invoiceId;
-    const newStatus = dropdown.value;
+            const invoiceId = dropdown.dataset.invoiceId;
+            const newStatus = dropdown.value;
 
-    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-    const token = tokenInput ? tokenInput.value : '';
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenInput ? tokenInput.value : '';
 
-    fetch('/Invoices/UpdateStatus', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'RequestVerificationToken': token
-        },
-        body: JSON.stringify({
-            invoiceId: invoiceId,
-            status: newStatus
-        })
-    })
-    .then(resp => {
-        if (!resp.ok) throw new Error("Failed to update invoice status.");
-        return resp.json();
-    })
-    .then(data => {
-        alert("Invoice status updated successfully!");
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Failed to update invoice status.");
-        // Optional: revert dropdown value if needed
-    });
-});
+            fetch('/Invoices/UpdateStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({
+                    invoiceId: invoiceId,
+                    status: newStatus
+                })
+            })
+            .then(resp => {
+                if (!resp.ok) throw new Error("Failed to update invoice status.");
+                return resp.json();
+            })
+            .then(data => {
+                alert("Invoice status updated successfully!");
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Failed to update invoice status.");
+                // Optional: revert dropdown value if needed
+            });
+        });
 
 
         let selectedInvoiceIdForSave = null;

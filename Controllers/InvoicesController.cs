@@ -62,13 +62,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 
             try
             {
-                var pdfBytes = await _firebaseService.GenerateInvoicePdfBytesAsync(invoice);
-
-                string safeClientName = string.IsNullOrWhiteSpace(invoice.ClientName) ? "Client" :
-                                        string.Join("_", invoice.ClientName.Split(Path.GetInvalidFileNameChars()));
-                string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-                string pdfFileName = $"Invoice_{safeClientName}_{invoice.InvoiceNumber}_{timestamp}.pdf";
-
+                // The Firebase service now handles everything: naming, generation, and byte retrieval
+                (byte[] pdfBytes, string pdfFileName) = await _firebaseService.GenerateInvoicePdfBytesAsync(invoice);
                 return File(pdfBytes, "application/pdf", pdfFileName);
             }
             catch (Exception ex)
@@ -96,7 +91,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
-
 
 
         [HttpPost]
