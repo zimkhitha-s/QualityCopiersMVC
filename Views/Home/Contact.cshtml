@@ -8,28 +8,11 @@
 <section class="contact-hero">
     <!-- Left side: form on top of image -->
     <div class="contact-left-image">
-        <div class="contact-form-container">
-            <h1>Contact Us</h1>
-            <h2>Get in Touch</h2>
-            <h3>Send a message</h3>
-            <p>
-                Reach out to us for all your printer and copier needs. We're here to help!
-            </p>
-
-            <form asp-controller="Home" asp-action="SubmitContact" method="post" class="contact-form">
-                <input type="text" name="Name" placeholder="Name" required />
-                <input type="email" name="Email" placeholder="Email" required />
-                <input type="number" name="number" placeholder="Phone Number" required />
-                <input type="text" name="Service" placeholder="Service Needed" required />
-                <textarea name="Message" placeholder="Message" rows="5" required></textarea>
-                <button type="submit" class="btn-contact">Send</button>
-            </form>
-        </div>
     </div>
 
     <!-- Right black panel -->
     <div class="contact-right-panel">
-        <h2>Contact Information</h2>
+        <h2>Contact <br />Information</h2>
         <h3>Craig Diedricks</h3>
         <p>CEO</p>
 

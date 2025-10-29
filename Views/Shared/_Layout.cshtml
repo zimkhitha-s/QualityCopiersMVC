@@ -20,29 +20,39 @@
 
 <body>
     <!-- Header -->
-    <header>
-        <nav class="custom-navbar d-flex justify-content-between align-items-center px-4">
-            <!-- Left Links -->
-            <div class="d-flex gap-4">
-                <a href="/" class="nav-link-custom">Home</a>
-                <a href="/Home/Services" class="nav-link-custom">Services</a>
-                <a href="/Home/Products" class="nav-link-custom">Products</a>
+<header>
+    <nav class="custom-navbar d-flex justify-content-between align-items-center px-4">
+        <!-- Left Links -->
+        <div class="d-flex gap-4">
+            <a asp-controller="Home" asp-action="Index"
+               class="nav-link-custom @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">Home</a>
 
-            </div>
+            <a asp-controller="Home" asp-action="Services"
+               class="nav-link-custom @(ViewContext.RouteData.Values["action"]?.ToString() == "Services" ? "active" : "")">Services</a>
 
-            <!-- Center Logo -->
-            <div class="logo text-center">
-                <img src="~/images/logo.png" alt="Quality Copiers Logo" style="height: 50px;">
-            </div>
+            <a asp-controller="Home" asp-action="Products"
+               class="nav-link-custom @(ViewContext.RouteData.Values["action"]?.ToString() == "Products" ? "active" : "")">Products</a>
+        </div>
 
-            <!-- Right Links -->
-            <div class="d-flex gap-4">
-                <a href="/Home/About" class="nav-link-custom">About Us</a>
-                <a href="/Home/Contact" class="nav-link-custom">Contact</a>
-                <a href="/Account/Login" class="nav-link-custom">Sign In</a>
-            </div>
-        </nav>
-    </header>
+        <!-- Center Logo -->
+        <div class="logo text-center">
+            <img src="~/images/qualitycopiers_nav_logo.png" alt="Quality Copiers Logo" style="height: 50px;">
+        </div>
+
+        <!-- Right Links -->
+        <div class="d-flex gap-4">
+            <a asp-controller="Home" asp-action="About"
+               class="nav-link-custom @(ViewContext.RouteData.Values["action"]?.ToString() == "About" ? "active" : "")">About Us</a>
+
+            <a asp-controller="Home" asp-action="Contact"
+               class="nav-link-custom @(ViewContext.RouteData.Values["action"]?.ToString() == "Contact" ? "active" : "")">Contact</a>
+
+            <a asp-controller="Account" asp-action="Login"
+               class="nav-link-custom @(ViewContext.RouteData.Values["action"]?.ToString() == "Login" ? "active" : "")">Sign In</a>
+        </div>
+    </nav>
+</header>
+
 
     <!-- Main Content -->
     <main role="main">
@@ -55,10 +65,10 @@
             <!-- Left Column -->
             <div class="footer-logo">
                 <div class="logo-text-wrapper">
-                    <img src="~/images/logo2.png" alt="Quality Copiers Logo" class="footer-logo-img" />
-                    <p class="logo-title">Quality Copiers</p>
+                    <img src="~/images/qualitycopiers_nav_logo_white.png" alt="Quality Copiers Logo" class="footer-logo-img" />
                 </div>
-                <p class="logo-subtitle">Your trusted partner for professional printing and copying solutions since 2007.</p>
+                <br />
+                <p class="logo-subtitle">Your trusted partner for professional <br />printing and copying solutions since 2007.</p>
             </div>
 
             <!-- Page Links -->
@@ -70,17 +80,28 @@
                 <a asp-controller="Home" asp-action="Contact">Contact</a>
             </div>
 
-            <!-- Contact Details -->
             <div class="footer-contact">
-                <p>134 Victoria Rd, Southfield, 7800, Cape Town</p>
-                <p>📞 +27 21 829 3819</p>
-                <p>📠 +27 86 509 9966</p>
-                <p>✉ info@qualitycopiers.co.za</p>
+                <p>
+                    <img src="~/images/location_icon.png" alt="Location Icon" class="footer-icon">
+                    134 Victoria Rd, Southfield, 7800, Cape Town
+                </p>
+                <p>
+                    <img src="~/images/phone1_icon.png" alt="Phone Icon" class="footer-icon">
+                    +27 83 299 3890
+                </p>
+                <p>
+                    <img src="~/images/phone2_icon.png" alt="Fax Icon" class="footer-icon">
+                    +27 86 509 9116
+                </p>
+                <p>
+                    <img src="~/images/mail_icon.png" alt="Email Icon" class="footer-icon">
+                    info@qualitycopiers.co.za
+                </p>
             </div>
         </div>
 
         <div class="footer-bottom">
-            <p>&copy; @DateTime.Now.Year Quality Copiers. All rights reserved.</p>
+            <p>&copy; @DateTime.Now.Year Quality Copiers. All rights reserved.<br /> Designed and developed by Elevate Digital Studios</p>
         </div>
     </footer>
 
