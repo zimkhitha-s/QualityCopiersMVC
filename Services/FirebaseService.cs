@@ -849,7 +849,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
-        public async Task<Dictionary<string, object>> GetManagerDataAsync(string userId)
+         public async Task<Dictionary<string, object>> GetManagerDataAsync(string userId)
         {
             var docRef = _firestoreDb
                 .Collection("users")
@@ -875,5 +875,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             await docRef.SetAsync(updatedData, SetOptions.MergeAll);
         }
+
     }
 }

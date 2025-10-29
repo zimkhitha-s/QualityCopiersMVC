@@ -3,6 +3,8 @@ using INSY7315_ElevateDigitalStudios_POE.Security;
 using INSY7315_ElevateDigitalStudios_POE.Services;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Mvc;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 namespace INSY7315_ElevateDigitalStudios_POE
 {
@@ -32,6 +34,15 @@ namespace INSY7315_ElevateDigitalStudios_POE
             // Firebase Auth and Database Services
             builder.Services.AddSingleton<FirebaseAuthService>();
             builder.Services.AddSingleton<FirebaseService>();
+
+            var credentialsPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
+            
+            FirebaseApp.Create(new AppOptions
+            {
+                Credential = GoogleCredential.FromFile("/Users/thando/VSCode Projects/INSY7315_ElevateDigitalStudios_POE/Database/firebase-key.json"),
+                ProjectId = builder.Configuration["Firebase:ProjectId"]
+            });
+
 
             // Encryption Helper
             // Encryption Helper

@@ -21,13 +21,14 @@
             <div class="profile-header">
                 <div class="profile-avatar">
                     <div class="avatar-placeholder">
-                        <img src="~/images/about.png"/>
+                        <img id="profile-image" src="~/images/about.png"/>
                     </div>
-                    <button class="edit-button">Edit</button>
+                    <button class="edit-button" id="editButton">Edit</button>
+                    <input type="file" id="imageInput" accept="image/*" style="display:none" />
                 </div>
                 <div class="profile-info">
                     <h1>My profile</h1>
-                    <h2>Craig Diedericks</h2>
+                    <h2 id="fullName">Craig Diedericks</h2>
                 </div>
                 
             </div>
@@ -44,7 +45,7 @@
                     <form class="profile-form" id="profileForm">
                         <div class="form-grid">
                             <div class="form-group">
-                                <label for="fullname">Full name</label>
+                                <label for="fullname">Name</label>
                                 <input type="text" id="fullname" />
                             </div>
                             <div class="form-group">
@@ -72,8 +73,6 @@
                                 </select>
                             </div>
                         </div>
-
-                        <button type="button" id="saveChangesBtn">Save Changes</button>
                     </form>
 
                     
@@ -104,7 +103,7 @@
                 </div>
                     <div class="action-buttons">
                         <button class="cancel-button">Cancel</button>
-                        <button class="save-button">Save Changes</button>
+                        <button class="save-button" id="saveChangesBtn">Save Changes</button>
                     </div>
             </div>
         </main>
@@ -113,31 +112,29 @@
     <!--JavaScript for tab switching functionality -->
     <script>
         function switchTab(tabName) {
-            // Remove active class from all tabs and tab contents
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            // Add active class to clicked tab and corresponding content
+            const editButton = document.getElementById('editButton');
+            const imageInput = document.getElementById('imageInput');
+            const profileImage = document.getElementById('profile-image');
+
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
             document.getElementById(`${tabName}-tab`).classList.add('active');
         }
 
-        document.addEventListener("DOMContentLoaded", async () =>
-        {
-        const response = await fetch('/profile/get');
-        const data = await response.json();
+        document.addEventListener("DOMContentLoaded", async () => {
+            const response = await fetch('/account/getprofile');
+            const data = await response.json();
 
-        // Populate fields
-        document.getElementById("fullname").value = data.fullname || "";
-        document.getElementById("role").value = data.role || "";
-        document.getElementById("surname").value = data.surname || "";
-        document.getElementById("mobile").value = data.mobile || "";
-        document.getElementById("email").value = data.email || "";
-        document.getElementById("language").value = data.language?.toLowerCase() || "english";
+            // Populate fields
+            document.getElementById("fullname").value = data.firstName || "";
+            document.getElementById("role").value = data.role || "";
+            document.getElementById("surname").value = data.surname || "";
+            document.getElementById("mobile").value = data.mobile || "";
+            document.getElementById("email").value = data.email || "";
+            document.getElementById("language").value = data.language?.toLowerCase() || "english";
+            document.getElementById("profile-image").value = data.iconName || "";
+            document.getElementById("")
         });
 
         document.getElementById("saveChangesBtn").addEventListener("click", async () => {
@@ -148,21 +145,51 @@
                 mobile: document.getElementById("mobile").value,
                 email: document.getElementById("email").value,
                 language: document.getElementById("language").value
+                //iconName: document.getElementById("profile-image").value
             };
 
-            const response = await fetch('/profile/update', {
+            const response = await fetch('/account/updateprofile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedData)
             });
 
-            if (response.ok) {
-                alert("✅ Profile updated successfully!");
-            } else {
-                alert("❌ Failed to update profile.");
-            }
+                if (response.ok) {
+                    alert("✅ Profile updated successfully!");
+                } else {
+                    alert("❌ Failed to update profile.");
+                }
+                
+                });
+
+
+        editButton.addEventListener('click', () => {
+        imageInput.click();
         });
-    </script>
+
+        imageInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            // Send the image to the server
+            const response = await fetch('/Profile/UploadImage', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const imageUrl = await response.text();
+                profileImage.src = imageUrl; // update the <img> with the new path
+            } else {
+                alert('Failed to upload image.');
+            }
+        }
+    });
+     
+</script>
+
 </body>
 </html>
 
