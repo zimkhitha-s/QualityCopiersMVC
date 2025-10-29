@@ -52,22 +52,22 @@
                     <img src="~/images/invoice_quotations.png" alt="Logo" width="27.8" height="20">
                     <span class="nav-label-white">Invoices</span>
                 </a>
-                <a href="@Url.Action("Quotations", "Quotations")" class="nav-item active">
+                <a href="@Url.Action("Quotations", "Quotations")" class="nav-item">
                     <img src="~/images/invoice_quotations.png" alt="Logo" width="27.8" height="20">
                     <span class="nav-label-white">Quotations</span>
                 </a>
-                <a href="@Url.Action("Payments", "Dashboard")" class="nav-item">
+                <a href="@Url.Action("Payments", "Payments")" class="nav-item">
                     <img src="~/images/payments.png" alt="Logo" width="27.8" height="20">
                     <span class="nav-label-blue">Payments</span>
                 </a>
             </div>
 
             <div class="sidebar-footer">
-                <a href="#" class="nav-item">
+                <a href="@Url.Action("Notifications", "Notifications")" class="nav-item">
                     <img src="~/images/notifications.png" alt="Logo" width="27.8" height="20">
                     <span class="nav-label-white">Notifications</span>
                 </a>
-                <a href="/Dashboard/Profile" class="nav-item">
+                <a href="@Url.Action("Profile", "Account")" class="nav-item">
                     <img src="~/images/profile.png" alt="Logo" width="27.8" height="20">
                     <span class="nav-label-white">Account</span>
                 </a>

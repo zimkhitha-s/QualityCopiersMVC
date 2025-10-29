@@ -1002,7 +1002,6 @@ body {
 }
 
 /*Add New Employee Modal*/
-/* Overlay (dark background blur) */
 
 /* Modal box */
 .add-modal {
@@ -1093,3 +1092,67 @@ body {
   background: #8bb8f4;
 }
 
+.filter-modal-Payments{
+    background: #000000;
+    padding: 20px 30px;
+    border-radius: 40px;
+    width: 506px;
+    max-width: 90%;
+    font-family: 'Agrandir', sans-serif;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    position: relative
+}
+
+.filter-modal-Payments .title{
+    color: #FFFFFF;
+    font-size: 20px;
+    font-weight: 600;
+    padding-bottom: 5px;
+    text-align: center;
+}
+
+.filter-modal-payments .modal-header .delete-title{
+    color: #FFFFFF;
+    font-size: 20px;
+    font-weight: 600;
+    max-width: 300px;
+    padding-bottom: 5px;
+    text-align: center;
+}
+
+.payment-filter-options{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.filter-modal-Payments .filter-option{
+    color:#000000;
+    background-color: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+}
+
+.filter-modal-Payments .filter-option:hover {
+    color: #FFFFFF;
+    background: #929292;
+}
+
+.invoice-details{
+  background-color: #FFFFFF;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.invoice-details .details{
+  color:#000000;
+  margin-bottom: 10px;
+}
+
+.detail-title{
+  color:#000000;
+}

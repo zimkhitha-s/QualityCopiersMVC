@@ -686,6 +686,46 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             return invoices;
         }
 
+        //Get invoice details by ID for payments
+        public async Task<Invoice?> GetInvoiceDetailsAsync(string id)
+        {
+            string userId = "vz4maSc0vOgouOGPhtdkFzBlceK2";
+            try
+            {
+                var invoiceRef = _firestoreDb.Collection("users").Document(userId).Collection("invoices").Document(id);
+
+                var snapshot = await invoiceRef.GetSnapshotAsync();
+
+                if (!snapshot.Exists)
+                {
+                    return null; // or throw new Exception("Invoice not found");
+                }
+
+                var invoice = snapshot.ConvertTo<Invoice>();
+
+                // Decrypt sensitive fields
+                invoice.ClientName = _encryptionHelper.Decrypt(invoice.ClientName);
+                invoice.CompanyName = _encryptionHelper.Decrypt(invoice.CompanyName);
+                invoice.Phone = _encryptionHelper.Decrypt(invoice.Phone);
+                invoice.QuoteNumber = _encryptionHelper.Decrypt(invoice.QuoteNumber ?? string.Empty);
+
+                if (invoice.Items != null)
+                {
+                    foreach (var item in invoice.Items)
+                    {
+                        item.Description = _encryptionHelper.Decrypt(item.Description);
+                    }
+                }
+
+                return invoice;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving invoice: {ex.Message}");
+                throw;
+            }
+        }
+
         // Generating invoice PDF bytes - used for downloading/saving invoice
 
         public async Task<byte[]> GenerateInvoicePdfBytesAsync(Invoice invoice)
@@ -1003,5 +1043,64 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 Console.WriteLine($"Error deleting quotation: {ex.Message}");
             }
         }
+
+        public async Task MarkInvoiceAsPaidAsync(string invoiceId)
+        {
+            string userId = "vz4maSc0vOgouOGPhtdkFzBlceK2"; // Replace with dynamic user ID if applicable
+
+            try
+            {
+                Console.WriteLine($"🔍 Trying to mark as paid - User: {userId}, Invoice: {invoiceId}");
+
+                var invoiceRef = _firestoreDb.Collection("users")
+                    .Document(userId)
+                    .Collection("invoices")
+                    .Document(invoiceId);
+
+                var snapshot = await invoiceRef.GetSnapshotAsync();
+
+                if (!snapshot.Exists)
+                {
+                    Console.WriteLine($"❌ Invoice not found at path: users/{userId}/invoices/{invoiceId}");
+                    throw new Exception("Invoice document does not exist in Firestore.");
+                }
+
+                await invoiceRef.UpdateAsync("status", "Paid");
+                Console.WriteLine("✅ Invoice successfully marked as paid!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("🔥 Firestore update failed: " + ex.Message);
+                throw;
+            }
+        }
+
+         public async Task<Dictionary<string, object>> GetManagerDataAsync(string userId)
+        {
+            var docRef = _firestoreDb
+                .Collection("users")
+                .Document(userId)
+                .Collection("manager_data")
+                .Document(userId);
+
+            var snapshot = await docRef.GetSnapshotAsync();
+
+            if (snapshot.Exists)
+                return snapshot.ToDictionary();
+            else
+                throw new Exception("User data not found in Firestore.");
+        }
+
+        public async Task UpdateManagerDataAsync(string userId, Dictionary<string, object> updatedData)
+        {
+            var docRef = _firestoreDb
+                .Collection("users")
+                .Document(userId)
+                .Collection("manager_data")
+                .Document(userId);
+
+            await docRef.SetAsync(updatedData, SetOptions.MergeAll);
+        }
+
     }
 }
