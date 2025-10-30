@@ -44,7 +44,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Security
                 else
                 {
                     // Non-Windows: fallback, store raw key (can later replace with a stronger option)
-                    toStore = newKey;
+                    toStore = newKey;  
                 }
 
                 File.WriteAllBytes(KeyFilePath, toStore);

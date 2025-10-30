@@ -43,12 +43,11 @@ namespace INSY7315_ElevateDigitalStudios_POE.Models
         public string Role { get; set; } = "Employee";
 
         [NotMapped]
-        [Required(ErrorMessage = "Password is required")]
         [RegularExpression(
             @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
             ErrorMessage = "Password must be at least 8 characters long, include one uppercase letter, one lowercase letter, one number, and one special character."
         )]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [FirestoreProperty("createdAt")]
         public object CreatedAt { get; set; } = DateTime.UtcNow;

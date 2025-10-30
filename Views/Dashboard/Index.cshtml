@@ -18,10 +18,47 @@
     <div class="dashboard-main-content">
         <div class="dashboard-header">
             <h1>Dashboard</h1>
-            <input type="text" placeholder="Search something ..." class="dashboard-search" />
         </div>
 
         <div class="dashboard-grid">
+            <!-- First row -->
+            <a href="@Url.Action("Payments", "Account")" class="dashboard-card image-link first-row">
+                <img src="~/images/payments_button_block.png" alt="Payments" /> 
+            </a>
+
+            <a href="@Url.Action("Profile", "Account")" class="dashboard-card image-link first-row">
+                <img src="~/images/view_account_button_block.png" alt="Placeholder" />
+            </a>
+
+            <a href="@Url.Action("Invoices", "Invoices")" class="dashboard-card image-link first-row">
+                <img src="~/images/view_invoices_button_block.png" alt="Printing" />
+            </a>
+
+            <!-- Second row -->
+            <a href="@Url.Action("AddEmployees", "Employees")" class="dashboard-card image-link fourth-card">
+                <img src="~/images/dashboard_add_employee.png" alt="Add Employees" />
+            </a>
+
+            <!-- Third row -->
+            <a href="#" class="dashboard-card image-link small-card">
+                <img src="~/images/dashboard_inks.png" alt="Printer Ink" />
+            </a>
+
+            <a href="@Url.Action("AddClient", "Clients")" class="dashboard-card image-link small-card">
+                <img src="~/images/add_client_button_block.png" alt="Add Clients" />
+            </a>
+
+            <a href="@Url.Action("CreateQuotation", "Quotations")" class="dashboard-card image-link small-card">
+                <img src="~/images/create_quote_button_block.png" alt="Create Quotations" />
+            </a>
+
+            <a href="#" class="dashboard-card image-link small-card">
+                <img src="~/images/grey_image_block1.png" alt="Add Client" />
+            </a>
+        </div>
+
+
+       @*  <div class="dashboard-grid">
             <!-- First row: 3 cards -->
             <div class="dashboard-card image-card first-row">
                 <img src="~/images/login-bg.jpg" alt="Payments" />
@@ -46,7 +83,7 @@
             <a href="@Url.Action("Index", "AddClient")" class="dashboard-card placeholder black small-card clickable-card">
                 <span class="card-label"><i class="fas fa-plus"></i> Add Client</span>
             </a>
-        </div>
+        </div> *@
     </div>
 
     </body>

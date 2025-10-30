@@ -12,7 +12,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Security
 
         public EncryptionHelper()
         {
-            _key = KeyStorage.GetOrCreateKey();
+            const string base64Key = "+D4/HeKp7YKzbF/eqZ4GWT7UicY3oheAfa+J5cG8sBQ=";
+            _key = Convert.FromBase64String(base64Key);
         }
 
         public string Encrypt(string plainText)
@@ -21,6 +22,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Security
 
             using var aes = Aes.Create();
             aes.Key = _key;
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.PKCS7;
             aes.GenerateIV();
             var iv = aes.IV;
 
@@ -33,6 +36,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Security
             }
 
             var encrypted = ms.ToArray();
+
+            // Combine IV + Cipher
             var result = new byte[iv.Length + encrypted.Length];
             Buffer.BlockCopy(iv, 0, result, 0, iv.Length);
             Buffer.BlockCopy(encrypted, 0, result, iv.Length, encrypted.Length);
@@ -42,18 +47,27 @@ namespace INSY7315_ElevateDigitalStudios_POE.Security
 
         public string Decrypt(string cipherText)
         {
-            if (string.IsNullOrEmpty(cipherText)) return cipherText;
+            if (string.IsNullOrEmpty(cipherText))
+                return cipherText;
+
+            Console.WriteLine("Cipher text: " + cipherText);
 
             var fullCipher = Convert.FromBase64String(cipherText);
+
             using var aes = Aes.Create();
             aes.Key = _key;
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.PKCS7;
 
-            var iv = new byte[aes.BlockSize / 8];
+            var iv = new byte[16];
             var cipher = new byte[fullCipher.Length - iv.Length];
+
+            // Correct byte order
             Buffer.BlockCopy(fullCipher, 0, iv, 0, iv.Length);
             Buffer.BlockCopy(fullCipher, iv.Length, cipher, 0, cipher.Length);
 
             aes.IV = iv;
+
             using var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
             using var ms = new MemoryStream(cipher);
             using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
@@ -62,69 +76,4 @@ namespace INSY7315_ElevateDigitalStudios_POE.Security
             return sr.ReadToEnd();
         }
     }
-
-
-    /*public class EncryptionHelper
-    {
-        private readonly byte[] _key;
-
-        public EncryptionHelper(string encryptionKey)
-        {
-            // Decode the Base64 string to bytes
-            _key = Convert.FromBase64String(encryptionKey);
-
-            // Validate length — must be 32 bytes for AES-256
-            if (_key.Length != 32)
-                throw new ArgumentException("Encryption key must be 32 bytes (256 bits) long.");
-        }
-
-        public string Encrypt(string plainText)
-        {
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = _key;
-                aes.GenerateIV();
-
-                using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
-                using (var ms = new MemoryStream())
-                {
-                    ms.Write(aes.IV, 0, aes.IV.Length);
-
-                    using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
-                    using (var sw = new StreamWriter(cs))
-                    {
-                        sw.Write(plainText);
-                    }
-
-                    return Convert.ToBase64String(ms.ToArray());
-                }
-            }
-        }
-
-        public string Decrypt(string cipherText)
-        {
-            byte[] fullCipher = Convert.FromBase64String(cipherText);
-
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = _key;
-
-                byte[] iv = new byte[aes.BlockSize / 8];
-                byte[] cipher = new byte[fullCipher.Length - iv.Length];
-
-                Array.Copy(fullCipher, iv, iv.Length);
-                Array.Copy(fullCipher, iv.Length, cipher, 0, cipher.Length);
-
-                aes.IV = iv;
-
-                using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
-                using (var ms = new MemoryStream(cipher))
-                using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
-                using (var sr = new StreamReader(cs))
-                {
-                    return sr.ReadToEnd();
-                }
-            }
-        }
-    }*/
 }

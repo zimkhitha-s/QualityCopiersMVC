@@ -75,7 +75,7 @@ namespace INSY7315_ElevateDigitalStudios_POE
             // Map your routes
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Quotations}/{action=Quotations}/{id?}");
+                pattern: "{controller=Dashboard}/{action=Index}/{id?}");
 
             app.Run();
         }

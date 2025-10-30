@@ -29,24 +29,50 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         {
             var idToken = await _firebaseAuthService.SignInWithEmailPasswordAsync(email, password);
 
-
-            if (!string.IsNullOrEmpty(idToken))
+            if (string.IsNullOrEmpty(idToken))
             {
-                // Decode Firebase ID token to extract the UID
-                var firebaseAuth = FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance;
-                var decodedToken = await firebaseAuth.VerifyIdTokenAsync(idToken);
-                var userId = decodedToken.Uid; // 🔹 Firebase User UID
-
-                // Store useful info in session
-                HttpContext.Session.SetString("UserEmail", email);
-                HttpContext.Session.SetString("UserId", userId); // 🔹 Store UID here
-
-                return RedirectToAction("Index", "Dashboard");
+                ViewBag.Error = "Invalid login attempt.";
+                return View();
             }
 
-            ViewBag.Error = "Invalid login attempt.";
-            return View();
+            try
+            {
+                // 1️⃣ Decode Firebase ID token to extract UID
+                var firebaseAuth = FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance;
+                var decodedToken = await firebaseAuth.VerifyIdTokenAsync(idToken);
+                var userId = decodedToken.Uid;
+
+                // 2️⃣ Fetch role from Firestore
+                var role = await _firebaseService.GetUserRoleAsync(userId);
+
+                if (role == null)
+                {
+                    ViewBag.Error = "User role not found.";
+                    return View();
+                }
+
+                // 3️⃣ Store info in session
+                HttpContext.Session.SetString("UserEmail", email);
+                HttpContext.Session.SetString("UserId", userId);
+                HttpContext.Session.SetString("UserRole", role);
+
+                // 4️⃣ Redirect based on role
+                if (role == "admin")
+                    return RedirectToAction("AdminDashboard", "Dashboard");
+                else if (role == "manager")
+                    return RedirectToAction("ManagerDashboard", "Dashboard");
+
+                // fallback
+                return View("AccessDenied");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error verifying token or fetching role: {ex.Message}");
+                ViewBag.Error = "An error occurred while logging in.";
+                return View();
+            }
         }
+
 
         [HttpGet]
         public IActionResult Profile()

@@ -32,7 +32,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
 
             // initialize firestore database and encryption helper
-            _firestoreDb = FirestoreDb.Create("insy7315-database");
+            _firestoreDb = FirestoreDb.Create("insy7315-database2");
             _encryptionHelper = encryptionHelper;
         }
 
@@ -40,6 +40,21 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         public FirestoreDb GetFirestore()
         {
             return _firestoreDb;
+        }
+
+        public async Task<string> GetUserRoleAsync(string userId)
+        {
+            // Check Employees (Admins)
+            var employeeDoc = await _firestoreDb.Collection("employees").Document(userId).GetSnapshotAsync();
+            if (employeeDoc.Exists)
+                return employeeDoc.GetValue<string>("role"); // "admin"
+
+            // Check Managers
+            var managerDoc = await _firestoreDb.Collection("managers").Document(userId).GetSnapshotAsync();
+            if (managerDoc.Exists)
+                return managerDoc.GetValue<string>("role"); // "manager"
+
+            return null;
         }
 
         // method to add a new client to firestore
@@ -50,7 +65,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             // encrypting the sensitive fields
             client.name = _encryptionHelper.Encrypt(client.name);
             client.surname = _encryptionHelper.Encrypt(client.surname);
-            client.email = client.email;
+            client.email = _encryptionHelper.Encrypt(client.email);
             client.phoneNumber = _encryptionHelper.Encrypt(client.phoneNumber);
             client.address = _encryptionHelper.Encrypt(client.address);
             client.companyName = _encryptionHelper.Encrypt(client.companyName);
@@ -77,7 +92,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 // Decrypt sensitive fields
                 client.name = _encryptionHelper.Decrypt(client.name).Trim();
                 client.surname = _encryptionHelper.Decrypt(client.surname).Trim();
-                client.email = client.email.Trim();
+                client.email = _encryptionHelper.Decrypt(client.email).Trim();
                 client.phoneNumber = _encryptionHelper.Decrypt(client.phoneNumber).Trim();
                 client.address = _encryptionHelper.Decrypt(client.address).Trim();
                 client.companyName = _encryptionHelper.Decrypt(client.companyName).Trim();
@@ -181,19 +196,30 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
-        private CollectionReference GetClientsCollection(string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2")
+        private CollectionReference GetClientsCollection()
+        {
+            return _firestoreDb.Collection("clients");
+        }
+
+        /*private CollectionReference GetClientsCollection(string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2")
         {
             // Navigate to the user document
             DocumentReference userDocRef = _firestoreDb.Collection("users").Document(userId);
 
             // Return the clients subcollection
             return userDocRef.Collection("clients");
-        }
+        }*/
 
-        public async Task<(bool Success, string ErrorMessage)> AddEmployeeAsync(Employee employee)
+        public async Task<(bool Success, string ErrorMessage, string TempPassword)> AddEmployeeAsync(Employee employee)
         {
             try
             {
+                string managerUid = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
+
+                // Generate the same temp password pattern as Android
+                employee.Password = employee.IdNumber.Substring(employee.IdNumber.Length - 6) + "@QC";
+                employee.Role = "Employee";
+
                 // Create user in Firebase Authentication
                 var userRecordArgs = new UserRecordArgs
                 {
@@ -206,7 +232,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
                 UserRecord newUser = await FirebaseAuth.DefaultInstance.CreateUserAsync(userRecordArgs);
 
-                // Set UID and encrypt sensitive fields before storing
+                // Set UID and encrypt fields
                 employee.Uid = newUser.Uid;
 
                 var encryptedEmployee = new Employee
@@ -216,28 +242,24 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     Name = _encryptionHelper.Encrypt(employee.Name),
                     Surname = _encryptionHelper.Encrypt(employee.Surname),
                     FullName = _encryptionHelper.Encrypt(employee.FullName ?? string.Empty),
-                    Email = employee.Email,
+                    Email = _encryptionHelper.Encrypt(employee.Email),
                     PhoneNumber = _encryptionHelper.Encrypt(employee.PhoneNumber),
-                    Role = employee.Role,
+                    Role = _encryptionHelper.Encrypt(employee.Role),
                     CreatedAt = employee.CreatedAtDateTime
                 };
 
-                var employeesRef = GetEmployeesCollection();
+                var employeesRef = GetEmployeesCollection(managerUid);
                 await employeesRef.Document(encryptedEmployee.Uid).SetAsync(encryptedEmployee);
 
-                await employeesRef.Document(encryptedEmployee.Uid).SetAsync(encryptedEmployee);
-
-                return (true, null);
+                return (true, null, employee.Password);
             }
             catch (FirebaseAuthException ex)
             {
-                // Firebase Authentication error (e.g., email already exists)
-                return (false, $"Firebase Auth Error: {ex.Message}");
+                return (false, $"Firebase Auth Error: {ex.Message}", null);
             }
             catch (Exception ex)
             {
-                // General error
-                return (false, $"Error adding employee: {ex.Message}");
+                return (false, $"Error adding employee: {ex.Message}", null);
             }
         }
 
@@ -260,9 +282,9 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     employee.Surname = _encryptionHelper.Decrypt(employee.Surname);
                     employee.FullName = _encryptionHelper.Decrypt(employee.FullName ?? string.Empty);
                     employee.IdNumber = _encryptionHelper.Decrypt(employee.IdNumber);
-                    employee.Email = employee.Email;
+                    employee.Email = _encryptionHelper.Decrypt(employee.Email);
                     employee.PhoneNumber = _encryptionHelper.Decrypt(employee.PhoneNumber);
-                    employee.Role = employee.Role;
+                    employee.Role = _encryptionHelper.Decrypt(employee.Role);
 
                     // Convert CreatedAt to CreatedAtDateTime for display
                     if (employee.CreatedAt != null)
@@ -300,7 +322,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             // Decrypt sensitive fields
             employee.Name = _encryptionHelper.Decrypt(employee.Name).Trim();
             employee.Surname = _encryptionHelper.Decrypt(employee.Surname).Trim();
-            employee.Email = employee.Email.Trim();
+            employee.Email = _encryptionHelper.Decrypt(employee.Email).Trim();
             employee.PhoneNumber = _encryptionHelper.Decrypt(employee.PhoneNumber).Trim();
 
             // Handle createdAt safely
@@ -337,7 +359,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             // Update other fields if provided
             if (!string.IsNullOrWhiteSpace(dto.Email))
-                employee.Email = dto.Email;
+                employee.Email = _encryptionHelper.Encrypt(dto.Email);
 
             if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
                 employee.PhoneNumber = _encryptionHelper.Encrypt(dto.PhoneNumber);
@@ -362,7 +384,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
-        private CollectionReference GetEmployeesCollection(string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2")
+        private CollectionReference GetEmployeesCollection(string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2")
         {
             return _firestoreDb.Collection("users").Document(userId).Collection("employees");
         }
@@ -374,22 +396,22 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 if (quotation == null)
                     return (false, "Quotation was null", null);
 
-                string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
+                string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
 
-                // 1️⃣ Prepare quotation metadata & totals
+                // Prepare quotation metadata & totals
                 PrepareQuotationMetadata(quotation);
                 CalculateQuotationTotals(quotation);
 
-                // 2️⃣ Generate PDF
+                // Generate PDF
                 string outputPdfPath = await GenerateQuotationPdfAsync(quotation);
 
                 if (!File.Exists(outputPdfPath))
                     return (false, $"PDF generation failed at {outputPdfPath}", null);
 
-                // 3️⃣ Send quotation email
+                // Send quotation email
                 await SendQuotationEmailAsync(quotation, userId, outputPdfPath);
 
-                // 4️⃣ Encrypt & store in Firestore
+                // Encrypt & store in Firestore
                 await SaveQuotationToFirestoreAsync(quotation, userId);
 
                 return (true, null, quotation.id);
@@ -402,8 +424,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
         private void PrepareQuotationMetadata(Quotation quotation)
         {
-            string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
-            var quotesRef = _firestoreDb.Collection("users").Document(userId).Collection("quotes");
+            string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
+            var quotesRef = _firestoreDb.Collection("quotes");
             var reservedDocRef = quotesRef.Document();
             quotation.id = reservedDocRef.Id;
 
@@ -560,12 +582,12 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
         private async Task SaveQuotationToFirestoreAsync(Quotation quotation, string userId)
         {
-            var quotesRef = _firestoreDb.Collection("users").Document(userId).Collection("quotes");
+            var quotesRef = _firestoreDb.Collection("quotes");
             var docRef = quotesRef.Document(quotation.id);
 
             var encrypted = new Quotation
             {
-                id = _encryptionHelper.Encrypt(quotation.id ?? ""),
+                id = quotation.id ?? "",
                 clientName = _encryptionHelper.Encrypt(quotation.clientName ?? ""),
                 companyName = _encryptionHelper.Encrypt(quotation.companyName ?? ""),
                 email = _encryptionHelper.Encrypt(quotation.email ?? ""),
@@ -593,8 +615,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         {
             try
             {
-                string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
-                var quotesRef = _firestoreDb.Collection("users").Document(userId).Collection("quotes");
+                string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
+                var quotesRef = _firestoreDb.Collection("quotes").WhereEqualTo("createdBy", userId);
                 var snapshot = await quotesRef.GetSnapshotAsync();
 
                 List<Quotation> quotations = new();
@@ -663,10 +685,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         {
             try
             {
-                string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
+                string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
                 DocumentReference quoteDoc = _firestoreDb
-                    .Collection("users")
-                    .Document(userId)
                     .Collection("quotes")
                     .Document(quoteId);
 
@@ -681,7 +701,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
         public async Task<List<Invoice>> GetInvoicesAsync()
         {
-            string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
+            string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
             var invoicesRef = _firestoreDb.Collection("users").Document(userId).Collection("invoices");
             var snapshot = await invoicesRef.GetSnapshotAsync();
 
@@ -715,7 +735,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         //Get invoice details by ID for payments
         public async Task<Invoice?> GetInvoiceDetailsAsync(string id)
         {
-            string userId = "vz4maSc0vOgouOGPhtdkFzBlceK2";
+            string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
             try
             {
                 var invoiceRef = _firestoreDb.Collection("users").Document(userId).Collection("invoices").Document(id);
@@ -1034,7 +1054,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         public async Task UpdateInvoiceStatusAsync(string invoiceId, string status)
         {
             // Replace with the correct user ID
-            string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
+            string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
 
             // Access the invoice document inside the user's "invoices" subcollection
             var docRef = _firestoreDb
@@ -1055,7 +1075,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         {
             try
             {
-                string userId = "ypqdjnU59xfE6cdE4NoKPAoWPfA2";
+                string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
                 DocumentReference invoiceDoc = _firestoreDb
                     .Collection("users")
                     .Document(userId)
@@ -1073,11 +1093,11 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
         public async Task MarkInvoiceAsPaidAsync(string invoiceId)
         {
-            string userId = "vz4maSc0vOgouOGPhtdkFzBlceK2"; // Replace with dynamic user ID if applicable
+            string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2"; // Replace with dynamic user ID if applicable
 
             try
             {
-                Console.WriteLine($"🔍 Trying to mark as paid - User: {userId}, Invoice: {invoiceId}");
+                Console.WriteLine($"Trying to mark as paid - User: {userId}, Invoice: {invoiceId}");
 
                 var invoiceRef = _firestoreDb.Collection("users")
                     .Document(userId)
@@ -1088,16 +1108,16 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
                 if (!snapshot.Exists)
                 {
-                    Console.WriteLine($"❌ Invoice not found at path: users/{userId}/invoices/{invoiceId}");
+                    Console.WriteLine($"Invoice not found at path: users/{userId}/invoices/{invoiceId}");
                     throw new Exception("Invoice document does not exist in Firestore.");
                 }
 
                 await invoiceRef.UpdateAsync("status", "Paid");
-                Console.WriteLine("✅ Invoice successfully marked as paid!");
+                Console.WriteLine("Invoice successfully marked as paid!");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("🔥 Firestore update failed: " + ex.Message);
+                Console.WriteLine("Firestore update failed: " + ex.Message);
                 throw;
             }
         }
