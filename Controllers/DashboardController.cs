@@ -8,6 +8,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
     {
         public IActionResult Index()
         {
+            ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
             return View();
         }
     }

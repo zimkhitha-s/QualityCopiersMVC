@@ -28,8 +28,8 @@
             <div class="sidebar-account">
                 <img src="~/images/usericon.jpeg" alt="User Icon" class="user-icon" />
                 <div class="user-details">
-                    <span class="user-name">Craig Diedricks</span>
-                    <span class="user-job">Manager</span>
+                    <span class="user-name">@ViewBag.FullName</span>
+                    <span class="user-job">@ViewBag.UserRole</span>
                 </div>
             </div>
 
@@ -93,5 +93,36 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Get the userRole from the backend
+        const userRole = "@ViewBag.UserRole";
+
+        // Define all nav items
+        const navItems = document.querySelectorAll(".sidebar-nav .nav-item, .sidebar-footer .nav-item");
+
+        // Define allowed links for non-managers
+        const allowedForOthers = [
+            "Clients",
+            "Quotations",
+            "Invoices",
+            "Dashboard", // corresponds to Index
+            "Account",
+            "Logout", 
+            "Help" 
+        ];
+
+        if (userRole !== "Manager") {
+            navItems.forEach(item => {
+                const label = item.querySelector("span")?.textContent.trim();
+
+                if (!allowedForOthers.includes(label)) {
+                    item.style.display = "none"; // hide unauthorized items
+                }
+            });
+        }
+    });
+    </script>
 </body>
 </html>

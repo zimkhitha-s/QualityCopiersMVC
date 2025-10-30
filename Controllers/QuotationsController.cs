@@ -18,6 +18,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [HttpGet]
         public async Task<IActionResult> Quotations()
         {
+            ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
             try
             {
                 var quotations = await _firebaseService.GetQuotationsAsync();
@@ -40,6 +41,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateQuotation()
         {
+            ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
             try
             {
                 // Controller does not pass a userId — firebase service handles that.

@@ -27,7 +27,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 // initialize firebase app with default credentials
                 FirebaseApp.Create(new AppOptions()
                 {
-                    Credential = GoogleCredential.GetApplicationDefault()
+                    Credential = GoogleCredential.FromFile("database/firebase-key.json")
                 });
             }
 
@@ -44,13 +44,24 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
         public async Task<string> GetUserRoleAsync(string userId)
         {
+            string documentRef = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
             // Check Employees (Admins)
-            var employeeDoc = await _firestoreDb.Collection("employees").Document(userId).GetSnapshotAsync();
+            var employeeDoc = await _firestoreDb.Collection("users")
+            .Document(documentRef)
+            .Collection("employees")
+            .Document(userId)
+            .GetSnapshotAsync();
+
             if (employeeDoc.Exists)
                 return employeeDoc.GetValue<string>("role"); // "admin"
 
             // Check Managers
-            var managerDoc = await _firestoreDb.Collection("managers").Document(userId).GetSnapshotAsync();
+            var managerDoc = await _firestoreDb.Collection("users")
+            .Document(documentRef)
+            .Collection("manager_data")
+            .Document(userId)
+            .GetSnapshotAsync();
+
             if (managerDoc.Exists)
                 return managerDoc.GetValue<string>("role"); // "manager"
 
@@ -1122,7 +1133,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
-         public async Task<Dictionary<string, object>> GetManagerDataAsync(string userId)
+          public async Task<Dictionary<string, object>> GetManagerDataAsync(string userId)
         {
             var docRef = _firestoreDb
                 .Collection("users")
@@ -1138,16 +1149,93 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 throw new Exception("User data not found in Firestore.");
         }
 
-        public async Task UpdateManagerDataAsync(string userId, Dictionary<string, object> updatedData)
+        public async Task<(bool Success, string Message)> UpdateManagerDataAsync(string userId, Dictionary<string, object> updatedData)
         {
+            if (string.IsNullOrEmpty(userId))
+                return (false, "User ID cannot be null or empty.");
+
+            if (updatedData == null || updatedData.Count == 0)
+                return (false, "No update data provided.");
+
+            try
+            {
+                DocumentReference docRef = _firestoreDb.Collection("users").Document(userId).Collection("manager_data").Document(userId);
+
+                // Add a timestamp to track last update
+                updatedData["lastUpdated"] = Timestamp.GetCurrentTimestamp();
+
+                // ✅ Merge ensures we only update provided fields
+                await docRef.SetAsync(updatedData, SetOptions.MergeAll);
+
+                return (true, "Profile updated successfully.");
+            }
+            catch (Grpc.Core.RpcException grpcEx)
+            {
+                Console.WriteLine($"🔥 Firestore RPC error for user {userId}: {grpcEx.Status.Detail}");
+                return (false, $"Firestore RPC error: {grpcEx.Status.Detail}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"🔥 Firestore update failed for user {userId}: {ex.Message}");
+                return (false, $"Unexpected error updating Firestore: {ex.Message}");
+            }
+        }
+
+        public async Task<Dictionary<string, object>> GetUserDetailsAsync(string userId)
+        {
+            string userDocument = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
             var docRef = _firestoreDb
                 .Collection("users")
-                .Document(userId)
-                .Collection("manager_data")
+                .Document(userDocument)
+                .Collection("manager_details")// Verify collection name once they're done
                 .Document(userId);
 
-            await docRef.SetAsync(updatedData, SetOptions.MergeAll);
+            var snapshot = await docRef.GetSnapshotAsync();
+
+            if (snapshot.Exists)
+                return snapshot.ToDictionary();
+            else
+                throw new Exception("User data not found in Firestore.");
         }
+        
+        public async Task<(bool Success, string Message)> UpdateUserDetailsAsync(string userId, Dictionary<string, object> updatedData)
+        {
+            if (string.IsNullOrEmpty(userId))
+                return (false, "User ID cannot be null or empty.");
+
+            if (updatedData == null || updatedData.Count == 0)
+                return (false, "No update data provided.");
+
+            try
+            {
+                string userDocument = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
+                
+                DocumentReference docRef = _firestoreDb
+                .Collection("users")
+                .Document(userDocument)
+                .Collection("manager_data") //verfiy collection name when they're done
+                .Document(userId);
+
+                // Add a timestamp to track last update
+                updatedData["lastUpdated"] = Timestamp.GetCurrentTimestamp();
+
+                //  Merge ensures we only update provided fields
+                await docRef.SetAsync(updatedData, SetOptions.MergeAll);
+
+                return (true, "Profile updated successfully.");
+            }
+            catch (Grpc.Core.RpcException grpcEx)
+            {
+                Console.WriteLine($" Firestore RPC error for user {userId}: {grpcEx.Status.Detail}");
+                return (false, $"Firestore RPC error: {grpcEx.Status.Detail}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($" Firestore update failed for user {userId}: {ex.Message}");
+                return (false, $"Unexpected error updating Firestore: {ex.Message}");
+            }
+        }
+
 
     }
 }

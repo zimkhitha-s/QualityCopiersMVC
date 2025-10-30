@@ -1,4 +1,5 @@
-﻿using INSY7315_ElevateDigitalStudios_POE.Services;
+﻿using INSY7315_ElevateDigitalStudios_POE.Models.Requests;
+using INSY7315_ElevateDigitalStudios_POE.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Controllers
@@ -10,12 +11,14 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         private readonly FirebaseAuthService _firebaseAuthService;
         private readonly FirebaseService _firebaseService;
         private readonly IWebHostEnvironment _env;
+        private readonly string _firebaseApiKey;
 
-        public AccountController(FirebaseAuthService firebaseAuthService, FirebaseService firebaseService, IWebHostEnvironment env)
+        public AccountController(FirebaseAuthService firebaseAuthService, FirebaseService firebaseService, IWebHostEnvironment env, IConfiguration config)
         {
             _firebaseAuthService = firebaseAuthService;
-            _firebaseService = firebaseService; 
+            _firebaseService = firebaseService;
             _env = env;
+            _firebaseApiKey = config["Firebase:ApiKey"];
         }
 
         [HttpGet]
@@ -57,13 +60,14 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 HttpContext.Session.SetString("UserRole", role);
 
                 // 4️⃣ Redirect based on role
-                if (role == "admin")
+                /*if (role == "admin")
                     return RedirectToAction("AdminDashboard", "Dashboard");
-                else if (role == "manager")
+                else if (role == "Manager")
                     return RedirectToAction("ManagerDashboard", "Dashboard");
+                */
 
                 // fallback
-                return View("AccessDenied");
+                return RedirectToAction("Index", "Dashboard");
             }
             catch (Exception ex)
             {
@@ -77,6 +81,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [HttpGet]
         public IActionResult Profile()
         {
+            
+            ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
             return View();
         }
 
@@ -88,22 +94,39 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { message = "User not logged in or session expired." });
 
-            var userData = await _firebaseService.GetManagerDataAsync(userId);
+            var userData = await _firebaseService.GetManagerDataAsync(userId);//change this function name to GetUserDetails
             return Json(userData);
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateProfile([FromBody] Dictionary<string, object> updatedData)
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest updatedData)
         {
             var userId = HttpContext.Session.GetString("UserId");
 
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { message = "User not logged in or session expired." });
 
-            await _firebaseService.UpdateManagerDataAsync(userId, updatedData);
-            return Ok(new { message = "Profile updated successfully" });
-        }  
+            if (updatedData == null)
+                return BadRequest(new { message = "Invalid request body." });
 
+            var data = new Dictionary<string, object>
+            {
+                { "firstName", updatedData.FullName },
+                { "role", updatedData.Role },
+                { "surname", updatedData.Surname },
+                { "mobile", updatedData.Mobile },
+                { "email", updatedData.Email },
+                { "language", updatedData.Language }
+            };
+
+            var (success, message) = await _firebaseService.UpdateManagerDataAsync(userId, data); //change this function name to UpdateUserDetails
+
+            if (!success)
+                return StatusCode(500, new { message });
+
+            return Ok(new { message });
+        }
+        
         [HttpPost]
         public async Task<IActionResult> UploadImage(IFormFile image)
         {
@@ -116,7 +139,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             if (!Directory.Exists(uploadsFolder))
                 Directory.CreateDirectory(uploadsFolder);
 
-            var fileName = Path.GetFileName(image.FileName);
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
             var filePath = Path.Combine(uploadsFolder, fileName);
 
             using (var stream = new FileStream(filePath, FileMode.Create))
@@ -128,5 +151,82 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             var relativePath = Url.Content("~/profileImages/" + fileName);
             return Content(relativePath);
         }
-    }
+        
+        //Change Password
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword([FromBody] PasswordChangeRequest request)
+        {
+            var userEmail = HttpContext.Session.GetString("UserEmail");
+            if (string.IsNullOrEmpty(userEmail))
+                return Unauthorized("User not logged in.");
+
+            if (string.IsNullOrEmpty(request.CurrentPassword) || string.IsNullOrEmpty(request.NewPassword))
+                return BadRequest("Missing password fields.");
+
+            try
+            {
+                // 1️⃣ Re-authenticate user with current password using Firebase REST API
+                var client = new HttpClient();
+                var apiKey = _firebaseApiKey; 
+
+                var reauthPayload = new
+                {
+                    email = userEmail,
+                    password = request.CurrentPassword,
+                    returnSecureToken = true
+                };
+
+                var reauthResponse = await client.PostAsJsonAsync(
+                    $"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={apiKey}",
+                    reauthPayload);
+
+                if (!reauthResponse.IsSuccessStatusCode)
+                {
+                    return BadRequest("Current password is incorrect.");
+                }
+
+                var reauthData = await reauthResponse.Content.ReadFromJsonAsync<FirebaseSignInResponse>();
+
+                // 2️⃣ Update password via Firebase REST API
+                var updatePayload = new
+                {
+                    idToken = reauthData.idToken,
+                    password = request.NewPassword,
+                    returnSecureToken = false
+                };
+
+                var updateResponse = await client.PostAsJsonAsync(
+                    $"https://identitytoolkit.googleapis.com/v1/accounts:update?key={apiKey}",
+                    updatePayload);
+
+                if (!updateResponse.IsSuccessStatusCode)
+                {
+                    var errorDetails = await updateResponse.Content.ReadAsStringAsync();
+                    return BadRequest($"Failed to update password. Details: {errorDetails}");
+                }
+
+                return Ok("Password updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // DTOs
+        public class PasswordChangeRequest
+        {
+            public string CurrentPassword { get; set; }
+            public string NewPassword { get; set; }
+        }
+
+        public class FirebaseSignInResponse
+        {
+            public string idToken { get; set; }
+            public string email { get; set; }
+            public string refreshToken { get; set; }
+            public string expiresIn { get; set; }
+            public string localId { get; set; }
+        }
+   }
 }

@@ -22,6 +22,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [HttpGet]
         public async Task<IActionResult> Clients()
         {
+            ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
             try
             {
                 var clients = await _firebaseService.GetClientsAsync();
@@ -37,6 +38,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [HttpGet]
         public IActionResult AddClients()
         {
+            ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
             return View();
         }
 
