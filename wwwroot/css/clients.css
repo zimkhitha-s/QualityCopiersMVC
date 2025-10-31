@@ -24,13 +24,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    padding-top:20px;
+    margin-bottom: 22px;
 }
 
     .clients-header h1 {
         font-family: 'Agrandir', sans-serif;
-        font-size: 25.4px;
-        font-weight: 600;
+        font-size: 40px;
+        font-weight: 400;
         color: #1e293b;
         margin: 0;
         letter-spacing: 0.02em;
@@ -44,6 +45,37 @@
     margin-bottom: 2rem;
     flex-wrap: wrap;
 }
+
+/* OPERATION ACTIONS*/
+
+.td-employee-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    gap: 15px; /* spacing between icons */
+}
+
+    .td-employee-actions a {
+        display: flex;
+        align-items: center;
+        justify-content: right;
+        left: 25px;
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: none;
+        padding: 4px;
+    }
+
+.operation-icons-employee {
+    width: 34px;
+    height: 34px;
+}
+
+    .operation-icons-employee:hover {
+        transform: translateY(-3px) scale(1.05);
+    }
 
 /* ===== BUTTONS ===== */
 .btn {

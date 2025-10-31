@@ -11,12 +11,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    padding-top:20px;
+    margin-bottom: 22px;
 }
 
     .clients-header h1 {
-        font-size: 28px;
-        font-weight: 600;
+        font-size: 40px;
+        font-weight: 400;
     }
 
 .search-container {
@@ -37,6 +38,38 @@
 .search-icon img {
     margin-left: -25px;
 }
+
+/* OPERATION ACTIONS*/
+
+.td-employee-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    gap: 15px; /* spacing between icons */
+}
+
+    .td-employee-actions a {
+        display: flex;
+        align-items: center;
+        justify-content: right;
+        left: 25px;
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: none;
+        padding: 4px;
+    }
+
+.operation-icons-employee {
+    width: 34px;
+    height: 34px;
+}
+
+    .operation-icons-employee:hover {
+        transform: translateY(-3px) scale(1.05);
+    }
+
 
 .btn {
     display: inline-flex;

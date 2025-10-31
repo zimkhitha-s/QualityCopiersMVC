@@ -28,13 +28,23 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  padding-top:15px;
+  margin-bottom: 10px;
 }
 
 .page-title {
-  font-size: 32px;
-  font-weight: 600;
-  color: #333;
+    font-size: 40px;
+    font-weight: 400;
+    padding-right: 25px;
+    color: #333;
+}
+
+.page-title-quotations {
+    font-size: 40px;
+    font-weight: 400;
+    font-family: 'Agrandir', sans-serif;
+    padding-right: 25px;
+    color: #333;
 }
 
 .search-container {
@@ -137,13 +147,18 @@ body {
   color: white;
 }
 
-.quotations-table th {
-  padding: 18px 20px;
-  text-align: left;
-  font-weight: 500;
-  font-size: 14px;
-  background-color: #1a1a1a;
-}
+    .quotations-table th,
+    .quotations-table td {
+        padding: 20px 20px;
+        vertical-align: middle; 
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+
+    .quotations-table thead th {
+        padding: 18px 28px; 
+    }
 
 .quotations-table th:first-child {
   border-top-left-radius: 12px;
@@ -157,6 +172,7 @@ body {
 
 .quotations-table tbody tr {
   background-color: white;
+  height: 65px; 
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: background-color 0.2s ease;
   cursor: pointer;
@@ -178,15 +194,74 @@ body {
   color: white;
 }
 
+/*QUOTE ACTION BUTTONS*/
+.td-quote-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    gap: 15px; /* spacing between icons */
+}
+
+    .td-quote-actions a {
+        display: flex;
+        align-items: center;
+        justify-content: right;
+        left: 25px;
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: none;
+        padding: 4px;
+    }
+
+.operation-icons-quotes {
+    width: 34px;
+    height: 34px;
+}
+
+.operation-icons-quotes:hover {
+    transform: translateY(-3px) scale(1.05);
+}
+
+
+/*PAYMENT ACTION BUTTONS*/
 .td-actions {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px; /* spacing between icons */
+    width: 100px;
+    gap: 15px; /* spacing between icons */
+}
+
+    .td-actions a {
+        display: flex;
+        align-items: center;
+        justify-content: right;
+        left:25px;
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: none;
+        padding: 4px;
+    }
+
+.operation-icons{
+    width:34px;
+    height:34px;
+}
+
+    .operation-icons:hover {
+        transform: translateY(-3px) scale(1.05);
+    }
+
+.td-actions a:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
 }
 
 .quotations-table tbody tr:hover .status-progress {
-  color: white;
+    color: white;
 }
 
 .quotations-table tbody tr:hover .status-accepted {
@@ -211,7 +286,7 @@ body {
 }
 
 .quotations-table td {
-    padding: 5px 10px;
+    padding: 5px 27px;
     font-size: 14px;
 }
 

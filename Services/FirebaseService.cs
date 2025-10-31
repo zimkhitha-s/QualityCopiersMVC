@@ -1,14 +1,18 @@
-﻿using FirebaseAdmin;
+﻿using System.Drawing;
+using FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
 using INSY7315_ElevateDigitalStudios_POE.Models;
 using INSY7315_ElevateDigitalStudios_POE.Models.Dtos;
 using INSY7315_ElevateDigitalStudios_POE.Security;
+using iText.Kernel.Font;
+using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Action;
+using MimeKit;
 using Spire.Doc;
 using Spire.Doc.Documents;
 using Spire.Doc.Fields;
-using MimeKit;
 using System.Drawing;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Services
@@ -909,7 +913,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             return invoices;
         }
-
+        
         //Get invoice details by ID for payments
         public async Task<Invoice?> GetInvoiceDetailsAsync(string id)
         {
@@ -1491,6 +1495,149 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
+        public async Task<List<Invoice>> GetPaidInvoicesByDateRangeAsync(int months)
+        {
+            try
+            {
+                var invoicesRef = _firestoreDb.Collection("invoices");
+                var snapshot = await invoicesRef.GetSnapshotAsync();
 
+                DateTime cutoffDate = DateTime.UtcNow.AddMonths(-months);
+                List<Invoice> paidInvoices = new();
+
+                // Local safe decryption helper
+                string SafeDecrypt(string value)
+                {
+                    if (string.IsNullOrWhiteSpace(value))
+                        return value;
+
+                    try
+                    {
+                        return _encryptionHelper.Decrypt(value);
+                    }
+                    catch
+                    {
+                        // Return the original value if not encrypted or invalid Base64
+                        return value;
+                    }
+                }
+
+                foreach (var doc in snapshot.Documents)
+                {
+                    if (!doc.Exists) continue;
+                    var invoice = doc.ConvertTo<Invoice>();
+
+                    // Use SafeDecrypt for every possibly-encrypted field
+                    invoice.ClientName = SafeDecrypt(invoice.ClientName);
+                    invoice.CompanyName = SafeDecrypt(invoice.CompanyName);
+                    invoice.InvoiceNumber = SafeDecrypt(invoice.InvoiceNumber);
+                    invoice.Email = SafeDecrypt(invoice.Email);
+                    invoice.Phone = SafeDecrypt(invoice.Phone);
+
+                    if (invoice.CreatedAt == null) continue;
+                    DateTime createdAt = invoice.CreatedAt.Value.ToDateTime();
+
+                    if (invoice.Status == "Paid" && createdAt >= cutoffDate)
+                    {
+                        paidInvoices.Add(invoice);
+                    }
+                }
+
+                return paidInvoices.OrderByDescending(i => i.CreatedAt).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching paid invoices: {ex.Message}");
+                return new List<Invoice>();
+            }
+        }
+        public async Task<(byte[] PdfBytes, string FileName)> GeneratePaymentsReportPdfAsync(List<Invoice> invoices, int months)
+        {
+            if (invoices == null || !invoices.Any())
+                throw new ArgumentException("No invoices found for report generation.");
+
+            string tempDocPath = Path.Combine(Path.GetTempPath(), $"Payments_Report_{months}Months_{DateTime.Now:yyyyMMddHHmmss}.docx");
+            string tempPdfPath = Path.ChangeExtension(tempDocPath, ".pdf");
+
+            Document document = new Document();
+            Section section = document.AddSection();
+
+            // Title
+            Paragraph title = section.AddParagraph();
+            TextRange titleText = title.AppendText($"Payments Received Report (Last {months} Months)");
+            titleText.CharacterFormat.FontName = "Poppins";
+            titleText.CharacterFormat.FontSize = 18;
+            titleText.CharacterFormat.Bold = true;
+            title.Format.HorizontalAlignment = HorizontalAlignment.Center;
+            title.Format.AfterSpacing = 15;
+
+            // Table
+            Table table = section.AddTable(true);
+            table.ResetCells(invoices.Count + 1, 4); // +1 for header
+
+            // Header row
+            string[] headers = { "Client Name", "Company Name", "Invoice Number", "Total Amount" };
+            TableRow headerRow = table.Rows[0];
+            headerRow.RowFormat.BackColor = Color.LightGray;
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                Paragraph p = headerRow.Cells[i].AddParagraph();
+                TextRange tr = p.AppendText(headers[i]);
+                tr.CharacterFormat.FontName = "Poppins";
+                tr.CharacterFormat.FontSize = 12;
+                tr.CharacterFormat.Bold = true;
+                p.Format.HorizontalAlignment = HorizontalAlignment.Center;
+            }
+
+            // Data rows
+            double totalAmount = 0;
+            for (int i = 0; i < invoices.Count; i++)
+            {
+                Invoice inv = invoices[i];
+                TableRow row = table.Rows[i + 1];
+
+                row.Cells[0].AddParagraph().AppendText(inv.ClientName ?? "-");
+                row.Cells[1].AddParagraph().AppendText(inv.CompanyName ?? "-");
+                row.Cells[2].AddParagraph().AppendText(inv.InvoiceNumber ?? "-");
+                row.Cells[3].AddParagraph().AppendText($"R {inv.TotalAmount:F2}");
+
+                totalAmount += inv.TotalAmount;
+            }
+
+            table.TableFormat.Borders.LineWidth = 0.5f;
+            table.TableFormat.Borders.Color = Color.LightGray;
+            table.Rows[0].Height = 20;
+            table.AutoFit(AutoFitBehaviorType.AutoFitToWindow);
+
+            // Total line
+            Paragraph totalParagraph = section.AddParagraph();
+            totalParagraph.AppendText($"\nTotal Paid Amount: R {totalAmount:F2}");
+            totalParagraph.Format.HorizontalAlignment = HorizontalAlignment.Right;
+            totalParagraph.Format.AfterSpacing = 10;
+            totalParagraph.BreakCharacterFormat.Bold = true;
+            totalParagraph.BreakCharacterFormat.FontSize = 12;
+
+            // Footer
+            Paragraph footer = section.AddParagraph();
+            footer.AppendText($"Generated on: {DateTime.Now:yyyy-MM-dd HH:mm}");
+            footer.Format.HorizontalAlignment = HorizontalAlignment.Right;
+            footer.BreakCharacterFormat.FontSize = 10;
+            footer.BreakCharacterFormat.Italic = true;
+            footer.BreakCharacterFormat.TextColor = Color.Gray;
+
+            // Save DOCX, then export to PDF
+            document.SaveToFile(tempDocPath, FileFormat.Docx);
+            document.SaveToFile(tempPdfPath, FileFormat.PDF);
+
+            byte[] pdfBytes = await File.ReadAllBytesAsync(tempPdfPath);
+
+            // Cleanup temp files
+            if (File.Exists(tempDocPath)) File.Delete(tempDocPath);
+            if (File.Exists(tempPdfPath)) File.Delete(tempPdfPath);
+
+            string fileName = $"Payments_Report_{months}Months.pdf";
+            return (pdfBytes, fileName);
+        }
     }
 }

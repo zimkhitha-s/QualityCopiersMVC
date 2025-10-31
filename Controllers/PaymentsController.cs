@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text;
+using System.Linq;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 {
@@ -72,7 +73,34 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 return StatusCode(500, new { error = $"Error fetching invoice: {ex.Message}" });
             }
         }
-        
-       
+
+        [HttpPost]
+        public async Task<IActionResult> DownloadPaymentsReport([FromBody] DateRangeRequest request)
+        {
+            if (request == null || request.Months <= 0)
+                return BadRequest(new { message = "Invalid date range selection." });
+
+            try
+            {
+                var invoices = await _firebaseService.GetPaidInvoicesByDateRangeAsync(request.Months);
+                if (!invoices.Any())
+                    return NotFound(new { message = "No paid invoices found in this range." });
+
+                var (pdfBytes, fileName) = await _firebaseService.GeneratePaymentsReportPdfAsync(invoices, request.Months);
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error generating report: {ex.Message}" });
+            }
+        }
+
+        public class DateRangeRequest
+        {
+            public int Months { get; set; }
+        }
+
+
+
     }
 }

@@ -25,6 +25,7 @@
   <ItemGroup>
     <PackageReference Include="FirebaseAdmin" Version="3.4.0" />
     <PackageReference Include="Google.Cloud.Firestore" Version="3.11.0" />
+    <PackageReference Include="itext7" Version="9.3.0" />
     <PackageReference Include="MailKit" Version="4.14.1" />
     <PackageReference Include="QuestPDF" Version="2025.7.3" />
     <PackageReference Include="Spire.Doc" Version="13.9.10" />
