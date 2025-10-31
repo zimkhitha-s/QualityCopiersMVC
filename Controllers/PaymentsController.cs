@@ -9,6 +9,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 {
     public class PaymentsController : Controller
     {
+        // dependencies injection - firebase service
         private readonly FirebaseService _firebaseService;
 
         public PaymentsController(FirebaseService firebaseService)
@@ -16,23 +17,26 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             _firebaseService = firebaseService;
         }
 
-        // ✅ 1️⃣ Load all invoices (Unpaid + Paid)
+        // load all invoices - Unpaid and Paid
         [HttpGet]
         public async Task<IActionResult> Payments()
         {
+            // set session variables for view
             ViewBag.FullName = HttpContext.Session.GetString("FullName");
             ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
 
             try
             {
+                // fetch invoices from firebase
                 var invoices = await _firebaseService.GetInvoicesAsync();
                 if (invoices == null || !invoices.Any())
                 {
+                    // no invoices found
                     ViewBag.NoInvoices = true;
                     return View(new List<Invoice>());
                 }
 
-                // Sanitize for HTML safety
+                // sanitize for html safety
                 foreach (var inv in invoices)
                 {
                     inv.ClientName = WebUtility.HtmlEncode(inv.ClientName ?? "");
@@ -43,27 +47,32 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                     inv.InvoiceNumber = WebUtility.HtmlEncode(inv.InvoiceNumber ?? "");
                 }
 
+                // return view with invoices
                 return View(invoices);
             }
             catch (Exception ex)
             {
+                // handle errors
                 ViewBag.ErrorMessage = $"Error loading invoices: {WebUtility.HtmlEncode(ex.Message)}";
                 return View(new List<Invoice>());
             }
         }
 
-        // ✅ 2️⃣ Mark as Paid (Triggers Cloud Function)
+        // mark as paid triggers the cloud function
         [HttpPost("Payments/MarkAsPaid/{invoiceId}")]
         public async Task<IActionResult> MarkAsPaid(string invoiceId)
         {
             try
             {
+                // update invoice status to paid
                 await _firebaseService.UpdateInvoiceStatusAsync(invoiceId, "Paid");
 
+                // fetch invoice details
                 var invoice = await _firebaseService.GetInvoiceDetailsAsync(invoiceId);
                 if (invoice != null)
                     await _firebaseService.GenerateAndSendInvoiceAsync(invoice);
 
+                // return success response
                 return Json(new { success = true, message = "Invoice marked as Paid! Payment record will auto-generate." });
             }
             catch (Exception ex)
@@ -72,28 +81,32 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             }
         }
 
-        // ✅ 3️⃣ Get Invoice Details (used by modal)
+        // get invoice details
         [HttpGet]
         public async Task<IActionResult> GetInvoiceDetails(string id)
         {
             try
             {
+                // validate id
                 if (string.IsNullOrEmpty(id))
                     return BadRequest(new { error = "Missing invoice ID." });
 
+                // fetch invoice details
                 var invoice = await _firebaseService.GetInvoiceDetailsAsync(id);
                 if (invoice == null)
                     return NotFound(new { error = "Invoice not found." });
 
+                // return invoice as json
                 return Json(invoice);
             }
             catch (Exception ex)
             {
+                // handle errors
                 return StatusCode(500, new { error = $"Error fetching invoice: {ex.Message}" });
             }
         }
 
-        // ✅ 4️⃣ Download PDF Report (Last 3/6/12 months)
+        // download pdf report last - 3/6/12 months
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DownloadPaymentsReport([FromBody] DateRangeRequest request)
@@ -116,7 +129,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             }
         }
 
-        // ✅ 5️⃣ Delete Invoice (from modal)
+        // delete invoice
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteInvoice([FromBody] DeleteInvoiceRequest request)
@@ -146,3 +159,4 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         }
     }
 }
+//-------------------------------------------------------------------------------------------End Of File--------------------------------------------------------------------//

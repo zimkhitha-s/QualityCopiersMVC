@@ -146,19 +146,14 @@
     <script>
         let selectedPaymentId = null;
 
-        // ================================
-        // 🔹 FILTER + SEARCH FUNCTIONALITY
-        // ================================
         const tableBody = document.querySelector('.quotations-table tbody');
         const originalRows = Array.from(tableBody.querySelectorAll('tr')).map(r => r.cloneNode(true));
         const searchInput = document.querySelector('.search-input');
         let currentFilter = null;
 
-        // Show / Hide Filter Modal
         function showFilterModal() { document.getElementById('filterModal').style.display = 'flex'; }
         function hideFilterModal() { document.getElementById('filterModal').style.display = 'none'; }
 
-        // Apply or Clear Filters
         window.applyFilter = function (filterType) {
             currentFilter = filterType;
             applySearchAndFilter(searchInput?.value.trim().toLowerCase() || '');
@@ -171,12 +166,10 @@
             hideFilterModal();
         };
 
-        // Combined search + filter logic
         function applySearchAndFilter(searchQuery) {
             let rows = originalRows.map(r => r.cloneNode(true))
                 .filter(r => !r.querySelector('td[colspan]'));
 
-            // Apply filter type
             if (currentFilter) {
                 switch (currentFilter) {
                     case 'alphabetical':
@@ -196,7 +189,6 @@
                 }
             }
 
-            // Apply search
             if (searchQuery) {
                 rows = rows.filter(row => {
                     const clientName = (row.querySelector('td:nth-child(1)')?.textContent || '').toLowerCase();
@@ -211,7 +203,6 @@
                 });
             }
 
-            // Update table
             tableBody.innerHTML = '';
             if (rows.length) {
                 rows.forEach(r => tableBody.appendChild(r));
@@ -226,19 +217,14 @@
             }
         }
 
-        // Trigger search
         searchInput?.addEventListener('input', function () {
             applySearchAndFilter(this.value.trim().toLowerCase());
         });
 
-        // Close modal with Escape key
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') hideFilterModal();
         });
 
-        // ================================
-        // 🔹 PAYMENT MODALS (SAVE / SEND / DELETE)
-        // ================================
         function showSaveModal(id) { selectedPaymentId = id; document.getElementById('saveModal').style.display = 'flex'; }
         function hideSaveModal() { document.getElementById('saveModal').style.display = 'none'; }
 
@@ -248,125 +234,108 @@
         function showDeleteModal(id) { selectedPaymentId = id; document.getElementById('deleteModal').style.display = 'flex'; }
         function hideDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; }
 
-        // ================================
-        // 🔹 BUTTON LOGIC (MODAL TRIGGERS)
-        // ================================
         document.addEventListener("DOMContentLoaded", () => {
-            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
 
-            // Open Save modal
-            document.querySelectorAll('.save-btn-payments').forEach(btn => {
-                btn.addEventListener('click', e => {
-                    e.preventDefault();
-                    showSaveModal(btn.dataset.invoiceId);
-                });
-            });
-
-            // Open Send modal
-            document.querySelectorAll('.send-btn-payments').forEach(btn => {
-                btn.addEventListener('click', e => {
-                    e.preventDefault();
-                    showShareModal(btn.dataset.invoiceId);
-                });
-            });
-
-            // Open Delete modal
-            document.querySelectorAll('.delete-btn-payments').forEach(btn => {
-                btn.addEventListener('click', e => {
-                    e.preventDefault();
-                    showDeleteModal(btn.dataset.invoiceId);
-                });
-            });
-
-            // ================================
-            // 🔹 CONFIRM BUTTON ACTIONS
-            // ================================
-
-            // Confirm Save (Download PDF)
-            document.getElementById('confirmSaveBtn').addEventListener('click', async () => {
-                if (!selectedPaymentId) return;
-                hideSaveModal();
-                const res = await fetch('@Url.Action("SaveInvoice", "Invoices")', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                    body: JSON.stringify({ invoiceId: selectedPaymentId })
-                });
-
-                if (res.ok) {
-                    const blob = await res.blob();
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Payment_${selectedPaymentId}.pdf`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                } else {
-                    alert("❌ Failed to download payment PDF.");
-                }
-                selectedPaymentId = null;
-            });
-
-            // Confirm Send (Email)
-            document.getElementById('confirmShareBtn').addEventListener('click', async () => {
-                if (!selectedPaymentId) return;
-                hideShareModal();
-
-                const res = await fetch('@Url.Action("SendInvoice", "Invoices")', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                    body: JSON.stringify({ invoiceId: selectedPaymentId })
-                });
-
-                const result = await res.json();
-                if (result.success) alert("📨 Payment sent successfully!");
-                else alert("❌ Failed to send payment.");
-                selectedPaymentId = null;
-            });
-
-            // Confirm Delete
-            document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
-                if (!selectedPaymentId) return;
-                hideDeleteModal();
-
-                const res = await fetch('@Url.Action("DeleteInvoice", "Invoices")', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                    body: JSON.stringify({ invoiceId: selectedPaymentId })
-                });
-
-                const result = await res.json();
-                if (result.success) {
-                    document.querySelector(`tr[data-invoice-id="${selectedPaymentId}"]`)?.remove();
-                    alert("🗑️ Payment deleted successfully.");
-                } else {
-                    alert("❌ Failed to delete payment.");
-                }
-                selectedPaymentId = null;
+        document.querySelectorAll('.save-btn-payments').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                showSaveModal(btn.dataset.invoiceId);
             });
         });
 
-        // ================================
-        // 🔹 DOWNLOAD PAYMENTS REPORT (PDF)
-        // ================================
-        async function downloadPaymentsReport(months) {
-            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
-            const res = await fetch('/Payments/DownloadPaymentsReport', {
+        document.querySelectorAll('.send-btn-payments').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                showShareModal(btn.dataset.invoiceId);
+            });
+        });
+
+        document.querySelectorAll('.delete-btn-payments').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                showDeleteModal(btn.dataset.invoiceId);
+            });
+        });
+
+        document.getElementById('confirmSaveBtn').addEventListener('click', async () => {
+            if (!selectedPaymentId) return;
+            hideSaveModal();
+            const res = await fetch('@Url.Action("SaveInvoice", "Invoices")', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                body: JSON.stringify({ months })
+                body: JSON.stringify({ invoiceId: selectedPaymentId })
             });
 
-            if (!res.ok) return alert("❌ Failed to generate report.");
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Payment_${selectedPaymentId}.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } else {
+                alert("Failed to download payment PDF.");
+            }
+            selectedPaymentId = null;
+        });
 
-            const blob = await res.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Payments_Report_${months}Months.pdf`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
+        document.getElementById('confirmShareBtn').addEventListener('click', async () => {
+            if (!selectedPaymentId) return;
+            hideShareModal();
+
+            const res = await fetch('@Url.Action("SendInvoice", "Invoices")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify({ invoiceId: selectedPaymentId })
+            });
+
+            const result = await res.json();
+            if (result.success) alert("📨 Payment sent successfully!");
+            else alert("Failed to send payment.");
+            selectedPaymentId = null;
+        });
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            if (!selectedPaymentId) return;
+            hideDeleteModal();
+
+            const res = await fetch('@Url.Action("DeleteInvoice", "Invoices")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify({ invoiceId: selectedPaymentId })
+            });
+
+            const result = await res.json();
+            if (result.success) {
+                document.querySelector(`tr[data-invoice-id="${selectedPaymentId}"]`)?.remove();
+                alert("Payment deleted successfully.");
+            } else {
+                alert("Failed to delete payment.");
+            }
+            selectedPaymentId = null;
+        });
+    });
+
+    async function downloadPaymentsReport(months) {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+        const res = await fetch('/Payments/DownloadPaymentsReport', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+            body: JSON.stringify({ months })
+        });
+
+        if (!res.ok) return alert("Failed to generate report.");
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Payments_Report_${months}Months.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
     </script>
-
 </body>
 </html>

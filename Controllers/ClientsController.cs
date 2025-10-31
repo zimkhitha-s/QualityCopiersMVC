@@ -71,9 +71,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                     return View(client);
                 }
 
-                
-
-                // Save to Firebase (encryption handled inside the service)
+                // save to Firebase - encryption handled inside the service
                 await _firebaseService.AddClientAsync(client);
 
                 TempData["SuccessMessage"] = $"{client.name} {client.surname} has been successfully added!";
@@ -107,14 +105,14 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 
             if (!ModelState.IsValid)
             {
-                // Log the validation errors
+                // log the validation errors
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 return BadRequest(new { message = "Validation failed", errors });
             }
 
             try
             {
-                // Sanitize inputs
+                // sanitize inputs
                 dto.FullName = System.Net.WebUtility.HtmlEncode(dto.FullName?.Trim());
                 dto.CompanyName = System.Net.WebUtility.HtmlEncode(dto.CompanyName?.Trim());
                 dto.Email = System.Net.WebUtility.HtmlEncode(dto.Email?.Trim().ToLower());
@@ -151,4 +149,4 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         }
     }
 }
-
+//-------------------------------------------------------------------------------------------End Of File--------------------------------------------------------------------//

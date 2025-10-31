@@ -62,3 +62,4 @@ namespace INSY7315_ElevateDigitalStudios_POE.Models
         public List<QuotationItem> Items { get; set; } = new();
     }
 }
+//-------------------------------------------------------------------------------------------End Of File--------------------------------------------------------------------//

@@ -32,7 +32,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                // Print the Firebase error for debugging
                 Console.WriteLine("Firebase login failed:");
                 Console.WriteLine(responseString);
                 return null;
@@ -44,3 +43,4 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
     }
 }
+//-------------------------------------------------------------------------------------------End Of File--------------------------------------------------------------------//

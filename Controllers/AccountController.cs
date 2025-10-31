@@ -1,4 +1,5 @@
-﻿using INSY7315_ElevateDigitalStudios_POE.Models.Requests;
+﻿using INSY7315_ElevateDigitalStudios_POE.Models.Dtos;
+using INSY7315_ElevateDigitalStudios_POE.Models.Requests;
 using INSY7315_ElevateDigitalStudios_POE.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -102,16 +103,18 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             }
         }
 
-        // ======= FORGOT PASSWORD =======
+        // get endpoint for forgot password
         [HttpGet]
         public IActionResult ForgotPassword()
         {
             return View();
         }
 
+        // post endpoint for forgot password
         [HttpPost]
         public async Task<IActionResult> ForgotPassword(string email)
         {
+            // validate email input
             if (string.IsNullOrWhiteSpace(email))
             {
                 ViewBag.Error = "Please enter your email address.";
@@ -120,26 +123,31 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 
             try
             {
+                // send password reset email using Firebase REST API
                 var client = new HttpClient();
                 var apiKey = _firebaseApiKey;
 
+                // prepare the request payload
                 var requestPayload = new
                 {
                     requestType = "PASSWORD_RESET",
                     email = email
                 };
 
+                // make the POST request to Firebase
                 var response = await client.PostAsJsonAsync(
                     $"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={apiKey}",
                     requestPayload);
 
                 if (!response.IsSuccessStatusCode)
                 {
+                    // handle error response
                     var error = await response.Content.ReadAsStringAsync();
                     ViewBag.Error = $"Failed to send reset email. Details: {error}";
                     return View();
                 }
 
+                // success message
                 ViewBag.Message = "A password reset email has been sent. Please check your inbox.";
                 return View();
             }
@@ -203,14 +211,14 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             return Ok(new { message });
         }
 
-        // Upload Profile Image
+        // upload profile image
         [HttpPost]
         public async Task<IActionResult> UploadImage(IFormFile image)
         {
             if (image == null || image.Length == 0)
                 return BadRequest("No image selected.");
 
-            // Save path inside wwwroot/uploads
+            // save path inside 
             var uploadsFolder = Path.Combine(_env.WebRootPath, "profileImages");
 
             if (!Directory.Exists(uploadsFolder))
@@ -224,12 +232,12 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 await image.CopyToAsync(stream);
             }
 
-            // Return the relative path to update the <img> src
+            // return the relative path to update the image
             var relativePath = Url.Content("~/profileImages/" + fileName);
             return Content(relativePath);
         }
         
-        //Change Password
+        // change password
         [HttpPost]
         public async Task<IActionResult> ChangePassword([FromBody] PasswordChangeRequest request)
         {
@@ -242,10 +250,11 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 
             try
             {
-                // Re-authenticate user with current password using Firebase REST API
+                // re-authenticate user with current password using Firebase REST API
                 var client = new HttpClient();
-                var apiKey = _firebaseApiKey; 
+                var apiKey = _firebaseApiKey;
 
+                // re-authentication payload
                 var reauthPayload = new
                 {
                     email = userEmail,
@@ -253,6 +262,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                     returnSecureToken = true
                 };
 
+                // make the re-authentication request
                 var reauthResponse = await client.PostAsJsonAsync(
                     $"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={apiKey}",
                     reauthPayload);
@@ -264,7 +274,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 
                 var reauthData = await reauthResponse.Content.ReadFromJsonAsync<FirebaseSignInResponse>();
 
-                // Update password via Firebase REST API
+                // update password via Firebase REST API
                 var updatePayload = new
                 {
                     idToken = reauthData.idToken,
@@ -289,21 +299,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
-        // DTOs
-        public class PasswordChangeRequest
-        {
-            public string CurrentPassword { get; set; }
-            public string NewPassword { get; set; }
-        }
-
-        public class FirebaseSignInResponse
-        {
-            public string idToken { get; set; }
-            public string email { get; set; }
-            public string refreshToken { get; set; }
-            public string expiresIn { get; set; }
-            public string localId { get; set; }
-        }
    }
 }
+//-------------------------------------------------------------------------------------------End Of File--------------------------------------------------------------------//

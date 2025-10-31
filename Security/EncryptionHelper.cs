@@ -37,7 +37,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Security
 
             var encrypted = ms.ToArray();
 
-            // Combine IV + Cipher
+            // combine iv + cipher
             var result = new byte[iv.Length + encrypted.Length];
             Buffer.BlockCopy(iv, 0, result, 0, iv.Length);
             Buffer.BlockCopy(encrypted, 0, result, iv.Length, encrypted.Length);
@@ -62,7 +62,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Security
             var iv = new byte[16];
             var cipher = new byte[fullCipher.Length - iv.Length];
 
-            // Correct byte order
+            // correct byte order
             Buffer.BlockCopy(fullCipher, 0, iv, 0, iv.Length);
             Buffer.BlockCopy(fullCipher, iv.Length, cipher, 0, cipher.Length);
 
@@ -77,3 +77,4 @@ namespace INSY7315_ElevateDigitalStudios_POE.Security
         }
     }
 }
+//-------------------------------------------------------------------------------------------End Of File--------------------------------------------------------------------//
