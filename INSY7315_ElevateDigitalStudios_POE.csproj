@@ -8,16 +8,17 @@
 
   <ItemGroup>
     <None Remove="Templates\InvoiceTemplate.docx" />
-    <None Remove="Templates\Invoice\InvoiceTemplate.docx" />
+    <None Remove="Templates\Invoice\QCInvoiceTemplate.docx" />
     <None Remove="Templates\QuotationTemplate.docx" />
+    <None Remove="Templates\Quotation\QCQuotationsTemplate.docx" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Templates\Invoice\InvoiceTemplate.docx">
+    <Content Include="Templates\Invoice\QCInvoiceTemplate.docx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Templates\Quotation\QuotationTemplate.docx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="Templates\Quotation\QCQuotationsTemplate.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
