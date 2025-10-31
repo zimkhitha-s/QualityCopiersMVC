@@ -42,6 +42,11 @@ namespace INSY7315_ElevateDigitalStudios_POE.Models
         [FirestoreProperty("pdfFileName")]
         public string? pdfFileName { get; set; }
 
+        [Required(ErrorMessage = "Address is required")]
+        [MaxLength(200, ErrorMessage = "Address cannot exceed 200 characters")]
+        [FirestoreProperty("address")]
+        public string address { get; set; }
+
         [FirestoreProperty("createdAt")]
         public Timestamp createdAt { get; set; }
 

@@ -7,31 +7,38 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
     
     public class AccountController : Controller
     {
-
+        // Dependencies - firebase auth, firestore service, hosting env, configuration
         private readonly FirebaseAuthService _firebaseAuthService;
         private readonly FirebaseService _firebaseService;
         private readonly IWebHostEnvironment _env;
         private readonly string _firebaseApiKey;
+        private readonly IConfiguration _configuration;
 
-        public AccountController(FirebaseAuthService firebaseAuthService, FirebaseService firebaseService, IWebHostEnvironment env, IConfiguration config)
+        // Constructor to inject dependencies
+        public AccountController(FirebaseAuthService firebaseAuthService, FirebaseService firebaseService, IWebHostEnvironment env, IConfiguration config, IConfiguration configuration)
         {
             _firebaseAuthService = firebaseAuthService;
             _firebaseService = firebaseService;
             _env = env;
             _firebaseApiKey = config["Firebase:ApiKey"];
+            _configuration = configuration;
         }
 
+        // login endpoints - GET
         [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
 
+        // login endpoints - POST
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
+            // authenticate with firebase
             var idToken = await _firebaseAuthService.SignInWithEmailPasswordAsync(email, password);
 
+            // handle invalid login
             if (string.IsNullOrEmpty(idToken))
             {
                 ViewBag.Error = "Invalid login attempt.";
@@ -40,36 +47,41 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 
             try
             {
-                // 1️⃣ Decode Firebase ID token to extract UID
+                // decode firebase using token to extract uid
                 var firebaseAuth = FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance;
                 var decodedToken = await firebaseAuth.VerifyIdTokenAsync(idToken);
                 var userId = decodedToken.Uid;
                 var userDetails = new Dictionary<string, object>() ;
 
-                // 2️⃣ Fetch user details (decrypted) from Firestore
-                if(email == "craig.diedericks@gmail.com")
+                // fetch user role from firestore
+                string managerEmail = _configuration["AppSettings:ManagerEmail"];
+
+                // check if the email matches manager email
+                if (email == managerEmail)
                 {
+                    // fetch manager details
                     userDetails = await _firebaseService.GetManagerDataAsync(userId);
                 }
                 else
                 {
+                    // fetch regular user details - employees
                     userDetails = await _firebaseService.GetUserDetailsAsync(userId);
                 }
-                
 
+                // validate the users details
                 if (userDetails == null || !userDetails.ContainsKey("role"))
                 {
                     ViewBag.Error = "User details not found.";
                     return View();
                 }
 
-                // 3️⃣ Extract decrypted details
+                // extract the decrypted details
                 string role = userDetails["role"]?.ToString() ?? "";
                 string name = userDetails.ContainsKey("name") ? userDetails["name"]?.ToString() ?? "" : "";
                 string surname = userDetails.ContainsKey("surname") ? userDetails["surname"]?.ToString() ?? "" : "";
                 string fullname = $"{name} {surname}";
 
-                // 4️⃣ Store info in session
+                // store the information in the session
                 HttpContext.Session.SetString("UserEmail", email);
                 HttpContext.Session.SetString("UserId", userId);
                 HttpContext.Session.SetString("UserRole", role);
@@ -77,25 +89,20 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 HttpContext.Session.SetString("UserName", name);
                 HttpContext.Session.SetString("UserSurname", surname);
 
-                /*// 5️⃣ Redirect based on role (optional)
-                if (role.Equals("admin", StringComparison.OrdinalIgnoreCase))
-                    return RedirectToAction("AdminDashboard", "Dashboard");
-                else if (role.Equals("Manager", StringComparison.OrdinalIgnoreCase))
-                    return RedirectToAction("ManagerDashboard", "Dashboard");*/
-
-                // Default fallback redirect
+                // setting the default fallback redirect
                 return RedirectToAction("Index", "Dashboard");
 
             }
             catch (Exception ex)
             {
+                // log the exception for debugging
                 Console.WriteLine($"Error verifying token or fetching role: {ex.Message}");
                 ViewBag.Error = "An error occurred while logging in.";
                 return View();
             }
         }
 
-
+        // logout endpoint
         [HttpGet]
         public IActionResult Profile()
         {
@@ -104,7 +111,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             return View();
         }
 
-         [HttpGet]
+        // profile endpoints - get profile details
+        [HttpGet]
         public async Task<IActionResult> GetProfile()
         {
             var userId = HttpContext.Session.GetString("UserId");
@@ -112,10 +120,11 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { message = "User not logged in or session expired." });
 
-            var userData = await _firebaseService.GetUserDetailsAsync(userId);//change this function name to GetUserDetails
+            var userData = await _firebaseService.GetUserDetailsAsync(userId);
             return Json(userData);
         }
 
+        // profile endpoints - update profile details
         [HttpPost]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest updatedData)
         {
@@ -137,14 +146,15 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 { "language", updatedData.Language }
             };
 
-            var (success, message) = await _firebaseService.UpdateManagerDataAsync(userId, data); //change this function name to UpdateUserDetails
+            var (success, message) = await _firebaseService.UpdateManagerDataAsync(userId, data);
 
             if (!success)
                 return StatusCode(500, new { message });
 
             return Ok(new { message });
         }
-        
+
+        // Upload Profile Image
         [HttpPost]
         public async Task<IActionResult> UploadImage(IFormFile image)
         {
@@ -183,7 +193,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 
             try
             {
-                // 1️⃣ Re-authenticate user with current password using Firebase REST API
+                // Re-authenticate user with current password using Firebase REST API
                 var client = new HttpClient();
                 var apiKey = _firebaseApiKey; 
 
@@ -205,7 +215,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 
                 var reauthData = await reauthResponse.Content.ReadFromJsonAsync<FirebaseSignInResponse>();
 
-                // 2️⃣ Update password via Firebase REST API
+                // Update password via Firebase REST API
                 var updatePayload = new
                 {
                     idToken = reauthData.idToken,

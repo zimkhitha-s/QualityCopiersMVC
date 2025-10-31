@@ -9,6 +9,7 @@ using Spire.Doc;
 using Spire.Doc.Documents;
 using Spire.Doc.Fields;
 using MimeKit;
+using System.Drawing;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Services
 {
@@ -505,23 +506,29 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             quotation.pdfFileName = $"Quotation_{safeClientName}_{quotation.quoteNumber}.pdf";
 
-            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Quotation", "QuotationTemplate.docx");
+            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Quotation", "QCQuotationsTemplate.docx");
             string outputDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GeneratedQuotationPdfs");
             Directory.CreateDirectory(outputDir);
 
             string docxPath = Path.Combine(outputDir, $"{Path.GetFileNameWithoutExtension(quotation.pdfFileName)}.docx");
             string pdfPath = Path.Combine(outputDir, quotation.pdfFileName);
 
-            var wordDoc = new Document();
+            Document wordDoc = new Document();
             wordDoc.LoadFromFile(templatePath);
 
+            // Replace placeholders with proper values
             ReplaceText(wordDoc, "{{ClientName}}", quotation.clientName);
+            ReplaceText(wordDoc, "{{CompanyName}}", quotation.companyName);
+            ReplaceText(wordDoc, "{{Address}}", quotation.address);
             ReplaceText(wordDoc, "{{ClientEmail}}", quotation.email);
-            ReplaceText(wordDoc, "{{QuoteNumber}}", quotation.quoteNumber);
-            ReplaceText(wordDoc, "{{QuoteDate}}", quotation.createdAt.ToDateTime().ToString("yyyy/MM/dd"));
+            ReplaceText(wordDoc, "{{PhoneNumber}}", quotation.phone);
+            ReplaceText(wordDoc, "{{QuoteNumber}}", quotation.quoteNumber ?? string.Empty);
+            ReplaceText(wordDoc, "{{QuoteDate}}", quotation.createdAt.ToDateTime().ToString("yyyy-MM-dd"));
 
+            // Insert item table
             InsertItemsTable(wordDoc, quotation);
 
+            // Save to files
             wordDoc.SaveToFile(docxPath, FileFormat.Docx);
             wordDoc.SaveToFile(pdfPath, FileFormat.PDF);
 
@@ -535,7 +542,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             {
                 var range = selection.GetAsOneRange();
                 range.Text = value ?? string.Empty;
-                range.CharacterFormat.FontName = "Poppins";
+                range.CharacterFormat.FontName = "Century Gothic";
                 range.CharacterFormat.FontSize = 11;
             }
         }
@@ -543,47 +550,171 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         private void InsertItemsTable(Document wordDoc, Quotation quotation)
         {
             var section = wordDoc.Sections[0];
-            var itemsTable = section.AddTable(true);
-            int totalRows = (quotation.Items?.Count ?? 0) + 2;
-            itemsTable.ResetCells(totalRows, 4);
+            int itemCount = quotation.Items?.Count ?? 0;
+            int totalRows = itemCount + 2;
 
-            // Header row
-            string[] headers = { "QTY", "PRODUCT DESCRIPTION", "UNIT PRICE", "AMOUNT" };
-            var headerRow = itemsTable.Rows[0];
+            var blue = Color.FromArgb(26, 46, 99); // #1A2E63
+
+            // Create clean, full-width table
+            Table table = section.AddTable(true);
+            table.ResetCells(totalRows, 4);
+            table.TableFormat.Paddings.All = 5f;
+            table.TableFormat.HorizontalAlignment = RowAlignment.Left;
+            table.TableFormat.Borders.BorderType = BorderStyle.None;
+            table.PreferredWidth = new PreferredWidth(WidthType.Percentage, 100); // full width
+
+            // Remove all borders except where we’ll add custom ones
+            foreach (TableRow r in table.Rows)
+            {
+                r.RowFormat.Borders.BorderType = BorderStyle.None;
+                foreach (TableCell c in r.Cells)
+                {
+                    c.CellFormat.Borders.BorderType = BorderStyle.None;
+                }
+            }
+
+            // Adjust column proportions (more natural width)
+            table.Rows[0].Cells[0].Width = 60;   // Qty
+            table.Rows[0].Cells[1].Width = 320;  // Description
+            table.Rows[0].Cells[2].Width = 120;  // Unit Price
+            table.Rows[0].Cells[3].Width = 120;  // Amount
+
+            // -------- Header Row --------
+            string[] headers = { "Qty", "Description", "Unit Price", "Amount" };
+            var headerRow = table.Rows[0];
+            headerRow.HeightType = TableRowHeightType.AtLeast;
+            headerRow.Height = 22f;
+
             for (int i = 0; i < headers.Length; i++)
             {
-                var text = headerRow.Cells[i].AddParagraph().AppendText(headers[i]);
-                text.CharacterFormat.Bold = true;
-                text.CharacterFormat.FontName = "Poppins";
-                text.CharacterFormat.FontSize = 11;
+                Paragraph p = headerRow.Cells[i].AddParagraph();
+                TextRange tr = p.AppendText(headers[i]);
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = blue;
+
+                // Alignment
+                if (i == 0) p.Format.HorizontalAlignment = HorizontalAlignment.Center;
+                else if (i == 1) p.Format.HorizontalAlignment = HorizontalAlignment.Left;
+                else p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+
+                // Add blue horizontal line under header
+                headerRow.Cells[i].CellFormat.Borders.Bottom.BorderType = BorderStyle.Single;
+                headerRow.Cells[i].CellFormat.Borders.Bottom.Color = blue;
+                headerRow.Cells[i].CellFormat.Borders.Bottom.LineWidth = 1.0f;
+
+                // Remove vertical lines
+                headerRow.Cells[i].CellFormat.Borders.Left.BorderType = BorderStyle.None;
+                headerRow.Cells[i].CellFormat.Borders.Right.BorderType = BorderStyle.None;
             }
 
-            // Item rows
-            for (int i = 0; i < (quotation.Items?.Count ?? 0); i++)
+            // -------- Item Rows --------
+            double total = 0;
+            for (int i = 0; i < itemCount; i++)
             {
-                var item = quotation.Items[i];
-                var row = itemsTable.Rows[i + 1];
+                var it = quotation.Items[i];
+                var row = table.Rows[i + 1];
+                row.HeightType = TableRowHeightType.AtLeast;
+                row.Height = 20f;
 
-                row.Cells[0].AddParagraph().AppendText(item.quantity.ToString());
-                row.Cells[1].AddParagraph().AppendText(item.description ?? "");
-                row.Cells[2].AddParagraph().AppendText($"R{item.unitPrice:0.00}");
-                row.Cells[3].AddParagraph().AppendText($"R{item.amount:0.00}");
+                // Remove vertical lines
+                foreach (TableCell c in row.Cells)
+                {
+                    c.CellFormat.Borders.Left.BorderType = BorderStyle.None;
+                    c.CellFormat.Borders.Right.BorderType = BorderStyle.None;
+                }
+
+                // Qty
+                {
+                    var p = row.Cells[0].AddParagraph();
+                    var tr = p.AppendText(it.quantity.ToString());
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Center;
+                }
+
+                // Description
+                {
+                    var p = row.Cells[1].AddParagraph();
+                    var tr = p.AppendText(it.description ?? "");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Left;
+                }
+
+                // Unit Price
+                {
+                    var p = row.Cells[2].AddParagraph();
+                    var tr = p.AppendText($"R{it.unitPrice:0.00}");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+                }
+
+                // Amount
+                {
+                    var p = row.Cells[3].AddParagraph();
+                    var tr = p.AppendText($"R{it.amount:0.00}");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+                }
+
+                total += it.amount;
             }
 
-            // Total row
-            var totalRow = itemsTable.Rows[totalRows - 1];
-            totalRow.Cells[2].AddParagraph().AppendText("Total Amount:").CharacterFormat.Bold = true;
-            totalRow.Cells[3].AddParagraph().AppendText($"R{quotation.amount:0.00}").CharacterFormat.Bold = true;
+            // -------- Total Row --------
+            var totalRow = table.Rows[totalRows - 1];
+            totalRow.HeightType = TableRowHeightType.AtLeast;
+            totalRow.Height = 24f;
 
-            // Replace placeholder
-            var placeholder = wordDoc.FindString("{{ItemsTable}}", true, true);
+            // Add blue line above TOTAL
+            for (int i = 0; i < 4; i++)
+            {
+                totalRow.Cells[i].CellFormat.Borders.Top.BorderType = BorderStyle.Single;
+                totalRow.Cells[i].CellFormat.Borders.Top.Color = blue;
+                totalRow.Cells[i].CellFormat.Borders.Top.LineWidth = 1.0f;
+
+                totalRow.Cells[i].CellFormat.Borders.Left.BorderType = BorderStyle.None;
+                totalRow.Cells[i].CellFormat.Borders.Right.BorderType = BorderStyle.None;
+            }
+
+            // Empty spacing for first two cells
+            totalRow.Cells[0].AddParagraph().AppendText("");
+            totalRow.Cells[1].AddParagraph().AppendText("");
+
+            // TOTAL label (blue + bold)
+            {
+                Paragraph p = totalRow.Cells[2].AddParagraph();
+                TextRange tr = p.AppendText("TOTAL:");
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = blue;
+                p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+            }
+
+            // Amount (bold black)
+            {
+                Paragraph p = totalRow.Cells[3].AddParagraph();
+                TextRange tr = p.AppendText($"R{total:0.00}");
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = Color.Black;
+                p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+            }
+
+            // Replace the {{ItemTable}} placeholder
+            var placeholder = wordDoc.FindString("{{ItemTable}}", true, true);
             if (placeholder != null)
             {
                 var para = placeholder.GetAsOneRange().OwnerParagraph;
                 var body = para.OwnerTextBody;
                 int idx = body.ChildObjects.IndexOf(para);
                 body.ChildObjects.Remove(para);
-                body.ChildObjects.Insert(idx, itemsTable);
+                body.ChildObjects.Insert(idx, table);
             }
         }
 
@@ -638,6 +769,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 email = _encryptionHelper.Encrypt(quotation.email ?? ""),
                 phone = _encryptionHelper.Encrypt(quotation.phone ?? ""),
                 quoteNumber = _encryptionHelper.Encrypt(quotation.quoteNumber ?? ""),
+                address = _encryptionHelper.Encrypt(quotation.address ?? ""),
                 createdAt = quotation.createdAt,
                 amount = quotation.amount,
                 secureToken = quotation.secureToken ?? "",
@@ -677,6 +809,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     quotation.companyName = _encryptionHelper.Decrypt(quotation.companyName);
                     quotation.email = _encryptionHelper.Decrypt(quotation.email);
                     quotation.phone = _encryptionHelper.Decrypt(quotation.phone);
+                    quotation.address = _encryptionHelper.Decrypt(quotation.address);
 
                     // Decrypt item descriptions
                     if (quotation.Items != null)
@@ -759,6 +892,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 invoice.CompanyName = _encryptionHelper.Decrypt(invoice.CompanyName);
                 invoice.Email = _encryptionHelper.Decrypt(invoice.Email);
                 invoice.Phone = _encryptionHelper.Decrypt(invoice.Phone);
+                invoice.Address = _encryptionHelper.Decrypt(invoice.Address ?? string.Empty);
                 invoice.QuoteNumber = _encryptionHelper.Decrypt(invoice.QuoteNumber ?? string.Empty);
                 invoice.Status = invoice.Status;
 
@@ -794,6 +928,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 invoice.CompanyName = _encryptionHelper.Decrypt(invoice.CompanyName);
                 invoice.Email = _encryptionHelper.Decrypt(invoice.Email ?? string.Empty);
                 invoice.Phone = _encryptionHelper.Decrypt(invoice.Phone ?? string.Empty);
+                invoice.Address = _encryptionHelper.Decrypt(invoice.Address ?? string.Empty);
                 invoice.QuoteNumber = _encryptionHelper.Decrypt(invoice.QuoteNumber ?? string.Empty);
 
                 if (invoice.Items != null)
@@ -822,7 +957,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 throw new ArgumentException("Invoice is invalid");
 
             // Define template path
-            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Invoice", "InvoiceTemplate.docx");
+            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Invoice", "QCInvoiceTemplate.docx");
             if (!File.Exists(templatePath))
                 throw new FileNotFoundException("Invoice template not found.", templatePath);
 
@@ -869,7 +1004,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     throw new ArgumentException("Invoice items are missing.", nameof(invoice));
 
                 // defining the file paths ---
-                string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Invoice", "InvoiceTemplate.docx");
+                string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Invoice", "QCInvoiceTemplate.docx");
                 if (!File.Exists(templatePath))
                     throw new FileNotFoundException("Invoice template not found.", templatePath);
 
@@ -947,11 +1082,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             if (invoice.Items == null || !invoice.Items.Any())
                 throw new ArgumentException("Invoice must have at least one item.", nameof(invoice));
 
-            // load the word template
             Document wordDoc = new Document();
             wordDoc.LoadFromFile(templatePath);
 
-            // Helper to replace placeholders
+            // ---------- Replace placeholders ----------
             void ReplaceText(string placeholder, string value)
             {
                 TextSelection selection = wordDoc.FindString(placeholder, true, true);
@@ -959,43 +1093,72 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 {
                     TextRange range = selection.GetAsOneRange();
                     range.Text = value ?? string.Empty;
-                    range.CharacterFormat.FontName = "Poppins";
+                    range.CharacterFormat.FontName = "Century Gothic";
                     range.CharacterFormat.FontSize = 11;
                 }
                 else
                 {
-                    Console.WriteLine($"[DEBUG] Placeholder '{placeholder}' not found in template.");
+                    Console.WriteLine($"[DEBUG] Placeholder '{placeholder}' not found.");
                 }
             }
 
             ReplaceText("{{ClientName}}", invoice.ClientName);
+            ReplaceText("{{CompanyName}}", invoice.CompanyName);
             ReplaceText("{{ClientEmail}}", invoice.Email);
+            ReplaceText("{{Address}}", invoice.Address ?? string.Empty);
+            ReplaceText("{{PhoneNumber}}", invoice.Phone);
             ReplaceText("{{InvoiceNumber}}", invoice.InvoiceNumber);
-            DateTime invoiceDate = invoice.CreatedAt.HasValue ? invoice.CreatedAt.Value.ToDateTime() : DateTime.UtcNow;
-            ReplaceText("{{InvoiceDate}}", invoiceDate.ToString("yyyy/MM/dd"));
+            ReplaceText("{{InvoiceDate}}", (invoice.CreatedAt?.ToDateTime() ?? DateTime.UtcNow).ToString("yyyy/MM/dd"));
 
-            // Build Items Table
-            Section section = wordDoc.Sections[0];
-            Table itemsTable = section.AddTable(true);
-
+            // ---------- Build invoice table ----------
+            var section = wordDoc.Sections[0];
             int itemCount = invoice.Items.Count;
-            int totalRows = itemCount + 2; // header + items + total
-            itemsTable.ResetCells(totalRows, 4);
+            int totalRows = itemCount + 2;
 
-            // Table header
-            string[] headers = { "QTY", "PRODUCT DESCRIPTION", "UNIT PRICE", "AMOUNT" };
-            TableRow headerRow = itemsTable.Rows[0];
-            for (int i = 0; i < headers.Length; i++)
+            var blue = Color.FromArgb(26, 46, 99); // #1A2E63
+            Table table = section.AddTable(true);
+            table.ResetCells(totalRows, 4);
+            table.TableFormat.Paddings.All = 5f;
+            table.TableFormat.Borders.BorderType = BorderStyle.None;
+            table.PreferredWidth = new PreferredWidth(WidthType.Percentage, 100);
+
+            // Remove all borders to start clean
+            foreach (TableRow r in table.Rows)
             {
-                TextRange headerText = headerRow.Cells[i].AddParagraph().AppendText(headers[i]);
-                headerText.CharacterFormat.Bold = true;
-                headerText.CharacterFormat.FontName = "Poppins";
-                headerText.CharacterFormat.FontSize = 11;
-                headerRow.Cells[i].CellFormat.VerticalAlignment = VerticalAlignment.Middle;
-                headerRow.Cells[i].Width = i == 1 ? 220f : 80f;
+                r.RowFormat.Borders.BorderType = BorderStyle.None;
+                foreach (TableCell c in r.Cells)
+                    c.CellFormat.Borders.BorderType = BorderStyle.None;
             }
 
-            // Item rows
+            // Column widths
+            table.Rows[0].Cells[0].Width = 60;
+            table.Rows[0].Cells[1].Width = 320;
+            table.Rows[0].Cells[2].Width = 120;
+            table.Rows[0].Cells[3].Width = 120;
+
+            // -------- Header Row --------
+            string[] headers = { "Qty", "Description", "Unit Price", "Amount" };
+            var headerRow = table.Rows[0];
+            for (int i = 0; i < headers.Length; i++)
+            {
+                Paragraph p = headerRow.Cells[i].AddParagraph();
+                TextRange tr = p.AppendText(headers[i]);
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = blue;
+
+                if (i == 0) p.Format.HorizontalAlignment = HorizontalAlignment.Center;
+                else if (i == 1) p.Format.HorizontalAlignment = HorizontalAlignment.Left;
+                else p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+
+                // Blue underline below header
+                headerRow.Cells[i].CellFormat.Borders.Bottom.BorderType = BorderStyle.Single;
+                headerRow.Cells[i].CellFormat.Borders.Bottom.Color = blue;
+                headerRow.Cells[i].CellFormat.Borders.Bottom.LineWidth = 1.0f;
+            }
+
+            // -------- Item Rows --------
             double totalAmount = 0;
             for (int i = 0; i < itemCount; i++)
             {
@@ -1005,44 +1168,104 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 double rowTotal = qty * price;
                 totalAmount += rowTotal;
 
-                TableRow row = itemsTable.Rows[i + 1];
-                row.Cells[0].AddParagraph().AppendText(qty.ToString()).CharacterFormat.FontName = "Poppins";
-                row.Cells[1].AddParagraph().AppendText(item.Description ?? string.Empty).CharacterFormat.FontName = "Poppins";
-                row.Cells[2].AddParagraph().AppendText($"R{price:0.00}").CharacterFormat.FontName = "Poppins";
-                row.Cells[3].AddParagraph().AppendText($"R{rowTotal:0.00}").CharacterFormat.FontName = "Poppins";
+                var row = table.Rows[i + 1];
+                foreach (TableCell c in row.Cells)
+                {
+                    c.CellFormat.Borders.Left.BorderType = BorderStyle.None;
+                    c.CellFormat.Borders.Right.BorderType = BorderStyle.None;
+                }
+
+                // Qty
+                {
+                    Paragraph p = row.Cells[0].AddParagraph();
+                    TextRange tr = p.AppendText(qty.ToString());
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Center;
+                }
+
+                // Description
+                {
+                    Paragraph p = row.Cells[1].AddParagraph();
+                    TextRange tr = p.AppendText(item.Description ?? "");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Left;
+                }
+
+                // Unit Price
+                {
+                    Paragraph p = row.Cells[2].AddParagraph();
+                    TextRange tr = p.AppendText($"R{price:0.00}");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+                }
+
+                // Amount
+                {
+                    Paragraph p = row.Cells[3].AddParagraph();
+                    TextRange tr = p.AppendText($"R{rowTotal:0.00}");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+                }
             }
 
-            // Total row
-            TableRow totalRow = itemsTable.Rows[totalRows - 1];
-            totalRow.Cells[2].AddParagraph().AppendText("Total Amount:").CharacterFormat.Bold = true;
-            totalRow.Cells[2].Paragraphs[0].Format.HorizontalAlignment = HorizontalAlignment.Right;
-            totalRow.Cells[3].AddParagraph().AppendText($"R{totalAmount:0.00}").CharacterFormat.Bold = true;
-            totalRow.Cells[3].Paragraphs[0].Format.HorizontalAlignment = HorizontalAlignment.Right;
+            // -------- Total Row --------
+            var totalRow = table.Rows[totalRows - 1];
+            for (int i = 0; i < 4; i++)
+            {
+                totalRow.Cells[i].CellFormat.Borders.Top.BorderType = BorderStyle.Single;
+                totalRow.Cells[i].CellFormat.Borders.Top.Color = blue;
+                totalRow.Cells[i].CellFormat.Borders.Top.LineWidth = 1.0f;
+            }
 
-            // Insert table at placeholder
-            TextSelection placeholder = wordDoc.FindString("{{ItemsTable}}", true, true);
+            totalRow.Cells[0].AddParagraph().AppendText("");
+            totalRow.Cells[1].AddParagraph().AppendText("");
+
+            // TOTAL Label — blue and bold
+            {
+                Paragraph p = totalRow.Cells[2].AddParagraph();
+                TextRange tr = p.AppendText("TOTAL:");
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = blue;
+                p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+            }
+
+            // Amount — bold black
+            {
+                Paragraph p = totalRow.Cells[3].AddParagraph();
+                TextRange tr = p.AppendText($"R{totalAmount:0.00}");
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = Color.Black;
+                p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+            }
+
+            // -------- Insert table at {{ItemTable}} placeholder --------
+            var placeholder = wordDoc.FindString("{{ItemTable}}", true, true);
             if (placeholder != null)
             {
                 Paragraph para = placeholder.GetAsOneRange().OwnerParagraph;
                 Body body = para.OwnerTextBody;
                 int index = body.ChildObjects.IndexOf(para);
                 body.ChildObjects.Remove(para);
-                body.ChildObjects.Insert(index, itemsTable);
-                Console.WriteLine("[DEBUG] Inserted items table at placeholder.");
+                body.ChildObjects.Insert(index, table);
+                Console.WriteLine("[DEBUG] Inserted invoice table at placeholder.");
             }
             else
             {
-                // fallback: append to section body (log so you can inspect template)
-                section.Body.ChildObjects.Add(itemsTable);
-                Console.WriteLine("[DEBUG] Placeholder '{{ItemsTable}}' not found — appended table to section body.");
+                section.Body.ChildObjects.Add(table);
+                Console.WriteLine("[DEBUG] Placeholder not found — appended table.");
             }
 
-            // Save files
+            // Save as DOCX and PDF
             wordDoc.SaveToFile(tempDocxPath, FileFormat.Docx);
             wordDoc.SaveToFile(outputPdfPath, FileFormat.PDF);
-
-            Console.WriteLine($"[DEBUG] Saved DOCX: {tempDocxPath}");
-            Console.WriteLine($"[DEBUG] Saved PDF: {outputPdfPath}");
         }
 
         private async Task SendInvoiceEmailAsync(Invoice invoice, string pdfPath)
@@ -1081,13 +1304,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
                 emailMessage.Body = multipart;
 
-                /*// Now send (stream must remain open until SendAsync completes)
-                using var smtp = new MailKit.Net.Smtp.SmtpClient();
-                await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-                await smtp.AuthenticateAsync("zimkhitha.sasanti@gmail.com", "pflq gfdg xyeb pitx");
-                await smtp.SendAsync(emailMessage);
-                await smtp.DisconnectAsync(true);*/
-
                 await _mailService.SendEmailAsync(emailMessage);
             }
         }
@@ -1103,6 +1319,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             };
 
             await docRef.UpdateAsync(updates);
+
+
         }
 
         public async Task DeleteInvoiceAsync(string invoiceId)

@@ -5,8 +5,6 @@ VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "INSY7315_ElevateDigitalStudios_POE", "INSY7315_ElevateDigitalStudios_POE.csproj", "{A60A873E-0378-49DB-B9BC-1DD7C569F9D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "..\Test\Test.csproj", "{29A4926E-9828-4129-9366-ADFF9F08F2D0}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{A60A873E-0378-49DB-B9BC-1DD7C569F9D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A60A873E-0378-49DB-B9BC-1DD7C569F9D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A60A873E-0378-49DB-B9BC-1DD7C569F9D3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{29A4926E-9828-4129-9366-ADFF9F08F2D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{29A4926E-9828-4129-9366-ADFF9F08F2D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{29A4926E-9828-4129-9366-ADFF9F08F2D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{29A4926E-9828-4129-9366-ADFF9F08F2D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
