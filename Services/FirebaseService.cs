@@ -68,7 +68,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             .GetSnapshotAsync();
 
             if (employeeDoc.Exists)
-                return employeeDoc.GetValue<string>("role"); // "admin"
+                return employeeDoc.GetValue<string>("role");
 
             // Check Managers
             var managerDoc = await _firestoreDb.Collection("users")
@@ -78,7 +78,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             .GetSnapshotAsync();
 
             if (managerDoc.Exists)
-                return managerDoc.GetValue<string>("role"); // "manager"
+                return managerDoc.GetValue<string>("role");
 
             return null;
         }
@@ -168,7 +168,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             return client;
         }
 
-
         public async Task UpdateClientAsync(ClientUpdateDto dto)
         {
             var clientsRef = GetClientsCollection();
@@ -204,7 +203,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             await clientDocRef.SetAsync(client, SetOptions.Overwrite);
         }
-
 
         public async Task DeleteClientAsync(string clientId)
         {

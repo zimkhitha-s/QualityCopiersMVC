@@ -259,7 +259,7 @@
                     return;
                 }
 
-                const resp = await fetch('@Url.Action("DeleteInvoice", "Invoices")', {
+                const resp = await fetch('@Url.Action("DeleteInvoice", "Payments")', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -375,7 +375,37 @@
                 alert("An error occurred while generating the PDF.");
             }
         }
-    </script>
+
+        document.querySelectorAll('.save-btn-payments').forEach(btn => {
+    btn.addEventListener('click', async e => {
+        e.stopPropagation();
+        const invoiceId = e.currentTarget.dataset.invoiceId;
+        if (!invoiceId) return;
+
+        const resp = await fetch(`/Invoices/DownloadInvoicePdf/${invoiceId}`);
+        if (resp.ok) {
+            alert("✅ Invoice saved (downloaded PDF).");
+        } else {
+            alert("Failed to save invoice.");
+        }
+    });
+});
+
+document.querySelectorAll('.send-btn-payments').forEach(btn => {
+    btn.addEventListener('click', async e => {
+        e.stopPropagation();
+        const invoiceId = e.currentTarget.dataset.invoiceId;
+        if (!invoiceId) return;
+
+        const resp = await fetch(`/Invoices/SendInvoice/${invoiceId}`, { method: "POST" });
+        if (resp.ok) {
+            alert("📧 Invoice sent successfully!");
+        } else {
+            alert("Failed to send invoice.");
+        }
+    });
+});
+
     </script>
 </body>
 </html>
