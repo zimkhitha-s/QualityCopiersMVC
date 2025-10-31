@@ -775,7 +775,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             return invoices;
         }
-
+        
         //Get invoice details by ID for payments
         public async Task<Invoice?> GetInvoiceDetailsAsync(string id)
         {
