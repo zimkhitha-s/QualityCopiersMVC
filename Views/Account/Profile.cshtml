@@ -29,7 +29,7 @@
                 </div>
                 <div class="profile-info">
                     <h1>My profile</h1>
-                    <h2 id="fullName">Craig Diedericks</h2>
+                    <h2 id="fullName">@ViewBag.FullName</h2>
                 </div>
                 
             </div>
@@ -48,7 +48,7 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="fullname">Name</label>
-                                <input type="text" id="fullname" />
+                                <input type="text" id="name" />
                             </div>
                             <div class="form-group">
                                 <label for="role">Role</label>
@@ -129,7 +129,7 @@
             const data = await response.json();
 
             // Populate fields
-            document.getElementById("fullname").value = data.firstName || "";
+            document.getElementById("name").value = data.name || "";
             document.getElementById("role").value = data.role || "";
             document.getElementById("surname").value = data.surname || "";
             document.getElementById("mobile").value = data.mobile || "";
@@ -141,7 +141,7 @@
 
         document.getElementById("saveChangesBtn").addEventListener("click", async () => {
             const data = {
-                fullname: document.getElementById("fullname").value,
+                fullname: document.getElementById("name").value,
                 surname: document.getElementById("surname").value,
                 mobile: document.getElementById("mobile").value,
                 email: document.getElementById("email").value,

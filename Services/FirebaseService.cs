@@ -1184,20 +1184,46 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         public async Task<Dictionary<string, object>> GetUserDetailsAsync(string userId)
         {
             string userDocument = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
+
             var docRef = _firestoreDb
                 .Collection("users")
                 .Document(userDocument)
-                .Collection("manager_details")// Verify collection name once they're done
+                .Collection("employees") // Adjust collection name if needed
                 .Document(userId);
 
             var snapshot = await docRef.GetSnapshotAsync();
 
-            if (snapshot.Exists)
-                return snapshot.ToDictionary();
-            else
+            if (!snapshot.Exists)
                 throw new Exception("User data not found in Firestore.");
+
+            var encryptedData = snapshot.ToDictionary();
+            var decryptedData = new Dictionary<string, object>();
+
+            foreach (var kvp in encryptedData)
+            {
+                try
+                {
+                    // Only decrypt string values
+                    if (kvp.Value is string encryptedValue)
+                    {
+                        decryptedData[kvp.Key] = _encryptionHelper.Decrypt(encryptedValue);
+                    }
+                    else
+                    {
+                        // Keep non-string fields (like DateTime, bool, numbers) as is
+                        decryptedData[kvp.Key] = kvp.Value;
+                    }
+                }
+                catch
+                {
+                    // If decryption fails (e.g., field wasn't encrypted), store the original value
+                    decryptedData[kvp.Key] = kvp.Value;
+                }
+            }
+
+            return decryptedData;
         }
-        
+
         public async Task<(bool Success, string Message)> UpdateUserDetailsAsync(string userId, Dictionary<string, object> updatedData)
         {
             if (string.IsNullOrEmpty(userId))
@@ -1209,29 +1235,48 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             try
             {
                 string userDocument = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
-                
+
                 DocumentReference docRef = _firestoreDb
-                .Collection("users")
-                .Document(userDocument)
-                .Collection("manager_data") //verfiy collection name when they're done
-                .Document(userId);
+                    .Collection("users")
+                    .Document(userDocument)
+                    .Collection("employees") // verify collection name when they're done
+                    .Document(userId);
 
-                // Add a timestamp to track last update
-                updatedData["lastUpdated"] = Timestamp.GetCurrentTimestamp();
+                // 🔒 Encrypt all data before saving
+                var encryptedData = new Dictionary<string, object>();
+                foreach (var entry in updatedData)
+                {
+                    // Don’t encrypt metadata like timestamps
+                    if (entry.Key.Equals("lastUpdated", StringComparison.OrdinalIgnoreCase))
+                    {
+                        encryptedData[entry.Key] = entry.Value;
+                    }
+                    else
+                    {
+                        // Encrypt only string values; preserve non-string (like bool or numbers)
+                        if (entry.Value is string strValue)
+                            encryptedData[entry.Key] = _encryptionHelper.Encrypt(strValue);
+                        else
+                            encryptedData[entry.Key] = entry.Value;
+                    }
+                }
 
-                //  Merge ensures we only update provided fields
-                await docRef.SetAsync(updatedData, SetOptions.MergeAll);
+                // 🕒 Add or overwrite the lastUpdated field
+                encryptedData["lastUpdated"] = Timestamp.GetCurrentTimestamp();
+
+                // ✅ Merge ensures only provided fields are updated
+                await docRef.SetAsync(encryptedData, SetOptions.MergeAll);
 
                 return (true, "Profile updated successfully.");
             }
             catch (Grpc.Core.RpcException grpcEx)
             {
-                Console.WriteLine($" Firestore RPC error for user {userId}: {grpcEx.Status.Detail}");
+                Console.WriteLine($"Firestore RPC error for user {userId}: {grpcEx.Status.Detail}");
                 return (false, $"Firestore RPC error: {grpcEx.Status.Detail}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($" Firestore update failed for user {userId}: {ex.Message}");
+                Console.WriteLine($"Firestore update failed for user {userId}: {ex.Message}");
                 return (false, $"Unexpected error updating Firestore: {ex.Message}");
             }
         }

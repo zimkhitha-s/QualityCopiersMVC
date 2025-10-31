@@ -18,6 +18,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [HttpGet]
         public async Task<IActionResult> Invoices()
         {
+            ViewBag.FullName = HttpContext.Session.GetString("FullName");
             ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
             try
             {

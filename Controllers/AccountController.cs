@@ -45,29 +45,38 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 var decodedToken = await firebaseAuth.VerifyIdTokenAsync(idToken);
                 var userId = decodedToken.Uid;
 
-                // 2️⃣ Fetch role from Firestore
-                var role = await _firebaseService.GetUserRoleAsync(userId);
+                // 2️⃣ Fetch user details (decrypted) from Firestore
+                var userDetails = await _firebaseService.GetUserDetailsAsync(userId);
 
-                if (role == null)
+                if (userDetails == null || !userDetails.ContainsKey("role"))
                 {
-                    ViewBag.Error = "User role not found.";
+                    ViewBag.Error = "User details not found.";
                     return View();
                 }
 
-                // 3️⃣ Store info in session
+                // 3️⃣ Extract decrypted details
+                string role = userDetails["role"]?.ToString() ?? "";
+                string name = userDetails.ContainsKey("name") ? userDetails["name"]?.ToString() ?? "" : "";
+                string surname = userDetails.ContainsKey("surname") ? userDetails["surname"]?.ToString() ?? "" : "";
+                string fullname = $"{name} {surname}";
+
+                // 4️⃣ Store info in session
                 HttpContext.Session.SetString("UserEmail", email);
                 HttpContext.Session.SetString("UserId", userId);
                 HttpContext.Session.SetString("UserRole", role);
+                HttpContext.Session.SetString("FullName", fullname);
+                HttpContext.Session.SetString("UserName", name);
+                HttpContext.Session.SetString("UserSurname", surname);
 
-                // 4️⃣ Redirect based on role
-                /*if (role == "admin")
+                /*// 5️⃣ Redirect based on role (optional)
+                if (role.Equals("admin", StringComparison.OrdinalIgnoreCase))
                     return RedirectToAction("AdminDashboard", "Dashboard");
-                else if (role == "Manager")
-                    return RedirectToAction("ManagerDashboard", "Dashboard");
-                */
+                else if (role.Equals("Manager", StringComparison.OrdinalIgnoreCase))
+                    return RedirectToAction("ManagerDashboard", "Dashboard");*/
 
-                // fallback
+                // Default fallback redirect
                 return RedirectToAction("Index", "Dashboard");
+
             }
             catch (Exception ex)
             {
@@ -81,7 +90,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [HttpGet]
         public IActionResult Profile()
         {
-            
+            ViewBag.FullName = HttpContext.Session.GetString("FullName");
             ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
             return View();
         }
@@ -94,7 +103,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { message = "User not logged in or session expired." });
 
-            var userData = await _firebaseService.GetManagerDataAsync(userId);//change this function name to GetUserDetails
+            var userData = await _firebaseService.GetUserDetailsAsync(userId);//change this function name to GetUserDetails
             return Json(userData);
         }
 
