@@ -44,9 +44,18 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 var firebaseAuth = FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance;
                 var decodedToken = await firebaseAuth.VerifyIdTokenAsync(idToken);
                 var userId = decodedToken.Uid;
+                var userDetails = new Dictionary<string, object>() ;
 
                 // 2️⃣ Fetch user details (decrypted) from Firestore
-                var userDetails = await _firebaseService.GetUserDetailsAsync(userId);
+                if(email == "craig.diedericks@gmail.com")
+                {
+                    userDetails = await _firebaseService.GetManagerDataAsync(userId);
+                }
+                else
+                {
+                    userDetails = await _firebaseService.GetUserDetailsAsync(userId);
+                }
+                
 
                 if (userDetails == null || !userDetails.ContainsKey("role"))
                 {
