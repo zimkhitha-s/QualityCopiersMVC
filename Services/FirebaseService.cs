@@ -13,9 +13,7 @@ using MimeKit;
 using Spire.Doc;
 using Spire.Doc.Documents;
 using Spire.Doc.Fields;
-
-
-
+using Google.Cloud.SecretManager.V1;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Services
 {
@@ -33,13 +31,13 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         // firebase service constructor - initialize firestore connection and encryption helper
         public FirebaseService(EncryptionHelper encryptionHelper, MailService mailService, IConfiguration configuration)
         {
-            // check if firebase app is already initialized
+
             if (FirebaseApp.DefaultInstance == null)
             {
                 // initialize firebase app with default credentials
                 FirebaseApp.Create(new AppOptions()
                 {
-                    Credential = GoogleCredential.FromFile("database/firebase-key.json")
+                    Credential = GoogleCredential.GetApplicationDefault()
                 });
             }
 

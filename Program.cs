@@ -17,15 +17,13 @@ namespace INSY7315_ElevateDigitalStudios_POE
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
-
-            // Add global anti-forgery token validation
             builder.Services.AddControllersWithViews(options =>
             {
-                // Automatically validate anti-forgery tokens on POST actions
+                
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
             });
 
-            // Add sessions if you plan to use them
+            
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession();
 
@@ -33,6 +31,8 @@ namespace INSY7315_ElevateDigitalStudios_POE
             builder.Services.AddSingleton<FirebaseAuthService>();
             builder.Services.AddSingleton<FirebaseService>();
             builder.Services.AddSingleton<MailService>();
+
+            FirebaseInitializer.Initialize();
 
             var credentialsPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
             
