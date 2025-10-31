@@ -4,6 +4,7 @@
     ViewBag.Title = "Payments";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,37 +17,29 @@
 </head>
 <body>
     <div class="app-container">
-
-        <!-- Main Content -->
         <main class="main-content">
             <div class="content-header">
                 <h1 class="page-title">Payments</h1>
                 <div class="header-actions">
                     <div class="search-container">
                         <input type="text" class="search-input" placeholder="Search payments ...">
-                        <a class="search-icon">
-                            <img src="~/images/search.png" width="10" height="10">
-                        </a>
+                        <a class="search-icon"><img src="~/images/search.png" width="10" height="10"></a>
                     </div>
                 </div>
             </div>
-            
+
             <div class="action-buttons">
                 <button class="btn btn-secondary" onclick="showFilterModal()">
-                    <a class="btn-icon">
-                        <img src="~/images/filter-btn.png" width="20" height="20">
-                    </a>
+                    <a class="btn-icon"><img src="~/images/filter-btn.png" width="20" height="20"></a>
                     Filter
                 </button>
                 <button class="btn btn-success" onclick="downloadPaymentsReport(3)">Last 3 Months</button>
                 <button class="btn btn-success" onclick="downloadPaymentsReport(6)">Last 6 Months</button>
                 <button class="btn btn-success" onclick="downloadPaymentsReport(12)">Last 12 Months</button>
             </div>
-            
+
             <div class="table-container">
-
-            @Html.AntiForgeryToken()
-
+                @Html.AntiForgeryToken()
                 <table id="paymentsTable" class="quotations-table">
                     <thead>
                         <tr>
@@ -61,19 +54,19 @@
                         {
                             @foreach (var invoice in Model)
                             {
-                                <tr onclick="showInvoiceOptionsModal('@invoice.Id')" data-invoice-id="@invoice.Id">
+                                <tr data-invoice-id="@invoice.Id">
                                     <td>@invoice.ClientName</td>
                                     <td>#@invoice.InvoiceNumber</td>
                                     <td id="invoice-status-@invoice.Id">@invoice.Status</td>
                                     <td>
                                         <div class="td-actions">
-                                            <a href="#" class="save-btn-payments text-success" data-invoice-id="@invoice.Id" title="Save Invoice">
+                                            <a href="#" class="save-btn-payments text-success" data-invoice-id="@invoice.Id" title="Download Payment">
                                                 <img src="~/images/save_icon.png" alt="Save" class="operation-icons">
                                             </a>
-                                            <a href="#" class="send-btn-payments text-success" data-invoice-id="@invoice.Id" title="Send Invoice">
+                                            <a href="#" class="send-btn-payments text-success" data-invoice-id="@invoice.Id" title="Send Payment">
                                                 <img src="~/images/send_icon.png" alt="Send" class="operation-icons">
                                             </a>
-                                            <a href="#" class="delete-btn-payments" title="Delete" data-invoice-id="@invoice.Id">
+                                            <a href="#" class="delete-btn-payments" data-invoice-id="@invoice.Id" title="Delete Payment">
                                                 <img src="~/images/delete_icon.png" alt="Delete" class="operation-icons">
                                             </a>
                                         </div>
@@ -95,317 +88,285 @@
         </main>
     </div>
 
-    <!-- filter payments modal popup -->
+    <!-- Filter Modal -->
     <div id="filterModal" class="modal-overlay" onclick="hideFilterModal()">
-        <div class="filter-modal-Payments" onclick="event.stopPropagation()">
+        <div class="filter-modal" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h3 class="title">Filter Payments</h3>
+                <h3 class="modal-title">Filter Payments</h3>
                 <button class="close-btn" onclick="hideFilterModal()">×</button>
             </div>
-            <div class="payment-filter-options">
-                <div class="filter-option" onclick="applyFilter('alphabetical')">Alphabetical - A-Z</div>
-                <div class="filter-option" onclick="applyFilter('date-newest')">Date Added - Newest to Oldest</div>
-                <div class="filter-option" onclick="applyFilter('date-oldest')">Date Added - Oldest to Newest</div>
-                <div class="filter-option" onclick="applyFilter('recent')">Recently added</div>
+            <div class="filter-options">
+                <div class="filter-option" onclick="applyFilter('alphabetical')">Alphabetical - A–Z</div>
+                <div class="filter-option" onclick="applyFilter('date-newest')">Newest to Oldest</div>
+                <div class="filter-option" onclick="applyFilter('date-oldest')">Oldest to Newest</div>
+                <div class="filter-option clear-filter" onclick="clearFilters()">Clear Filters</div>
             </div>
         </div>
     </div>
 
-    <!-- invoice details modal popup -->
-    <div id="invoiceDetailsModal" class="modal-overlay" onclick="hideInvoiceDetailsModal()">
-        <div class="filter-modal-Payments" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h3 class="title">Invoice #102515510</h3>
-                <button class="close-btn" onclick="hideInvoiceDetailsModal()">×</button>
-            </div>
-            <div class="invoice-details">
-                <div class="detail-title" >Company Name</div>
-                <div class="details"></div>
-                <div class="detail-title" >Name</div>
-                <div class="details"></div>
-                <div class="detail-title" >Mobile Number</div>
-                <div class="details"></div>
-                <div class="detail-title" >Address</div>
-                <div class="details"></div>
-                <div class="detail-title" >Amount</div>
-                <div class="details"></div>
+    <!-- Save Confirmation Modal -->
+    <div id="saveModal" class="modal-overlay" style="display:none;">
+        <div class="delete-modal" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="hideSaveModal()">&times;</button>
+            <div class="modal-header"><h3 class="modal-title">Save Payment</h3></div>
+            <p class="modal-message">Would you like to download this payment as a PDF?</p>
+            <div class="modal-actions">
+                <button class="btn btn-success" id="confirmSaveBtn">Yes, Download</button>
+                <button class="btn btn-secondary" onclick="hideSaveModal()">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!--Delete Payment Modal-->
-    <div id="deletePaymentModal" class="modal-overlay" onclick="hideDeleteInvoiceModal()">
-        <div class="filter-modal-Payments" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h3 class="delete-title">Are you sure you would like to delete this invoice?</h3>
-                <button class="close-btn" onclick="hideDeleteInvoiceModal()">×</button>
-            </div>
-            <div class="payment-filter-options">
-                <div id="confirmDeleteBtn" class="filter-option" >Yes</div>
-                <div class="filter-option" onclick="hideDeleteInvoiceModal()">Cancel</div>
+    <!-- Send Confirmation Modal -->
+    <div id="shareModal" class="modal-overlay" style="display:none;">
+        <div class="delete-modal" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="hideShareModal()">&times;</button>
+            <div class="modal-header"><h3 class="modal-title">Send Payment</h3></div>
+            <p class="modal-message">Are you sure you want to send this payment to the client?</p>
+            <div class="modal-actions">
+                <button class="btn btn-success" id="confirmShareBtn">Yes, Send</button>
+                <button class="btn btn-secondary" onclick="hideShareModal()">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- Invoice options modal -->
-    <div id="invoiceOptionsModal" class="modal-overlay" onclick="hideInvoiceOptionsModal()">
-        <div class="filter-modal-Payments" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h3 class="delete-title"></h3>
-                <button class="close-btn" onclick="hideInvoiceOptionsModal()">×</button>
-            </div>
-            <div class="payment-filter-options">
-                <div class="filter-option" onclick="showInvoiceDetailsModal()">View Invoice</div>
-                <div class="filter-option" onclick="showDeleteInvoiceModal()" >Delete</div>
-                <div class="filter-option" onclick="markAsPaid(invoiceId)">Mark as Paid</div>
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal-overlay" style="display:none;">
+        <div class="delete-modal" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="hideDeleteModal()">&times;</button>
+            <div class="modal-header"><h3 class="modal-title">Delete Payment</h3></div>
+            <p class="modal-message">Are you sure you want to delete this payment?</p>
+            <div class="modal-actions">
+                <button class="btn btn-danger" id="confirmDeleteBtn">Yes, Delete</button>
+                <button class="btn btn-secondary" onclick="hideDeleteModal()">Cancel</button>
             </div>
         </div>
     </div>
-    
-    <!-- Added JavaScript for modal functionality -->
+
     <script>
-        let selectedInvoiceID = null;
+        let selectedPaymentId = null;
+
+        // ================================
+        // 🔹 FILTER + SEARCH FUNCTIONALITY
+        // ================================
         const tableBody = document.querySelector('.quotations-table tbody');
         const originalRows = Array.from(tableBody.querySelectorAll('tr')).map(r => r.cloneNode(true));
-    
-         function showFilterModal() {
-            document.getElementById('filterModal').style.display = 'flex';
-        }
-        
-        function hideFilterModal() {
-            document.getElementById('filterModal').style.display = 'none';
-        }
+        const searchInput = document.querySelector('.search-input');
+        let currentFilter = null;
 
-        function applyFilter(filterType) {
-            const table = document.getElementById("paymentsTable"); // ID of your table
-            const rows = Array.from(table.querySelectorAll("tbody tr")); // Get all rows inside tbody
+        // Show / Hide Filter Modal
+        function showFilterModal() { document.getElementById('filterModal').style.display = 'flex'; }
+        function hideFilterModal() { document.getElementById('filterModal').style.display = 'none'; }
 
-           switch (filterType) {
+        // Apply or Clear Filters
+        window.applyFilter = function (filterType) {
+            currentFilter = filterType;
+            applySearchAndFilter(searchInput?.value.trim().toLowerCase() || '');
+            hideFilterModal();
+        };
+
+        window.clearFilters = function () {
+            currentFilter = null;
+            applySearchAndFilter('');
+            hideFilterModal();
+        };
+
+        // Combined search + filter logic
+        function applySearchAndFilter(searchQuery) {
+            let rows = originalRows.map(r => r.cloneNode(true))
+                .filter(r => !r.querySelector('td[colspan]'));
+
+            // Apply filter type
+            if (currentFilter) {
+                switch (currentFilter) {
                     case 'alphabetical':
-                        rows.sort((a, b) => a.querySelector('.client-name').textContent.trim().localeCompare(b.querySelector('.client-name').textContent.trim()));
+                        rows.sort((a, b) => {
+                            const aName = a.querySelector('td:nth-child(1)').textContent.trim().toLowerCase();
+                            const bName = b.querySelector('td:nth-child(1)').textContent.trim().toLowerCase();
+                            return aName.localeCompare(bName);
+                        });
                         break;
                     case 'date-newest':
-                    case 'date-oldest':
-                        rows.sort((a, b) => new Date(a.dataset.createdAt) - new Date(b.dataset.createdAt));
-                        break;
                     case 'recent':
                         rows.sort((a, b) => new Date(b.dataset.createdAt) - new Date(a.dataset.createdAt));
                         break;
+                    case 'date-oldest':
+                        rows.sort((a, b) => new Date(a.dataset.createdAt) - new Date(b.dataset.createdAt));
+                        break;
                 }
-            // Clear existing rows and re-append sorted ones
-            const tbody = table.querySelector("tbody");
-            tbody.innerHTML = "";
-            rows.forEach(row => tbody.appendChild(row));
-
-            // Hide modal after applying filter
-            hideFilterModal();
-        }
-
-         async function showInvoiceDetailsModal() {
-            if (!selectedInvoiceID) return;
-
-            // Hide the options modal
-            document.getElementById('invoiceOptionsModal').style.display = 'none';
-
-            const modal = document.getElementById('invoiceDetailsModal');
-            const title = modal.querySelector('.title');
-            const details = modal.querySelectorAll('.invoice-details .details');
-
-            // Loading state
-            title.textContent = "Loading invoice...";
-            details.forEach(d => d.textContent = "—");
-            modal.style.display = 'flex';
-
-            try {
-                // Fetch details from controller
-                const response = await fetch(`/Payments/GetInvoiceDetails?id=${selectedInvoiceID}`);
-
-                if (!response.ok) {
-                    title.textContent = "Error loading invoice";
-                    console.error(await response.text());
-                    return;
-                }
-
-                const data = await response.json();
-
-                title.textContent = `Invoice #${data.invoiceNumber || selectedInvoiceID}`;
-                details[0].textContent = data.companyName || "N/A";
-                details[1].textContent = data.clientName || "N/A";
-                details[2].textContent = data.phone || "N/A";
-                details[3].textContent = data.address || "N/A";
-                details[4].textContent = data.totalAmount ? `R ${data.totalAmount}` : "N/A";
-
-            } catch (error) {
-                console.error("Error fetching invoice:", error);
-                title.textContent = "Error loading invoice";
             }
-        }
-        
-        function hideInvoiceDetailsModal() {
-            document.getElementById('invoiceDetailsModal').style.display = 'none';
-        }
 
-        function showDeleteInvoiceModal(){
-            document.getElementById('invoiceOptionsModal').style.display = 'none';
-            document.getElementById('deletePaymentModal').style.display = 'flex';
+            // Apply search
+            if (searchQuery) {
+                rows = rows.filter(row => {
+                    const clientName = (row.querySelector('td:nth-child(1)')?.textContent || '').toLowerCase();
+                    const invoiceNumber = (row.querySelector('td:nth-child(2)')?.textContent || '').toLowerCase();
+                    const status = (row.querySelector('td:nth-child(3)')?.textContent || '').toLowerCase();
 
-            document.getElementById('confirmDeleteBtn').addEventListener('click', async function () {
-                if (!selectedInvoiceID) return;
-                try {
-                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-                const token = tokenInput ? tokenInput.value : '';
-                if (!token) {
-                    alert('CSRF token not found. Cannot delete invoice.');
-                    return;
-                }
-
-                const resp = await fetch('@Url.Action("DeleteInvoice", "Payments")', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify({ invoiceId: selectedInvoiceID })
+                    return (
+                        clientName.includes(searchQuery) ||
+                        invoiceNumber.includes(searchQuery) ||
+                        status.includes(searchQuery)
+                    );
                 });
-
-                const data = await resp.json();
-
-                if (resp.ok && data && data.success) {
-                    const row = tableBody.querySelector(`tr[data-invoice-id="${selectedInvoiceID}"]`);
-                    if (row) row.remove();
-                    alert('Invoice deleted successfully.');
-                } else {
-                    alert('Failed to delete invoice.');
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Error deleting invoice.');
-            } finally {
-                hideDeleteModal();
-                selectedInvoiceID = null;
             }
-            });
-        }
 
-         function hideDeleteInvoiceModal(){
-            document.getElementById('deletePaymentModal').style.display = 'none';
-        }
-        
-        function showInvoiceOptionsModal(invoiceID) {
-            selectedInvoiceID = invoiceID;
-            const modal = document.getElementById('invoiceOptionsModal');
-            modal.style.display = 'flex';
-        }
-
-         function hideInvoiceOptionsModal(){
-            document.getElementById('invoiceOptionsModal').style.display = 'none';
-        }
-        
-       async function markAsPaid(invoiceId) {
-        
-            if (!invoiceId) return alert("No invoice selected.");
-
-            try {
-                const response = await fetch(`/Payments/MarkAsPaid/${invoiceId}`, {
-                    method: "POST"
-                });
-
-                if (response.ok) {
-                    alert("✅ Invoice marked as paid!");
-                    // Update UI
-                    const statusCell = document.querySelector(`#invoice-status-${invoiceId}`);
-                    if (statusCell) {
-                        statusCell.textContent = "Paid";
-                        statusCell.classList.add("paid-status");
-                    }
-                } else {
-                    console.error(await response.text());
-                    alert("Failed to update invoice.");
-                }
-            } catch (error) {
-                console.error("Error marking as paid:", error);
-                alert("An error occurred while marking the invoice as paid.");
+            // Update table
+            tableBody.innerHTML = '';
+            if (rows.length) {
+                rows.forEach(r => tableBody.appendChild(r));
+            } else {
+                const colspan = 6;
+                const noDataRow = document.createElement('tr');
+                noDataRow.innerHTML = `
+                    <td colspan="${colspan}" style="text-align:center; padding:20px; font-weight:500; color:#999;">
+                        No matching payments found.
+                    </td>`;
+                tableBody.appendChild(noDataRow);
             }
         }
-        // Close modal when pressing Escape key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                hideFilterModal();
-            }
+
+        // Trigger search
+        searchInput?.addEventListener('input', function () {
+            applySearchAndFilter(this.value.trim().toLowerCase());
         });
 
-                async function downloadPaymentsReport(months) {
-            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-            const token = tokenInput ? tokenInput.value : '';
+        // Close modal with Escape key
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') hideFilterModal();
+        });
 
-            try {
-                const response = await fetch('/Payments/DownloadPaymentsReport', {
+        // ================================
+        // 🔹 PAYMENT MODALS (SAVE / SEND / DELETE)
+        // ================================
+        function showSaveModal(id) { selectedPaymentId = id; document.getElementById('saveModal').style.display = 'flex'; }
+        function hideSaveModal() { document.getElementById('saveModal').style.display = 'none'; }
+
+        function showShareModal(id) { selectedPaymentId = id; document.getElementById('shareModal').style.display = 'flex'; }
+        function hideShareModal() { document.getElementById('shareModal').style.display = 'none'; }
+
+        function showDeleteModal(id) { selectedPaymentId = id; document.getElementById('deleteModal').style.display = 'flex'; }
+        function hideDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; }
+
+        // ================================
+        // 🔹 BUTTON LOGIC (MODAL TRIGGERS)
+        // ================================
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+
+            // Open Save modal
+            document.querySelectorAll('.save-btn-payments').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.preventDefault();
+                    showSaveModal(btn.dataset.invoiceId);
+                });
+            });
+
+            // Open Send modal
+            document.querySelectorAll('.send-btn-payments').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.preventDefault();
+                    showShareModal(btn.dataset.invoiceId);
+                });
+            });
+
+            // Open Delete modal
+            document.querySelectorAll('.delete-btn-payments').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.preventDefault();
+                    showDeleteModal(btn.dataset.invoiceId);
+                });
+            });
+
+            // ================================
+            // 🔹 CONFIRM BUTTON ACTIONS
+            // ================================
+
+            // Confirm Save (Download PDF)
+            document.getElementById('confirmSaveBtn').addEventListener('click', async () => {
+                if (!selectedPaymentId) return;
+                hideSaveModal();
+                const res = await fetch('@Url.Action("SaveInvoice", "Invoices")', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify({ months })
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({ invoiceId: selectedPaymentId })
                 });
 
-                if (!response.ok) {
-                    alert("Failed to generate report.");
-                    return;
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Payment_${selectedPaymentId}.pdf`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                } else {
+                    alert("❌ Failed to download payment PDF.");
                 }
+                selectedPaymentId = null;
+            });
 
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
+            // Confirm Send (Email)
+            document.getElementById('confirmShareBtn').addEventListener('click', async () => {
+                if (!selectedPaymentId) return;
+                hideShareModal();
 
-                const disposition = response.headers.get('Content-Disposition');
-                let filename = `Payments_Report_${months}Months.pdf`;
-                if (disposition && disposition.includes('filename=')) {
-                    filename = disposition.split('filename=')[1].replace(/"/g, '');
+                const res = await fetch('@Url.Action("SendInvoice", "Invoices")', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({ invoiceId: selectedPaymentId })
+                });
+
+                const result = await res.json();
+                if (result.success) alert("📨 Payment sent successfully!");
+                else alert("❌ Failed to send payment.");
+                selectedPaymentId = null;
+            });
+
+            // Confirm Delete
+            document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+                if (!selectedPaymentId) return;
+                hideDeleteModal();
+
+                const res = await fetch('@Url.Action("DeleteInvoice", "Invoices")', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({ invoiceId: selectedPaymentId })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    document.querySelector(`tr[data-invoice-id="${selectedPaymentId}"]`)?.remove();
+                    alert("🗑️ Payment deleted successfully.");
+                } else {
+                    alert("❌ Failed to delete payment.");
                 }
+                selectedPaymentId = null;
+            });
+        });
 
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(url);
+        // ================================
+        // 🔹 DOWNLOAD PAYMENTS REPORT (PDF)
+        // ================================
+        async function downloadPaymentsReport(months) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+            const res = await fetch('/Payments/DownloadPaymentsReport', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify({ months })
+            });
 
-            } catch (err) {
-                console.error(err);
-                alert("An error occurred while generating the PDF.");
-            }
+            if (!res.ok) return alert("❌ Failed to generate report.");
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Payments_Report_${months}Months.pdf`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
-
-        document.querySelectorAll('.save-btn-payments').forEach(btn => {
-    btn.addEventListener('click', async e => {
-        e.stopPropagation();
-        const invoiceId = e.currentTarget.dataset.invoiceId;
-        if (!invoiceId) return;
-
-        const resp = await fetch(`/Invoices/DownloadInvoicePdf/${invoiceId}`);
-        if (resp.ok) {
-            alert("✅ Invoice saved (downloaded PDF).");
-        } else {
-            alert("Failed to save invoice.");
-        }
-    });
-});
-
-document.querySelectorAll('.send-btn-payments').forEach(btn => {
-    btn.addEventListener('click', async e => {
-        e.stopPropagation();
-        const invoiceId = e.currentTarget.dataset.invoiceId;
-        if (!invoiceId) return;
-
-        const resp = await fetch(`/Invoices/SendInvoice/${invoiceId}`, { method: "POST" });
-        if (resp.ok) {
-            alert("📧 Invoice sent successfully!");
-        } else {
-            alert("Failed to send invoice.");
-        }
-    });
-});
-
     </script>
+
 </body>
 </html>

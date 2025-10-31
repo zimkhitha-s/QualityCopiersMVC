@@ -448,15 +448,16 @@ body {
   background-color: #f8f9fa;
 }
 
+save-btn-createQuote
 .save-button {
-  background-color: #1a1a1a;
-  color: white;
-  border-color: #1a1a1a;
+    background-color: black;
+    color: white;
 }
 
-.save-button:hover {
-  background-color: #333;
-}
+    .save-btn-createQuote-hover {
+        background-color: white;
+        color:black;
+    }
 
 /* Profile Content */
 .profile-content {
