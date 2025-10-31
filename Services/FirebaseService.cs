@@ -1110,6 +1110,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             };
 
             await docRef.UpdateAsync(updates);
+            if (status == "Paid")
+            {
+                await AddPaymentRecordAsync(invoiceId);
+            }
         }
 
         public async Task DeleteInvoiceAsync(string invoiceId)
@@ -1425,7 +1429,59 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             return (pdfBytes, fileName);
         }
 
+        private CollectionReference GetPaymentsCollection()
+        {
+            return _firestoreDb.Collection("Payments");
+        }
 
+        private async Task AddPaymentRecordAsync(string invoiceId)
+        {
+            // Get the invoice document
+            var invoiceDoc = await GetInvoicesCollection().Document(invoiceId).GetSnapshotAsync();
+
+            if (invoiceDoc.Exists)
+            {
+                var invoiceData = invoiceDoc.ToDictionary();
+
+                // Create a new Payment record using the invoice data
+                var paymentData = new Dictionary<string, object>
+                {
+                    { "invoiceId", invoiceId },
+                    { "clientName", invoiceData.ContainsKey("clientName") ? invoiceData["clientName"] : "" },
+                    { "amount", invoiceData.ContainsKey("amount") ? invoiceData["amount"] : 0 },
+                    { "dateIssued", invoiceData.ContainsKey("dateIssued") ? invoiceData["dateIssued"] : null },
+                    { "status", "Paid" },
+                    { "paymentDate", DateTime.UtcNow }, // Track when payment was made
+                    { "createdAt", Timestamp.GetCurrentTimestamp() }
+                };
+
+                // Add the payment record to the Payments collection
+                await GetPaymentsCollection().AddAsync(paymentData);
+            }
+        }
+
+        public CollectionReference GetNotificationCollection()
+        {
+            return _firestoreDb.Collection("notifications");
+        }
+        public async Task<List<Notifications>> GetRecentNotificationsAsync()
+        {
+            var notificationsRef = GetNotificationCollection();
+            var snapshot = await notificationsRef.GetSnapshotAsync();
+
+            var allNotifications = snapshot.Documents
+                .Select(doc => doc.ConvertTo<Notifications>())
+                .ToList();
+
+            // Filter notifications to only those within the last 7 days
+            var oneWeekAgo = DateTime.UtcNow.AddDays(-7);
+            var recentNotifications = allNotifications
+                .Where(n => n.timestamp.ToDateTime() >= oneWeekAgo)
+                .OrderByDescending(n => n.timestamp.ToDateTime())
+                .ToList();
+
+            return recentNotifications;
+        }
 
     }
 }
