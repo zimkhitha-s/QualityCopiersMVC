@@ -57,9 +57,9 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 HttpContext.Session.SetString("UserRole", role);
 
                 // 4️⃣ Redirect based on role
-                if (role == "admin")
+                if (role == "Employee")
                     return RedirectToAction("AdminDashboard", "Dashboard");
-                else if (role == "manager")
+                else if (role == "Manager")
                     return RedirectToAction("ManagerDashboard", "Dashboard");
 
                 // fallback

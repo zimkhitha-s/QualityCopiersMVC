@@ -50,29 +50,42 @@
                             <th>Client Name</th>
                             <th>Invoice Number</th>
                             <th>Status</th>
+                            <th>Operation</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (Model != null && Model.Any())
-                    {
-                        @foreach (var invoice in Model)
                         {
-                            <tr onclick="showInvoiceOptionsModal('@invoice.Id')" data-invoice-id="@invoice.Id">
-
-                                <td>@invoice.ClientName</td>
-                                <td>#@invoice.InvoiceNumber</td>
-                                <td id="invoice-status-@invoice.Id" >@invoice.Status</td>
+                            @foreach (var invoice in Model)
+                            {
+                                <tr onclick="showInvoiceOptionsModal('@invoice.Id')" data-invoice-id="@invoice.Id">
+                                    <td>@invoice.ClientName</td>
+                                    <td>#@invoice.InvoiceNumber</td>
+                                    <td id="invoice-status-@invoice.Id">@invoice.Status</td>
+                                    <td>
+                                        <div class="td-actions">
+                                            <a href="#" class="save-btn text-success" data-invoice-id="@invoice.Id" title="Save Invoice">
+                                                <img src="~/images/save_button.png" alt="Save" width="35" height="35">
+                                            </a>
+                                            <a href="#" class="send-btn text-success" data-invoice-id="@invoice.Id" title="Send Invoice">
+                                                <img src="~/images/share_button.png" alt="Send" width="35" height="35">
+                                            </a>
+                                            <a href="#" class="delete-btn" title="Delete" data-invoice-id="@invoice.Id">
+                                                <img src="~/images/delete.png" alt="Delete" width="35" height="35">
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" style="text-align:center; padding:20px; font-weight:500; color:#999;">
+                                    No Payments Yet.
+                                </td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="6" style="text-align:center; padding:20px; font-weight:500; color:#999;">
-                                "No Payments Yet."
-                            </td>
-                        </tr>
-                    }
                     </tbody>
                 </table>
             </div>

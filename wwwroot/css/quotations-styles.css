@@ -178,6 +178,13 @@ body {
   color: white;
 }
 
+.td-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px; /* spacing between icons */
+}
+
 .quotations-table tbody tr:hover .status-progress {
   color: white;
 }
@@ -204,8 +211,8 @@ body {
 }
 
 .quotations-table td {
-  padding: 18px 20px;
-  font-size: 14px;
+    padding: 5px 10px;
+    font-size: 14px;
 }
 
 .status {

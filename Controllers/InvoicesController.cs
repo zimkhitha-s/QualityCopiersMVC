@@ -37,6 +37,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                     inv.Phone = WebUtility.HtmlEncode((inv.Phone ?? string.Empty).Trim());
                     inv.Address = WebUtility.HtmlEncode((inv.Address ?? string.Empty).Trim());
                     inv.InvoiceNumber = WebUtility.HtmlEncode((inv.InvoiceNumber ?? string.Empty).Trim());
+                    inv.Status = WebUtility.HtmlEncode((inv.Status ?? string.Empty).Trim());
                 }
 
                 return View(invoices);
@@ -76,6 +77,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus([FromBody] InvoiceRequest request)
         {
+            Console.WriteLine($"[DEBUG] InvoiceId={request.InvoiceId}, Status={request.Status}");
+
             if (request == null || string.IsNullOrEmpty(request.InvoiceId))
                 return BadRequest("Invalid request");
 
