@@ -60,6 +60,9 @@
                     {
                         @foreach (var invoice in Model)
                         {
+                            var isUnpaid = !string.IsNullOrEmpty(invoice.Status) && invoice.Status.Equals("Unpaid", StringComparison.OrdinalIgnoreCase);
+                            var isPaid = !string.IsNullOrEmpty(invoice.Status) && invoice.Status.Equals("Paid", StringComparison.OrdinalIgnoreCase);
+
                             <tr data-invoice-id="@invoice.Id" data-created-at="@invoice.CreatedAt?.ToDateTime().ToString("yyyy-MM-ddTHH:mm:ss")">
                                 <td>@invoice.ClientName</td>
                                 <td>@invoice.Phone</td>
@@ -68,10 +71,11 @@
                                 <td>#@invoice.InvoiceNumber</td>
                                 <td>
                                     <select class="status-dropdown" data-invoice-id="@invoice.Id">
-                                        <option value="Unpaid" selected="@(invoice.Status == "Unpaid" ? "selected" : "")">Unpaid</option>
-                                        <option value="Paid" selected="@(invoice.Status == "Paid" ? "selected" : "")">Paid</option>
+                                        <option value="Unpaid" selected="@(isUnpaid)">Unpaid</option>
+                                        <option value="Paid" selected="@(isPaid)">Paid</option>
                                     </select>
                                 </td>
+                        
 
                                 <td>
                                     <a href="#" class="save-btn text-success" data-invoice-id="@invoice.Id" title="SaveInvoice">

@@ -100,8 +100,18 @@
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 8px;
     flex: 1;
+}
+
+.nav-bar-items {
+    width: 27px;
+    height: 25px;
+}
+
+.nav-bar-items2 {
+    width: 21px;
+    height: 22px;
 }
 
 /* Each navigation item */

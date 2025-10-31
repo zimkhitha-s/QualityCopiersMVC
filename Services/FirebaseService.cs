@@ -17,9 +17,14 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         // setting up firestore connection and encryption helper
         private readonly FirestoreDb _firestoreDb;
         private readonly EncryptionHelper _encryptionHelper;
+        private readonly MailService _mailService;
+        private readonly IConfiguration _configuration;
+
+        private readonly string _senderEmail;
+        private readonly string _smtpPassword;
 
         // firebase service constructor - initialize firestore connection and encryption helper
-        public FirebaseService(EncryptionHelper encryptionHelper)
+        public FirebaseService(EncryptionHelper encryptionHelper, MailService mailService, IConfiguration configuration)
         {
             // check if firebase app is already initialized
             if (FirebaseApp.DefaultInstance == null)
@@ -34,6 +39,11 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             // initialize firestore database and encryption helper
             _firestoreDb = FirestoreDb.Create("insy7315-database2");
             _encryptionHelper = encryptionHelper;
+            _mailService = mailService;
+            _configuration = configuration;
+
+            _senderEmail = _configuration["EmailSettings:SmtpUser"];
+            _smtpPassword = _configuration["EmailSettings:SmtpPassword"];
         }
 
         // method to get firestore database instance
@@ -212,15 +222,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             return _firestoreDb.Collection("clients");
         }
 
-        /*private CollectionReference GetClientsCollection(string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2")
-        {
-            // Navigate to the user document
-            DocumentReference userDocRef = _firestoreDb.Collection("users").Document(userId);
-
-            // Return the clients subcollection
-            return userDocRef.Collection("clients");
-        }*/
-
         public async Task<(bool Success, string ErrorMessage, string TempPassword)> AddEmployeeAsync(Employee employee)
         {
             try
@@ -347,7 +348,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             return employee;
         }
 
-
         public async Task UpdateEmployeeAsync(EmployeeUpdateDto dto)
         {
             var employeesRef = GetEmployeesCollection();
@@ -407,10 +407,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 if (quotation == null)
                     return (false, "Quotation was null", null);
 
-                string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
+                
 
                 // Prepare quotation metadata & totals
-                PrepareQuotationMetadata(quotation);
+                await PrepareQuotationMetadataAsync(quotation);
                 CalculateQuotationTotals(quotation);
 
                 // Generate PDF
@@ -420,10 +420,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     return (false, $"PDF generation failed at {outputPdfPath}", null);
 
                 // Send quotation email
-                await SendQuotationEmailAsync(quotation, userId, outputPdfPath);
+                await SendQuotationEmailAsync(quotation, outputPdfPath);
 
                 // Encrypt & store in Firestore
-                await SaveQuotationToFirestoreAsync(quotation, userId);
+                await SaveQuotationToFirestoreAsync(quotation);
 
                 return (true, null, quotation.id);
             }
@@ -433,16 +433,51 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
-        private void PrepareQuotationMetadata(Quotation quotation)
+        private async Task PrepareQuotationMetadataAsync(Quotation quotation)
         {
-            string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
+            // Get reference to the shared Firestore counter
+            var counterRef = _firestoreDb.Collection("settings").Document("quote_counter");
+
+            // Safely increment the counter using a Firestore transaction
+            long nextQuoteNumber = await _firestoreDb.RunTransactionAsync(async transaction =>
+            {
+                var snapshot = await transaction.GetSnapshotAsync(counterRef);
+
+                long lastNumber = snapshot.ContainsField("lastQuoteNumber")
+                    ? snapshot.GetValue<long>("lastQuoteNumber")
+                    : 10000;
+
+                long nextNumber = lastNumber + 1;
+
+                transaction.Update(counterRef, "lastQuoteNumber", nextNumber);
+                return nextNumber;
+            });
+
+            // Now create the new quote document with the correct metadata
             var quotesRef = _firestoreDb.Collection("quotes");
             var reservedDocRef = quotesRef.Document();
-            quotation.id = reservedDocRef.Id;
 
-            quotation.quoteNumber = $"#{DateTime.UtcNow.Ticks % 1000000:D6}";
+            quotation.id = reservedDocRef.Id;
+            quotation.quoteNumber = $"#{nextQuoteNumber}";
             quotation.createdAt = Timestamp.FromDateTime(DateTime.UtcNow);
             quotation.secureToken = Guid.NewGuid().ToString("N");
+        }
+
+        private async Task<long> GetNextQuoteNumberAsync()
+        {
+            var settingsRef = _firestoreDb.Collection("settings").Document("quote_counter");
+
+            return await _firestoreDb.RunTransactionAsync(async transaction =>
+            {
+                var snapshot = await transaction.GetSnapshotAsync(settingsRef);
+                long lastNumber = snapshot.ContainsField("lastQuoteNumber")
+                    ? snapshot.GetValue<long>("lastQuoteNumber")
+                    : 10000;
+
+                long nextNumber = lastNumber + 1;
+                transaction.Update(settingsRef, "lastQuoteNumber", nextNumber);
+                return nextNumber;
+            });
         }
 
         private void CalculateQuotationTotals(Quotation quotation)
@@ -552,14 +587,17 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
-        private async Task SendQuotationEmailAsync(Quotation quotation, string userId, string pdfPath)
+        private async Task SendQuotationEmailAsync(Quotation quotation, string pdfPath)
         {
-            string baseUrl = "https://updatequotestatus-qfn3uqj3ya-uc.a.run.app";
+            string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
+
+            string baseUrl = "https://us-central1-insy7315-database2.cloudfunctions.net/updateQuoteStatus";
+
             string acceptUrl = $"{baseUrl}?userId={userId}&quoteId={quotation.id}&status=Accepted&token={quotation.secureToken}";
             string declineUrl = $"{baseUrl}?userId={userId}&quoteId={quotation.id}&status=Declined&token={quotation.secureToken}";
 
             var email = new MimeMessage();
-            email.From.Add(new MailboxAddress("Quality Copiers", "zimkhitha.sasanti@gmail.com"));
+            email.From.Add(new MailboxAddress("Quality Copiers", _senderEmail));
             email.To.Add(new MailboxAddress(quotation.clientName, quotation.email));
             email.Subject = $"Quotation {quotation.quoteNumber}";
 
@@ -584,14 +622,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             email.Body = builder.ToMessageBody();
 
-            using var smtp = new MailKit.Net.Smtp.SmtpClient();
-            await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-            await smtp.AuthenticateAsync("zimkhitha.sasanti@gmail.com", "pflq gfdg xyeb pitx");
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+            await _mailService.SendEmailAsync(email);
         }
 
-        private async Task SaveQuotationToFirestoreAsync(Quotation quotation, string userId)
+        private async Task SaveQuotationToFirestoreAsync(Quotation quotation)
         {
             var quotesRef = _firestoreDb.Collection("quotes");
             var docRef = quotesRef.Document(quotation.id);
@@ -626,8 +660,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         {
             try
             {
-                string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
-                var quotesRef = _firestoreDb.Collection("quotes").WhereEqualTo("createdBy", userId);
+                var quotesRef = _firestoreDb.Collection("quotes");
                 var snapshot = await quotesRef.GetSnapshotAsync();
 
                 List<Quotation> quotations = new();
@@ -690,16 +723,11 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             return (pdfBytes, quotation.pdfFileName);
         }
 
-
-
         public async Task DeleteQuotationAsync(string quoteId)
         {
             try
             {
-                string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
-                DocumentReference quoteDoc = _firestoreDb
-                    .Collection("quotes")
-                    .Document(quoteId);
+                DocumentReference quoteDoc = GetQuotationsCollection().Document(quoteId);
 
                 await quoteDoc.DeleteAsync();
                 Console.WriteLine($"Quotation {quoteId} deleted successfully.");
@@ -710,10 +738,14 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
+        private CollectionReference GetQuotationsCollection()
+        {
+            return _firestoreDb.Collection("quotes");
+        }
+
         public async Task<List<Invoice>> GetInvoicesAsync()
         {
-            string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
-            var invoicesRef = _firestoreDb.Collection("users").Document(userId).Collection("invoices");
+            var invoicesRef = GetInvoicesCollection();
             var snapshot = await invoicesRef.GetSnapshotAsync();
 
             var invoices = new List<Invoice>();
@@ -728,6 +760,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 invoice.Email = _encryptionHelper.Decrypt(invoice.Email);
                 invoice.Phone = _encryptionHelper.Decrypt(invoice.Phone);
                 invoice.QuoteNumber = _encryptionHelper.Decrypt(invoice.QuoteNumber ?? string.Empty);
+                invoice.Status = invoice.Status;
 
                 if (invoice.Items != null)
                 {
@@ -746,31 +779,28 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         //Get invoice details by ID for payments
         public async Task<Invoice?> GetInvoiceDetailsAsync(string id)
         {
-            string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
             try
             {
-                var invoiceRef = _firestoreDb.Collection("users").Document(userId).Collection("invoices").Document(id);
-
+                var invoiceRef = GetInvoicesCollection().Document(id);
                 var snapshot = await invoiceRef.GetSnapshotAsync();
 
                 if (!snapshot.Exists)
-                {
-                    return null; // or throw new Exception("Invoice not found");
-                }
+                    return null;
 
                 var invoice = snapshot.ConvertTo<Invoice>();
 
                 // Decrypt sensitive fields
                 invoice.ClientName = _encryptionHelper.Decrypt(invoice.ClientName);
                 invoice.CompanyName = _encryptionHelper.Decrypt(invoice.CompanyName);
-                invoice.Phone = _encryptionHelper.Decrypt(invoice.Phone);
+                invoice.Email = _encryptionHelper.Decrypt(invoice.Email ?? string.Empty);
+                invoice.Phone = _encryptionHelper.Decrypt(invoice.Phone ?? string.Empty);
                 invoice.QuoteNumber = _encryptionHelper.Decrypt(invoice.QuoteNumber ?? string.Empty);
 
                 if (invoice.Items != null)
                 {
                     foreach (var item in invoice.Items)
                     {
-                        item.Description = _encryptionHelper.Decrypt(item.Description);
+                        item.Description = _encryptionHelper.Decrypt(item.Description ?? string.Empty);
                     }
                 }
 
@@ -827,8 +857,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             // Return both the PDF bytes and filename
             return (pdfBytes, pdfFileName);
         }
-
-
 
         public async Task<bool> GenerateAndSendInvoiceAsync(Invoice invoice)
         {
@@ -1024,7 +1052,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             // Build the email
             var emailMessage = new MimeMessage();
-            emailMessage.From.Add(new MailboxAddress("Quality Copiers", "zimkhitha.sasanti@gmail.com"));
+            emailMessage.From.Add(new MailboxAddress("Quality Copiers", _senderEmail));
             emailMessage.To.Add(new MailboxAddress(invoice.ClientName, invoice.Email));
             emailMessage.Subject = $"Invoice {invoice.InvoiceNumber}";
 
@@ -1053,30 +1081,25 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
                 emailMessage.Body = multipart;
 
-                // Now send (stream must remain open until SendAsync completes)
+                /*// Now send (stream must remain open until SendAsync completes)
                 using var smtp = new MailKit.Net.Smtp.SmtpClient();
                 await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
                 await smtp.AuthenticateAsync("zimkhitha.sasanti@gmail.com", "pflq gfdg xyeb pitx");
                 await smtp.SendAsync(emailMessage);
-                await smtp.DisconnectAsync(true);
+                await smtp.DisconnectAsync(true);*/
+
+                await _mailService.SendEmailAsync(emailMessage);
             }
         }
 
         public async Task UpdateInvoiceStatusAsync(string invoiceId, string status)
         {
-            // Replace with the correct user ID
-            string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
-
             // Access the invoice document inside the user's "invoices" subcollection
-            var docRef = _firestoreDb
-                .Collection("users")
-                .Document(userId)
-                .Collection("invoices")
-                .Document(invoiceId);
+            var docRef = GetInvoicesCollection().Document(invoiceId);
 
             var updates = new Dictionary<string, object>
             {
-                { "Status", status }
+                { "status", status }
             };
 
             await docRef.UpdateAsync(updates);
@@ -1086,12 +1109,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         {
             try
             {
-                string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
-                DocumentReference invoiceDoc = _firestoreDb
-                    .Collection("users")
-                    .Document(userId)
-                    .Collection("invoices")
-                    .Document(invoiceId);
+                DocumentReference invoiceDoc = GetInvoicesCollection().Document(invoiceId);
 
                 await invoiceDoc.DeleteAsync();
                 Console.WriteLine($"Invoice {invoiceId} deleted successfully.");
@@ -1102,35 +1120,9 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
-        public async Task MarkInvoiceAsPaidAsync(string invoiceId)
+        private CollectionReference GetInvoicesCollection()
         {
-            string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2"; // Replace with dynamic user ID if applicable
-
-            try
-            {
-                Console.WriteLine($"Trying to mark as paid - User: {userId}, Invoice: {invoiceId}");
-
-                var invoiceRef = _firestoreDb.Collection("users")
-                    .Document(userId)
-                    .Collection("invoices")
-                    .Document(invoiceId);
-
-                var snapshot = await invoiceRef.GetSnapshotAsync();
-
-                if (!snapshot.Exists)
-                {
-                    Console.WriteLine($"Invoice not found at path: users/{userId}/invoices/{invoiceId}");
-                    throw new Exception("Invoice document does not exist in Firestore.");
-                }
-
-                await invoiceRef.UpdateAsync("status", "Paid");
-                Console.WriteLine("Invoice successfully marked as paid!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Firestore update failed: " + ex.Message);
-                throw;
-            }
+            return _firestoreDb.Collection("invoices");
         }
 
           public async Task<Dictionary<string, object>> GetManagerDataAsync(string userId)

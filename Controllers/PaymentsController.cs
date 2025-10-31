@@ -73,19 +73,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             }
         }
         
-        [HttpPost("MarkAsPaid/{invoiceId}")]
-        public async Task<IActionResult> MarkAsPaid(string invoiceId)
-        {
-            try
-            {
-                await _firebaseService.MarkInvoiceAsPaidAsync(invoiceId);
-                return Ok("Invoice marked as paid ✅");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"🔥 Error updating invoice: {ex.Message}");
-                return BadRequest($"Error: {ex.Message}");
-            }
-        }
+       
     }
 }
