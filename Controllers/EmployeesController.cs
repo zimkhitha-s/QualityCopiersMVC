@@ -18,6 +18,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [HttpGet]
         public async Task<IActionResult> Employees()
         {
+            ViewBag.FullName = HttpContext.Session.GetString("FullName");
+            ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
             try
             {
                 var employees = await _firebaseService.GetAllEmployeesAsync();
@@ -34,6 +36,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [HttpGet]
         public IActionResult AddEmployees()
         {
+            ViewBag.FullName = HttpContext.Session.GetString("FullName");
+            ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
             return View();
         }
 

@@ -11,6 +11,7 @@
 </head>
 <body>
 
+        
     <!-- Main Content -->
         <main class="main-content">
             <!-- Added banner section and repositioned profile elements for Twitter/LinkedIn style layout -->
@@ -28,7 +29,7 @@
                 </div>
                 <div class="profile-info">
                     <h1>My profile</h1>
-                    <h2 id="fullName">Craig Diedericks</h2>
+                    <h2 id="fullName">@ViewBag.FullName</h2>
                 </div>
                 
             </div>
@@ -42,11 +43,12 @@
 
                 <!-- Added tab content containers with IDs for switching -->
                 <div id="personal-tab" class="tab-content active">
+                @Html.AntiForgeryToken()
                     <form class="profile-form" id="profileForm">
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="fullname">Name</label>
-                                <input type="text" id="fullname" />
+                                <input type="text" id="name" />
                             </div>
                             <div class="form-group">
                                 <label for="role">Role</label>
@@ -103,7 +105,7 @@
                 </div>
                     <div class="action-buttons">
                         <button class="cancel-button">Cancel</button>
-                        <button class="save-button" id="saveChangesBtn">Save Changes</button>
+                        <button type="button" class="save-button" id="saveChangesBtn">Save Changes</button>
                     </div>
             </div>
         </main>
@@ -127,7 +129,7 @@
             const data = await response.json();
 
             // Populate fields
-            document.getElementById("fullname").value = data.firstName || "";
+            document.getElementById("name").value = data.name || "";
             document.getElementById("role").value = data.role || "";
             document.getElementById("surname").value = data.surname || "";
             document.getElementById("mobile").value = data.mobile || "";
@@ -138,55 +140,108 @@
         });
 
         document.getElementById("saveChangesBtn").addEventListener("click", async () => {
-            const updatedData = {
-                fullname: document.getElementById("fullname").value,
-                role: document.getElementById("role").value,
+            const data = {
+                fullname: document.getElementById("name").value,
                 surname: document.getElementById("surname").value,
                 mobile: document.getElementById("mobile").value,
                 email: document.getElementById("email").value,
-                language: document.getElementById("language").value
-                //iconName: document.getElementById("profile-image").value
+                role: document.getElementById("role").value
             };
 
-            const response = await fetch('/account/updateprofile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData)
-            });
+            console.log("Sending data:", data);
 
-                if (response.ok) {
-                    alert("✅ Profile updated successfully!");
-                } else {
-                    alert("❌ Failed to update profile.");
-                }
+            try {
                 
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const response = await fetch("/Account/UpdateProfile", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": token
+                    },
+                    body: JSON.stringify(data)
                 });
 
+                const text = await response.text();
+                console.log("Response text:", text);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                }
+
+                alert("✅ Profile updated successfully!");
+            } catch (error) {
+                console.error("❌ Update failed:", error);
+                alert("Error updating profile: " + error.message);
+            }
+        });
 
         editButton.addEventListener('click', () => {
         imageInput.click();
         });
 
         imageInput.addEventListener('change', async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const formData = new FormData();
-            formData.append('image', file);
 
-            // Send the image to the server
-            const response = await fetch('/Profile/UploadImage', {
-                method: 'POST',
-                body: formData
-            });
+            const file = event.target.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('image', file);
 
-            if (response.ok) {
-                const imageUrl = await response.text();
-                profileImage.src = imageUrl; // update the <img> with the new path
-            } else {
-                alert('Failed to upload image.');
+                // ✅ Correct route here
+                const response = await fetch('/Account/UploadImage', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const imageUrl = await response.text();
+                    profileImage.src = imageUrl; // Update preview
+                } else {
+                    alert('Failed to upload image.');
+                }
             }
+        });
+
+        //Change password logic
+        /*document.getElementById("changePasswordBtn").addEventListener("click", async () => {
+        const currentPassword = document.getElementById("current-password").value.trim();
+        const newPassword = document.getElementById("new-password").value.trim();
+        const confirmPassword = document.getElementById("confirm-password").value.trim();
+
+        // 1️⃣ Validation
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            alert("⚠️ Please fill in all fields.");
+            return;
         }
-    });
+
+        if (newPassword !== confirmPassword) {
+            alert("❌ New passwords do not match.");
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            alert("⚠️ Password must be at least 6 characters long.");
+            return;
+        }
+
+        // 2️⃣ Send to backend
+        const response = await fetch('/Account/ChangePassword', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                currentPassword,
+                newPassword
+            })
+        });
+
+        if (response.ok) {
+            alert("✅ Password updated successfully!");
+            document.getElementById("passwordForm").reset();
+        } else {
+            const error = await response.text();
+            alert(`❌ Failed to update password: ${error}`);
+        }
+    });*/
      
 </script>
 
