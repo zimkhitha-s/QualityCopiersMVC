@@ -12,7 +12,7 @@
 <div class="app-container">
     <main class="main-content">
         <div class="content-header">
-            <h1 class="page-title">Quotations</h1>
+            <h1 class="page-title-quotations">Quotations</h1>
 
             <div class="header-actions">
                 <div class="search-container">
@@ -63,13 +63,14 @@
                                 <td class="status-text">@quotation.status</td>
 
                                 <td>
-                                    <a href="#" class="download-quotation-btn text-success" data-quotation-id="@quotation.id" title="Download Quotation">
-                                        <img src="~/images/save_button.png" alt="Download" width="35" height="35">
-                                    </a>
-
-                                    <a href="#" class="delete-btn text-danger" data-quote-id="@quotation.id" title="Delete">
-                                        <img src="@Url.Content("~/images/delete.png")" alt="Delete" width="28" height="28">
-                                    </a>
+                                    <div class="td-quote-actions">
+                                        <a href="#" class="download-btn-quotation" data-quotation-id="@quotation.id" title="Download Quotation">
+                                            <img src="~/images/save_icon.png" alt="Download" class="operation-icons-quotes">
+                                        </a>
+                                        <a href="#" class="delete-btn-quotations" data-quote-id="@quotation.id" title="Delete Quotation">
+                                            <img src="~/images/delete_icon.png" alt="Delete" class="operation-icons-quotes">
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         }

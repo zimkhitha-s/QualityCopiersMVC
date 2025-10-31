@@ -49,12 +49,14 @@
                             <td class="employee-phone">@employee.PhoneNumber</td>
                             <td class="employee-email">@employee.Email</td>
                             <td>
-                                <a href="#" class="edit-btn" data-employee-id="@employee.Uid">
-                                    <img src="~/images/edit icon.png" alt="Logo" width="35" height="35">
-                                </a>
-                                <a href="#" class="delete-btn" data-employee-id="@employee.Uid">
-                                    <img src="~/images/delete.png" alt="Delete" width="35" height="35">
-                                </a>
+                                <div class="td-employee-actions">
+                                    <a href="#" class="edit-btn" data-employee-id="@employee.Uid">
+                                        <img src="~/images/edit_icon.png" alt="Logo" class="operation-icons-employee">
+                                    </a>
+                                    <a href="#" class="delete-btn" data-employee-id="@employee.Uid">
+                                        <img src="~/images/delete_icon.png" alt="Delete" class="operation-icons-employee">
+                                    </a>
+                                </div>
                             </td>
                         </tr>
 
