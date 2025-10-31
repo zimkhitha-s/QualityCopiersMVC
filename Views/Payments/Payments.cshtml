@@ -38,6 +38,9 @@
                     </a>
                     Filter
                 </button>
+                <button class="btn btn-success" onclick="downloadPaymentsReport(3)">Last 3 Months</button>
+                <button class="btn btn-success" onclick="downloadPaymentsReport(6)">Last 6 Months</button>
+                <button class="btn btn-success" onclick="downloadPaymentsReport(12)">Last 12 Months</button>
             </div>
             
             <div class="table-container">
@@ -64,14 +67,14 @@
                                     <td id="invoice-status-@invoice.Id">@invoice.Status</td>
                                     <td>
                                         <div class="td-actions">
-                                            <a href="#" class="save-btn text-success" data-invoice-id="@invoice.Id" title="Save Invoice">
-                                                <img src="~/images/save_button.png" alt="Save" width="35" height="35">
+                                            <a href="#" class="save-btn-payments text-success" data-invoice-id="@invoice.Id" title="Save Invoice">
+                                                <img src="~/images/save_icon.png" alt="Save" class="operation-icons">
                                             </a>
-                                            <a href="#" class="send-btn text-success" data-invoice-id="@invoice.Id" title="Send Invoice">
-                                                <img src="~/images/share_button.png" alt="Send" width="35" height="35">
+                                            <a href="#" class="send-btn-payments text-success" data-invoice-id="@invoice.Id" title="Send Invoice">
+                                                <img src="~/images/send_icon.png" alt="Send" class="operation-icons">
                                             </a>
-                                            <a href="#" class="delete-btn" title="Delete" data-invoice-id="@invoice.Id">
-                                                <img src="~/images/delete.png" alt="Delete" width="35" height="35">
+                                            <a href="#" class="delete-btn-payments" title="Delete" data-invoice-id="@invoice.Id">
+                                                <img src="~/images/delete_icon.png" alt="Delete" class="operation-icons">
                                             </a>
                                         </div>
                                     </td>
@@ -330,6 +333,49 @@
                 hideFilterModal();
             }
         });
+
+                async function downloadPaymentsReport(months) {
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenInput ? tokenInput.value : '';
+
+            try {
+                const response = await fetch('/Payments/DownloadPaymentsReport', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ months })
+                });
+
+                if (!response.ok) {
+                    alert("Failed to generate report.");
+                    return;
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+
+                const disposition = response.headers.get('Content-Disposition');
+                let filename = `Payments_Report_${months}Months.pdf`;
+                if (disposition && disposition.includes('filename=')) {
+                    filename = disposition.split('filename=')[1].replace(/"/g, '');
+                }
+
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+
+            } catch (err) {
+                console.error(err);
+                alert("An error occurred while generating the PDF.");
+            }
+        }
+    </script>
     </script>
 </body>
 </html>

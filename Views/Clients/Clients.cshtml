@@ -50,12 +50,14 @@
                             <td class="client-email">@client.email</td>
                             <td class="client-company">@client.companyName</td>
                             <td>
-                                <a href="#" class="edit-btn" data-client-id="@client.id">
-                                    <img src="~/images/edit icon.png" alt="Logo" width="35" height="35">
-                                </a>
-                                <a href="#" class="delete-btn" data-client-id="@client.id">
-                                    <img src="~/images/delete.png" alt="Delete" width="35" height="35">
-                                </a>
+                                <div class="td-employee-actions">
+                                    <a href="#" class="edit-btn" data-client-id="@client.id">
+                                        <img src="~/images/edit_icon.png" alt="Logo" class="operation-icons-employee">
+                                    </a>
+                                    <a href="#" class="delete-btn" data-client-id="@client.id">
+                                        <img src="~/images/delete_icon.png" alt="Delete" class="operation-icons-employee">
+                                    </a>
+                                </div>
                             </td>
                         </tr>
 

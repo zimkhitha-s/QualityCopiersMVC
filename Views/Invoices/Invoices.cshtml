@@ -75,20 +75,20 @@
                                         <option value="Paid" selected="@(isPaid)">Paid</option>
                                     </select>
                                 </td>
-                        
+
 
                                 <td>
-                                    <a href="#" class="save-btn text-success" data-invoice-id="@invoice.Id" title="SaveInvoice">
-                                        <img src="~/images/save_button.png" alt="Delete" width="35" height="35">
-                                    </a>
-
-                                    <a href="#" class="send-btn text-success" data-invoice-id="@invoice.Id" title="SendInvoice">
-                                        <img src="~/images/share_button.png" alt="Delete" width="35" height="35">
-                                    </a>
-
-                                    <a href="#" class="delete-btn" title="Delete" data-invoice-id="@invoice.Id">
-                                        <img src="~/images/delete.png" alt="Delete" width="35" height="35">
-                                    </a>
+                                    <div class="td-actions">
+                                        <a href="#" class="save-btn-payments text-success" data-invoice-id="@invoice.Id" title="Save Invoice">
+                                            <img src="~/images/save_icon.png" alt="Save" class="operation-icons">
+                                        </a>
+                                        <a href="#" class="send-btn-payments text-success" data-invoice-id="@invoice.Id" title="Send Invoice">
+                                            <img src="~/images/send_icon.png" alt="Send" class="operation-icons">
+                                        </a>
+                                        <a href="#" class="delete-btn-payments" title="Delete" data-invoice-id="@invoice.Id">
+                                            <img src="~/images/delete_icon.png" alt="Delete" class="operation-icons">
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         }

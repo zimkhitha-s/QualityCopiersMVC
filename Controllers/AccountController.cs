@@ -95,6 +95,54 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             }
         }
 
+        // ======= FORGOT PASSWORD =======
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                ViewBag.Error = "Please enter your email address.";
+                return View();
+            }
+
+            try
+            {
+                var client = new HttpClient();
+                var apiKey = _firebaseApiKey;
+
+                var requestPayload = new
+                {
+                    requestType = "PASSWORD_RESET",
+                    email = email
+                };
+
+                var response = await client.PostAsJsonAsync(
+                    $"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={apiKey}",
+                    requestPayload);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    ViewBag.Error = $"Failed to send reset email. Details: {error}";
+                    return View();
+                }
+
+                ViewBag.Message = "A password reset email has been sent. Please check your inbox.";
+                return View();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = $"An error occurred: {ex.Message}";
+                return View();
+            }
+        }
+
 
         [HttpGet]
         public IActionResult Profile()

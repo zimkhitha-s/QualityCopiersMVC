@@ -18,7 +18,7 @@
     @RenderSection("PageCss", required: false)
 </head>
 
-<body>
+<body data-page="@ViewContext.RouteData.Values["action"]?.ToString()?.ToLower()">
     <!-- Header -->
 <header>
     <nav class="custom-navbar d-flex justify-content-between align-items-center px-4">
