@@ -6,14 +6,12 @@ using Google.Cloud.Firestore;
 using INSY7315_ElevateDigitalStudios_POE.Models;
 using INSY7315_ElevateDigitalStudios_POE.Models.Dtos;
 using INSY7315_ElevateDigitalStudios_POE.Security;
-using iText.Kernel.Font;
-using iText.Kernel.Pdf;
-using iText.Kernel.Pdf.Action;
 using MimeKit;
 using Spire.Doc;
 using Spire.Doc.Documents;
 using Spire.Doc.Fields;
 using Google.Cloud.SecretManager.V1;
+using System.Drawing;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Services
 {
@@ -47,6 +45,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             _mailService = mailService;
             _configuration = configuration;
 
+            // load email settings from configuration
             _senderEmail = _configuration["EmailSettings:SmtpUser"];
             _smtpPassword = _configuration["EmailSettings:SmtpPassword"];
         }
@@ -57,37 +56,12 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             return _firestoreDb;
         }
 
-        public async Task<string> GetUserRoleAsync(string userId)
-        {
-            string documentRef = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
-            // Check Employees (Admins)
-            var employeeDoc = await _firestoreDb.Collection("users")
-            .Document(documentRef)
-            .Collection("employees")
-            .Document(userId)
-            .GetSnapshotAsync();
-
-            if (employeeDoc.Exists)
-                return employeeDoc.GetValue<string>("role"); // "admin"
-
-            // Check Managers
-            var managerDoc = await _firestoreDb.Collection("users")
-            .Document(documentRef)
-            .Collection("manager_data")
-            .Document(userId)
-            .GetSnapshotAsync();
-
-            if (managerDoc.Exists)
-                return managerDoc.GetValue<string>("role"); // "manager"
-
-            return null;
-        }
-
         // method to add a new client to firestore
         public async Task AddClientAsync(Client client)
         {
-            // Assign unique ID
+            // assign unique id's to clients
             client.id = Guid.NewGuid().ToString();
+
             // encrypting the sensitive fields
             client.name = _encryptionHelper.Encrypt(client.name);
             client.surname = _encryptionHelper.Encrypt(client.surname);
@@ -96,6 +70,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             client.address = _encryptionHelper.Encrypt(client.address);
             client.companyName = _encryptionHelper.Encrypt(client.companyName);
 
+            // setting created at timestamp
             var clientsRef = GetClientsCollection();
 
             // adding the client document
@@ -105,17 +80,21 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         // method to get all clients for a user
         public async Task<List<Client>> GetClientsAsync()
         {
+            // getting the clients collection reference
             var clientsRef = GetClientsCollection();
 
+            // fetching all client documents
             QuerySnapshot snapshot = await clientsRef.GetSnapshotAsync();
             var clients = new List<Client>();
 
+            // decrypting sensitive fields before returning
             foreach (var doc in snapshot.Documents)
             {
+                // convert document to client object
                 Client client = doc.ConvertTo<Client>();
                 client.id = doc.Id;
 
-                // Decrypt sensitive fields
+                // decrypt sensitive fields
                 client.name = _encryptionHelper.Decrypt(client.name).Trim();
                 client.surname = _encryptionHelper.Decrypt(client.surname).Trim();
                 client.email = _encryptionHelper.Decrypt(client.email).Trim();
@@ -123,7 +102,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 client.address = _encryptionHelper.Decrypt(client.address).Trim();
                 client.companyName = _encryptionHelper.Decrypt(client.companyName).Trim();
 
-                // Handle createdAt safely
+                // handle created at safely
                 if (client.createdAt is Timestamp ts)
                     client.createdAtDateTime = ts.ToDateTime();
                 else if (client.createdAt is long unixTimestamp)
@@ -131,25 +110,30 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 else
                     client.createdAtDateTime = DateTime.UtcNow;
 
+                // add to list
                 clients.Add(client);
             }
 
+            // return the list of clients
             return clients;
         }
 
-        // Get a single client by ID
+        // get a single client by id
         public async Task<Client> GetClientByIdAsync(string clientId)
         {
+            // getting the clients collection reference
             var clientsRef = GetClientsCollection();
             DocumentReference clientDocRef = clientsRef.Document(clientId);
 
+            // fetching the client document
             DocumentSnapshot snapshot = await clientDocRef.GetSnapshotAsync();
             if (!snapshot.Exists) return null;
 
+            // convert document to client object
             Client client = snapshot.ConvertTo<Client>();
             client.id = snapshot.Id;
 
-            // Decrypt sensitive fields
+            // decrypt sensitive fields
             client.name = _encryptionHelper.Decrypt(client.name).Trim();
             client.surname = _encryptionHelper.Decrypt(client.surname).Trim();
             client.email = client.email.Trim();
@@ -157,7 +141,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             client.address = _encryptionHelper.Decrypt(client.address).Trim()   ;
             client.companyName = _encryptionHelper.Decrypt(client.companyName).Trim();
 
-            // Handle createdAt safely
+            // handle created ar safely
             if (client.createdAt is Timestamp ts)
                 client.createdAtDateTime = ts.ToDateTime();
             else if (client.createdAt is long unixTimestamp)
@@ -165,21 +149,25 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             else
                 client.createdAtDateTime = DateTime.UtcNow;
 
+            // return the client object
             return client;
         }
 
-
+        // method to update an existing client
         public async Task UpdateClientAsync(ClientUpdateDto dto)
         {
+            // getting the clients collection reference
             var clientsRef = GetClientsCollection();
             DocumentReference clientDocRef = clientsRef.Document(dto.Id);
 
+            // fetching the client document 
             DocumentSnapshot snapshot = await clientDocRef.GetSnapshotAsync();
             if (!snapshot.Exists) throw new Exception("Client not found");
 
+            // convert document to client object
             Client client = snapshot.ConvertTo<Client>();
 
-            // Split full name into name + surname if provided
+            // split full name into name + surname if provided
             if (!string.IsNullOrWhiteSpace(dto.FullName))
             {
                 var nameParts = dto.FullName.Trim().Split(' ', 2);
@@ -189,7 +177,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     client.surname = _encryptionHelper.Encrypt(nameParts[1]);
             }
 
-            // Update only provided fields
+            // update only the provided fields
             if (!string.IsNullOrWhiteSpace(dto.CompanyName))
                 client.companyName = _encryptionHelper.Encrypt(dto.CompanyName);
 
@@ -202,42 +190,49 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             if (!string.IsNullOrWhiteSpace(dto.Address))
                 client.address = _encryptionHelper.Encrypt(dto.Address);
 
+            // save the updated client document
             await clientDocRef.SetAsync(client, SetOptions.Overwrite);
         }
 
-
+        // method to delete a client by id
         public async Task DeleteClientAsync(string clientId)
         {
             try
             {
+                // getting the clients collection reference
                 var clientsRef = GetClientsCollection();
                 DocumentReference clientDocRef = clientsRef.Document(clientId);
 
+                // deleting the client document
                 await clientDocRef.DeleteAsync();
                 Console.WriteLine($"Client {clientId} deleted successfully.");
             }
             catch (Exception ex)
             {
+                // log the error
                 Console.WriteLine($"Error deleting client: {ex.Message}");
             }
         }
 
+        // helper method to get clients collection reference
         private CollectionReference GetClientsCollection()
         {
             return _firestoreDb.Collection("clients");
         }
 
+        // method to add a new employee
         public async Task<(bool Success, string ErrorMessage, string TempPassword)> AddEmployeeAsync(Employee employee)
         {
             try
             {
+                // input validation
                 string managerUid = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
 
-                // Generate the same temp password pattern as Android
+                // generate a temp password for the employees - they can change it later
                 employee.Password = employee.IdNumber.Substring(employee.IdNumber.Length - 6) + "@QC";
                 employee.Role = "Employee";
 
-                // Create user in Firebase Authentication
+                // create user in firebase authentication
                 var userRecordArgs = new UserRecordArgs
                 {
                     Email = employee.Email,
@@ -247,11 +242,13 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     Disabled = false
                 };
 
+                // create the user in firebase auth
                 UserRecord newUser = await FirebaseAuth.DefaultInstance.CreateUserAsync(userRecordArgs);
 
-                // Set UID and encrypt fields
+                // set udi and encrypt fields
                 employee.Uid = newUser.Uid;
 
+                // encrypt sensitive fields
                 var encryptedEmployee = new Employee
                 {
                     Uid = employee.Uid,
@@ -265,36 +262,46 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     CreatedAt = employee.CreatedAtDateTime
                 };
 
+                // store the encrypted employee in firestore
                 var employeesRef = GetEmployeesCollection(managerUid);
                 await employeesRef.Document(encryptedEmployee.Uid).SetAsync(encryptedEmployee);
 
+                // return success with temp password
                 return (true, null, employee.Password);
             }
             catch (FirebaseAuthException ex)
             {
+                // handle firebase auth errors
                 return (false, $"Firebase Auth Error: {ex.Message}", null);
             }
             catch (Exception ex)
             {
+                // handle general errors
                 return (false, $"Error adding employee: {ex.Message}", null);
             }
         }
 
+        // method to get all employees
         public async Task<List<Employee>> GetAllEmployeesAsync()
         {
             try
             {
+                // getting the employees collection reference
                 var employeesRef = GetEmployeesCollection();
 
+                // fetching all employee documents
                 QuerySnapshot snapshot = await employeesRef.GetSnapshotAsync();
 
+                // decrypting sensitive fields before returning
                 List<Employee> employees = new List<Employee>();
 
+                // decryption loop
                 foreach (var doc in snapshot.Documents)
                 {
+                    // convert document to employee object
                     Employee employee = doc.ConvertTo<Employee>();
 
-                    // Decrypt sensitive fields
+                    // decrypt sensitive fields
                     employee.Name = _encryptionHelper.Decrypt(employee.Name);
                     employee.Surname = _encryptionHelper.Decrypt(employee.Surname);
                     employee.FullName = _encryptionHelper.Decrypt(employee.FullName ?? string.Empty);
@@ -303,7 +310,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     employee.PhoneNumber = _encryptionHelper.Decrypt(employee.PhoneNumber);
                     employee.Role = _encryptionHelper.Decrypt(employee.Role);
 
-                    // Convert CreatedAt to CreatedAtDateTime for display
+                    // convert created at to created at date time for display
                     if (employee.CreatedAt != null)
                     {
                         if (employee.CreatedAt is Timestamp ts)
@@ -314,35 +321,42 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                             employee.CreatedAtDateTime = DateTime.UtcNow;
                     }
 
+                    // add to list
                     employees.Add(employee);
                 }
 
+                // return the list of employees
                 return employees;
             }
             catch (Exception ex)
             {
+                // handle errors
                 throw new Exception($"Error fetching employees: {ex.Message}");
             }
         }
 
+        // method to get a single employee by id
         public async Task<Employee> GetEmployeeByIdAsync(string employeeId)
         {
+            // getting the employees collection reference
             var employeesRef = GetEmployeesCollection();
             DocumentReference employeeDocRef = employeesRef.Document(employeeId);
 
+            // fetching the employee document
             DocumentSnapshot snapshot = await employeeDocRef.GetSnapshotAsync();
             if (!snapshot.Exists) return null;
 
+            // convert document to employee object
             Employee employee = snapshot.ConvertTo<Employee>();
             employee.Uid = snapshot.Id;
 
-            // Decrypt sensitive fields
+            // decrypt sensitive fields
             employee.Name = _encryptionHelper.Decrypt(employee.Name).Trim();
             employee.Surname = _encryptionHelper.Decrypt(employee.Surname).Trim();
             employee.Email = _encryptionHelper.Decrypt(employee.Email).Trim();
             employee.PhoneNumber = _encryptionHelper.Decrypt(employee.PhoneNumber).Trim();
 
-            // Handle createdAt safely
+            // handle created at safely
             if (employee.CreatedAt is Timestamp ts)
                 employee.CreatedAtDateTime = ts.ToDateTime();
             else if (employee.CreatedAt is long unixTimestamp)
@@ -350,20 +364,25 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             else
                 employee.CreatedAtDateTime = DateTime.UtcNow;
 
+            // return the employee object
             return employee;
         }
 
+        // method to update an existing employee
         public async Task UpdateEmployeeAsync(EmployeeUpdateDto dto)
         {
+            // getting the employees collection reference
             var employeesRef = GetEmployeesCollection();
             DocumentReference employeeDocRef = employeesRef.Document(dto.Id);
 
+            // fetching the employee document
             DocumentSnapshot snapshot = await employeeDocRef.GetSnapshotAsync();
             if (!snapshot.Exists) throw new Exception("Employee not found");
 
+            // convert document to employee object
             Employee employee = snapshot.ConvertTo<Employee>();
 
-            // Split full name into first + last name if provided
+            // split full name into first and last name if provided
             if (!string.IsNullOrWhiteSpace(dto.FullName))
             {
                 var nameParts = dto.FullName.Trim().Split(' ', 2);
@@ -377,121 +396,146 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             if (!string.IsNullOrWhiteSpace(dto.Email))
                 employee.Email = _encryptionHelper.Encrypt(dto.Email);
 
+            // update phone number if provided
             if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
                 employee.PhoneNumber = _encryptionHelper.Encrypt(dto.PhoneNumber);
 
+            // save the updated employee document
             await employeeDocRef.SetAsync(employee, SetOptions.Overwrite);
         }
 
+        // method to delete an employee by id
         public async Task DeleteEmployeeAsync(string employeeId)
         {
             try
             {
+                // getting the employees collection reference
                 var employeesRef = GetEmployeesCollection();
                 DocumentReference employeeDocRef = employeesRef.Document(employeeId);
 
+                // deleting the employee document
                 await employeeDocRef.DeleteAsync();
                 Console.WriteLine($"Employee {employeeId} deleted successfully.");
             }
             catch (Exception ex)
             {
+                // log the error
                 Console.WriteLine($"Error deleting employee: {ex.Message}");
-                throw; // propagate error so controller can return 500
+                throw;
             }
         }
 
+        // helper method to get employees collection reference
         private CollectionReference GetEmployeesCollection(string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2")
         {
             return _firestoreDb.Collection("users").Document(userId).Collection("employees");
         }
 
+        // method to add a new quotation
         public async Task<(bool Success, string ErrorMessage, string QuoteId)> AddQuotationAsync(Quotation quotation)
         {
             try
             {
+                // input validation
                 if (quotation == null)
                     return (false, "Quotation was null", null);
 
-                
-
-                // Prepare quotation metadata & totals
+                // prepare quotation metadata and totals
                 await PrepareQuotationMetadataAsync(quotation);
                 CalculateQuotationTotals(quotation);
 
-                // Generate PDF
+                // generate pdf
                 string outputPdfPath = await GenerateQuotationPdfAsync(quotation);
 
+                // verify pdf was created
                 if (!File.Exists(outputPdfPath))
                     return (false, $"PDF generation failed at {outputPdfPath}", null);
 
-                // Send quotation email
+                // send quotation email
                 await SendQuotationEmailAsync(quotation, outputPdfPath);
 
-                // Encrypt & store in Firestore
+                // encrypt and store in the database 
                 await SaveQuotationToFirestoreAsync(quotation);
 
+                // return success with quote id
                 return (true, null, quotation.id);
             }
             catch (Exception ex)
             {
+                // handle general errors
                 return (false, $"Error adding quotation: {ex.Message}", null);
             }
         }
 
+        // method to save quotation to firestore
         private async Task PrepareQuotationMetadataAsync(Quotation quotation)
         {
-            // Get reference to the shared Firestore counter
+            // get reference to the shared firestore counter - quote number
             var counterRef = _firestoreDb.Collection("settings").Document("quote_counter");
 
-            // Safely increment the counter using a Firestore transaction
+            // increment the counter using the firestore transaction
             long nextQuoteNumber = await _firestoreDb.RunTransactionAsync(async transaction =>
             {
+                // get the current snapshot of the counter document 
                 var snapshot = await transaction.GetSnapshotAsync(counterRef);
 
+                // read the last quote number or initialize if not present
                 long lastNumber = snapshot.ContainsField("lastQuoteNumber")
                     ? snapshot.GetValue<long>("lastQuoteNumber")
                     : 10000;
 
+                // calculate the next quote number
                 long nextNumber = lastNumber + 1;
 
+                // update the counter document with the new last quote number
                 transaction.Update(counterRef, "lastQuoteNumber", nextNumber);
                 return nextNumber;
             });
 
-            // Now create the new quote document with the correct metadata
+            // create the quotation with the meta data
             var quotesRef = _firestoreDb.Collection("quotes");
             var reservedDocRef = quotesRef.Document();
 
+            // assign metadata to the quotation
             quotation.id = reservedDocRef.Id;
             quotation.quoteNumber = $"#{nextQuoteNumber}";
             quotation.createdAt = Timestamp.FromDateTime(DateTime.UtcNow);
             quotation.secureToken = Guid.NewGuid().ToString("N");
         }
 
+        // method to save quotation to firestore
         private async Task<long> GetNextQuoteNumberAsync()
         {
+            // get reference to the shared firestore counter - quote number
             var settingsRef = _firestoreDb.Collection("settings").Document("quote_counter");
 
+            // increment the counter using the firestore transaction
             return await _firestoreDb.RunTransactionAsync(async transaction =>
             {
+                // get the current snapshot of the counter document
                 var snapshot = await transaction.GetSnapshotAsync(settingsRef);
                 long lastNumber = snapshot.ContainsField("lastQuoteNumber")
                     ? snapshot.GetValue<long>("lastQuoteNumber")
                     : 10000;
 
+                // calculate the next quote number
                 long nextNumber = lastNumber + 1;
                 transaction.Update(settingsRef, "lastQuoteNumber", nextNumber);
                 return nextNumber;
             });
         }
 
+        // method to save quotation to firestore
         private void CalculateQuotationTotals(Quotation quotation)
         {
+            // calculate totals for each item and overall quotation
             double total = 0.0;
             if (quotation.Items == null) return;
 
+            // loop through each item
             foreach (var item in quotation.Items)
             {
+                // safeguard against null items
                 if (item == null) continue;
                 item.quantity = Math.Max(item.quantity, 0);
                 item.unitPrice = Math.Max(item.unitPrice, 0);
@@ -499,113 +543,265 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 total += item.amount;
             }
 
+            // assign total to quotation
             quotation.amount = total;
         }
 
+        // method to save quotation to firestore
         private async Task<string> GenerateQuotationPdfAsync(Quotation quotation)
         {
+            // sanitize client name for filename
             string safeClientName = string.IsNullOrWhiteSpace(quotation.clientName)
                 ? "Client"
                 : string.Join("_", quotation.clientName.Split(Path.GetInvalidFileNameChars()));
 
             quotation.pdfFileName = $"Quotation_{safeClientName}_{quotation.quoteNumber}.pdf";
 
-            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Quotation", "QuotationTemplate.docx");
+            // load the Word template
+            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Quotation", "QCQuotationsTemplate.docx");
             string outputDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GeneratedQuotationPdfs");
             Directory.CreateDirectory(outputDir);
 
+            // define output paths
             string docxPath = Path.Combine(outputDir, $"{Path.GetFileNameWithoutExtension(quotation.pdfFileName)}.docx");
             string pdfPath = Path.Combine(outputDir, quotation.pdfFileName);
 
-            var wordDoc = new Document();
+            // load the Word document
+            Document wordDoc = new Document();
             wordDoc.LoadFromFile(templatePath);
 
+            // replace placeholders with proper values
             ReplaceText(wordDoc, "{{ClientName}}", quotation.clientName);
+            ReplaceText(wordDoc, "{{CompanyName}}", quotation.companyName);
+            ReplaceText(wordDoc, "{{Address}}", quotation.address);
             ReplaceText(wordDoc, "{{ClientEmail}}", quotation.email);
-            ReplaceText(wordDoc, "{{QuoteNumber}}", quotation.quoteNumber);
-            ReplaceText(wordDoc, "{{QuoteDate}}", quotation.createdAt.ToDateTime().ToString("yyyy/MM/dd"));
+            ReplaceText(wordDoc, "{{PhoneNumber}}", quotation.phone);
+            ReplaceText(wordDoc, "{{QuoteNumber}}", quotation.quoteNumber ?? string.Empty);
+            ReplaceText(wordDoc, "{{QuoteDate}}", quotation.createdAt.ToDateTime().ToString("yyyy-MM-dd"));
 
+            // insert item table
             InsertItemsTable(wordDoc, quotation);
 
+            // save to files
             wordDoc.SaveToFile(docxPath, FileFormat.Docx);
             wordDoc.SaveToFile(pdfPath, FileFormat.PDF);
 
+            // cleanup
             return pdfPath;
         }
 
+        // method to replace text in the document
         private void ReplaceText(Document wordDoc, string placeholder, string value)
         {
+            // find and replace the placeholder with the actual value
             var selection = wordDoc.FindString(placeholder, true, true);
             if (selection != null)
             {
+                // replace text and set formatting
                 var range = selection.GetAsOneRange();
                 range.Text = value ?? string.Empty;
-                range.CharacterFormat.FontName = "Poppins";
+                range.CharacterFormat.FontName = "Century Gothic";
                 range.CharacterFormat.FontSize = 11;
             }
         }
 
+        // method to insert items table into the document
         private void InsertItemsTable(Document wordDoc, Quotation quotation)
         {
+            // get the first section of the document
             var section = wordDoc.Sections[0];
-            var itemsTable = section.AddTable(true);
-            int totalRows = (quotation.Items?.Count ?? 0) + 2;
-            itemsTable.ResetCells(totalRows, 4);
+            int itemCount = quotation.Items?.Count ?? 0;
+            int totalRows = itemCount + 2;
 
-            // Header row
-            string[] headers = { "QTY", "PRODUCT DESCRIPTION", "UNIT PRICE", "AMOUNT" };
-            var headerRow = itemsTable.Rows[0];
+            // define blue color
+            var blue = Color.FromArgb(26, 46, 99);
+
+            // create clean, full-width table
+            Table table = section.AddTable(true);
+            table.ResetCells(totalRows, 4);
+            table.TableFormat.Paddings.All = 5f;
+            table.TableFormat.HorizontalAlignment = RowAlignment.Left;
+            table.TableFormat.Borders.BorderType = BorderStyle.None;
+            table.PreferredWidth = new PreferredWidth(WidthType.Percentage, 100);
+
+            // remove all borders 
+            foreach (TableRow r in table.Rows)
+            {
+                r.RowFormat.Borders.BorderType = BorderStyle.None;
+                foreach (TableCell c in r.Cells)
+                {
+                    c.CellFormat.Borders.BorderType = BorderStyle.None;
+                }
+            }
+
+            // definging column widths
+            table.Rows[0].Cells[0].Width = 60; 
+            table.Rows[0].Cells[1].Width = 320;
+            table.Rows[0].Cells[2].Width = 120;
+            table.Rows[0].Cells[3].Width = 120;
+
+            // header row
+            string[] headers = { "Qty", "Description", "Unit Price", "Amount" };
+            var headerRow = table.Rows[0];
+            headerRow.HeightType = TableRowHeightType.AtLeast;
+            headerRow.Height = 22f;
+
+            // headwer formatting - blue + bold + underline
             for (int i = 0; i < headers.Length; i++)
             {
-                var text = headerRow.Cells[i].AddParagraph().AppendText(headers[i]);
-                text.CharacterFormat.Bold = true;
-                text.CharacterFormat.FontName = "Poppins";
-                text.CharacterFormat.FontSize = 11;
+                // header text
+                Paragraph p = headerRow.Cells[i].AddParagraph();
+                TextRange tr = p.AppendText(headers[i]);
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = blue;
+
+                // alignment
+                if (i == 0) p.Format.HorizontalAlignment = HorizontalAlignment.Center;
+                else if (i == 1) p.Format.HorizontalAlignment = HorizontalAlignment.Left;
+                else p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+
+                // add blue horizontal line under header
+                headerRow.Cells[i].CellFormat.Borders.Bottom.BorderType = BorderStyle.Single;
+                headerRow.Cells[i].CellFormat.Borders.Bottom.Color = blue;
+                headerRow.Cells[i].CellFormat.Borders.Bottom.LineWidth = 1.0f;
+
+                // remove vertical lines
+                headerRow.Cells[i].CellFormat.Borders.Left.BorderType = BorderStyle.None;
+                headerRow.Cells[i].CellFormat.Borders.Right.BorderType = BorderStyle.None;
             }
 
-            // Item rows
-            for (int i = 0; i < (quotation.Items?.Count ?? 0); i++)
+            // item rows
+            double total = 0;
+            for (int i = 0; i < itemCount; i++)
             {
-                var item = quotation.Items[i];
-                var row = itemsTable.Rows[i + 1];
+                // current item and row
+                var it = quotation.Items[i];
+                var row = table.Rows[i + 1];
+                row.HeightType = TableRowHeightType.AtLeast;
+                row.Height = 20f;
 
-                row.Cells[0].AddParagraph().AppendText(item.quantity.ToString());
-                row.Cells[1].AddParagraph().AppendText(item.description ?? "");
-                row.Cells[2].AddParagraph().AppendText($"R{item.unitPrice:0.00}");
-                row.Cells[3].AddParagraph().AppendText($"R{item.amount:0.00}");
+                // remove vertical lines
+                foreach (TableCell c in row.Cells)
+                {
+                    c.CellFormat.Borders.Left.BorderType = BorderStyle.None;
+                    c.CellFormat.Borders.Right.BorderType = BorderStyle.None;
+                }
+
+                // qty
+                {
+                    var p = row.Cells[0].AddParagraph();
+                    var tr = p.AppendText(it.quantity.ToString());
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Center;
+                }
+
+                // description
+                {
+                    var p = row.Cells[1].AddParagraph();
+                    var tr = p.AppendText(it.description ?? "");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Left;
+                }
+
+                // unit Price
+                {
+                    var p = row.Cells[2].AddParagraph();
+                    var tr = p.AppendText($"R{it.unitPrice:0.00}");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+                }
+
+                // amount
+                {
+                    var p = row.Cells[3].AddParagraph();
+                    var tr = p.AppendText($"R{it.amount:0.00}");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+                }
+
+                total += it.amount;
             }
 
-            // Total row
-            var totalRow = itemsTable.Rows[totalRows - 1];
-            totalRow.Cells[2].AddParagraph().AppendText("Total Amount:").CharacterFormat.Bold = true;
-            totalRow.Cells[3].AddParagraph().AppendText($"R{quotation.amount:0.00}").CharacterFormat.Bold = true;
+            // total row
+            var totalRow = table.Rows[totalRows - 1];
+            totalRow.HeightType = TableRowHeightType.AtLeast;
+            totalRow.Height = 24f;
 
-            // Replace placeholder
-            var placeholder = wordDoc.FindString("{{ItemsTable}}", true, true);
+            // adding blue line above TOTAL
+            for (int i = 0; i < 4; i++)
+            {
+                totalRow.Cells[i].CellFormat.Borders.Top.BorderType = BorderStyle.Single;
+                totalRow.Cells[i].CellFormat.Borders.Top.Color = blue;
+                totalRow.Cells[i].CellFormat.Borders.Top.LineWidth = 1.0f;
+
+                totalRow.Cells[i].CellFormat.Borders.Left.BorderType = BorderStyle.None;
+                totalRow.Cells[i].CellFormat.Borders.Right.BorderType = BorderStyle.None;
+            }
+
+            // empty spacing for first two cells
+            totalRow.Cells[0].AddParagraph().AppendText("");
+            totalRow.Cells[1].AddParagraph().AppendText("");
+
+            // TOTAL label - blue and bold
+            {
+                Paragraph p = totalRow.Cells[2].AddParagraph();
+                TextRange tr = p.AppendText("TOTAL:");
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = blue;
+                p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+            }
+
+            // Amount - bold black
+            {
+                Paragraph p = totalRow.Cells[3].AddParagraph();
+                TextRange tr = p.AppendText($"R{total:0.00}");
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = Color.Black;
+                p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+            }
+
+            // replace the table placeholder
+            var placeholder = wordDoc.FindString("{{ItemTable}}", true, true);
             if (placeholder != null)
             {
                 var para = placeholder.GetAsOneRange().OwnerParagraph;
                 var body = para.OwnerTextBody;
                 int idx = body.ChildObjects.IndexOf(para);
                 body.ChildObjects.Remove(para);
-                body.ChildObjects.Insert(idx, itemsTable);
+                body.ChildObjects.Insert(idx, table);
             }
         }
 
+        // method to send quotation email
         private async Task SendQuotationEmailAsync(Quotation quotation, string pdfPath)
         {
+            // prepare acceptance and decline links
             string userId = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
 
+            // base url for updating quote status
             string baseUrl = "https://us-central1-insy7315-database2.cloudfunctions.net/updateQuoteStatus";
 
+            // construct full status urls with query parameters - userId, quoteId, status, token
             string acceptUrl = $"{baseUrl}?userId={userId}&quoteId={quotation.id}&status=Accepted&token={quotation.secureToken}";
             string declineUrl = $"{baseUrl}?userId={userId}&quoteId={quotation.id}&status=Declined&token={quotation.secureToken}";
 
+            // compose the email
             var email = new MimeMessage();
             email.From.Add(new MailboxAddress("Quality Copiers", _senderEmail));
             email.To.Add(new MailboxAddress(quotation.clientName, quotation.email));
             email.Subject = $"Quotation {quotation.quoteNumber}";
 
+            // build the email body with HTML and attachment
             var builder = new BodyBuilder();
             var htmlBody = $@"
                 <p>Dear {System.Net.WebUtility.HtmlEncode(quotation.clientName)},</p>
@@ -630,11 +826,14 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             await _mailService.SendEmailAsync(email);
         }
 
+        // method to save quotation to firestore
         private async Task SaveQuotationToFirestoreAsync(Quotation quotation)
         {
+            // encrypt sensitive fields before storing
             var quotesRef = _firestoreDb.Collection("quotes");
             var docRef = quotesRef.Document(quotation.id);
 
+            // create encrypted quotation object
             var encrypted = new Quotation
             {
                 id = quotation.id ?? "",
@@ -643,6 +842,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 email = _encryptionHelper.Encrypt(quotation.email ?? ""),
                 phone = _encryptionHelper.Encrypt(quotation.phone ?? ""),
                 quoteNumber = _encryptionHelper.Encrypt(quotation.quoteNumber ?? ""),
+                address = _encryptionHelper.Encrypt(quotation.address ?? ""),
                 createdAt = quotation.createdAt,
                 amount = quotation.amount,
                 secureToken = quotation.secureToken ?? "",
@@ -656,34 +856,39 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 }).ToList() ?? new List<QuotationItem>()
             };
 
+            // save the encrypted quotation
             await docRef.SetAsync(encrypted);
             await docRef.UpdateAsync("id", quotation.id);
         }
 
-
+        // method to get all quotations
         public async Task<List<Quotation>> GetQuotationsAsync()
         {
             try
             {
+                // fetch all quotations from firestore
                 var quotesRef = _firestoreDb.Collection("quotes");
                 var snapshot = await quotesRef.GetSnapshotAsync();
 
+                // decrypt sensitive fields before returning
                 List<Quotation> quotations = new();
 
+                // decryption loop
                 foreach (var doc in snapshot.Documents)
                 {
                     if (!doc.Exists) continue;
 
                     var quotation = doc.ConvertTo<Quotation>();
 
-                    // Decrypt top-level sensitive fields
+                    // decrypt top-level sensitive fields
                     quotation.quoteNumber = _encryptionHelper.Decrypt(quotation.quoteNumber ?? string.Empty);
                     quotation.clientName = _encryptionHelper.Decrypt(quotation.clientName);
                     quotation.companyName = _encryptionHelper.Decrypt(quotation.companyName);
                     quotation.email = _encryptionHelper.Decrypt(quotation.email);
                     quotation.phone = _encryptionHelper.Decrypt(quotation.phone);
+                    quotation.address = _encryptionHelper.Decrypt(quotation.address);
 
-                    // Decrypt item descriptions
+                    // decrypt item descriptions
                     if (quotation.Items != null)
                     {
                         foreach (var item in quotation.Items)
@@ -693,77 +898,93 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                         }
                     }
 
+                    // add to list
                     quotations.Add(quotation);
                 }
 
+                // return the list of quotations
                 return quotations;
             }
             catch (Exception ex)
             {
+                // log the error
                 Console.WriteLine($"Error fetching quotations: {ex.Message}");
                 return new List<Quotation>();
             }
         }
 
+        // generating quotation pdf bytes - used for downloading/saving quotation
         public async Task<(byte[] PdfBytes, string PdfFileName)> GenerateQuotationPdfBytesAsync(Quotation quotation)
         {
+            // validate the quotation
             if (quotation == null || quotation.Items == null || !quotation.Items.Any())
                 throw new ArgumentException("Quotation is invalid");
 
-            // Generate the PDF and get the path
+            // generate the pdf and get the path
             string pdfPath = await GenerateQuotationPdfAsync(quotation);
 
             if (!File.Exists(pdfPath))
                 throw new FileNotFoundException("Failed to generate quotation PDF", pdfPath);
 
-            // Read the PDF bytes
+            // read the pdf bytes
             byte[] pdfBytes = await File.ReadAllBytesAsync(pdfPath);
 
-            // Optionally, clean up DOCX if you want
+            // clean up docx 
             string docxPath = Path.Combine(Path.GetDirectoryName(pdfPath), Path.GetFileNameWithoutExtension(pdfPath) + ".docx");
             if (File.Exists(docxPath))
                 File.Delete(docxPath);
 
-            // Return bytes and filename
+            // return bytes and filename
             return (pdfBytes, quotation.pdfFileName);
         }
 
+        // method to delete a quotation by id
         public async Task DeleteQuotationAsync(string quoteId)
         {
             try
             {
+                // get the quotations collection reference
                 DocumentReference quoteDoc = GetQuotationsCollection().Document(quoteId);
 
+                // delete the quotation document
                 await quoteDoc.DeleteAsync();
                 Console.WriteLine($"Quotation {quoteId} deleted successfully.");
             }
             catch (Exception ex)
             {
+                // log the error
                 Console.WriteLine($"Error deleting quotation: {ex.Message}");
             }
         }
 
+        // helper method to get quotations collection reference
         private CollectionReference GetQuotationsCollection()
         {
+            // return the quotations collection reference
             return _firestoreDb.Collection("quotes");
         }
 
+        // method to get all invoices
         public async Task<List<Invoice>> GetInvoicesAsync()
         {
+            // fetch all invoices from firestore
             var invoicesRef = GetInvoicesCollection();
             var snapshot = await invoicesRef.GetSnapshotAsync();
 
+            // decrypt sensitive fields before returning
             var invoices = new List<Invoice>();
 
+            // decryption loop
             foreach (var doc in snapshot.Documents)
             {
                 var invoice = doc.ConvertTo<Invoice>();
 
-                // Decrypt sensitive fields
+                // decrypt sensitive fields
                 invoice.ClientName = _encryptionHelper.Decrypt(invoice.ClientName);
                 invoice.CompanyName = _encryptionHelper.Decrypt(invoice.CompanyName);
                 invoice.Email = _encryptionHelper.Decrypt(invoice.Email);
                 invoice.Phone = _encryptionHelper.Decrypt(invoice.Phone);
+                invoice.Address = _encryptionHelper.Decrypt(invoice.Address ?? string.Empty);
                 invoice.QuoteNumber = _encryptionHelper.Decrypt(invoice.QuoteNumber ?? string.Empty);
                 invoice.Status = invoice.Status;
 
@@ -775,32 +996,39 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     }
                 }
 
+                // add to list
                 invoices.Add(invoice);
             }
 
+            // return the list of invoices
             return invoices;
         }
         
-        //Get invoice details by ID for payments
+        // get invoice details by id for payments
         public async Task<Invoice?> GetInvoiceDetailsAsync(string id)
         {
             try
             {
+                // fetch the invoice document by id
                 var invoiceRef = GetInvoicesCollection().Document(id);
                 var snapshot = await invoiceRef.GetSnapshotAsync();
 
+                // check if invoice exists
                 if (!snapshot.Exists)
                     return null;
 
+                // convert document to invoice object
                 var invoice = snapshot.ConvertTo<Invoice>();
 
-                // Decrypt sensitive fields
+                // decrypt sensitive fields
                 invoice.ClientName = _encryptionHelper.Decrypt(invoice.ClientName);
                 invoice.CompanyName = _encryptionHelper.Decrypt(invoice.CompanyName);
                 invoice.Email = _encryptionHelper.Decrypt(invoice.Email ?? string.Empty);
                 invoice.Phone = _encryptionHelper.Decrypt(invoice.Phone ?? string.Empty);
+                invoice.Address = _encryptionHelper.Decrypt(invoice.Address ?? string.Empty);
                 invoice.QuoteNumber = _encryptionHelper.Decrypt(invoice.QuoteNumber ?? string.Empty);
 
+                // decrypt item descriptions
                 if (invoice.Items != null)
                 {
                     foreach (var item in invoice.Items)
@@ -809,60 +1037,66 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     }
                 }
 
+                // return the decrypted invoice
                 return invoice;
             }
             catch (Exception ex)
             {
+                // log the error
                 Console.WriteLine($"Error retrieving invoice: {ex.Message}");
                 throw;
             }
         }
 
-        // Generating invoice PDF bytes - used for downloading/saving invoice
+        // generating invoice pdf bytes - used for downloading/saving invoice
 
         public async Task<(byte[] PdfBytes, string PdfFileName)> GenerateInvoicePdfBytesAsync(Invoice invoice)
         {
-            // Validate the invoice
+            // validate the invoice
             if (invoice == null || invoice.Items == null || !invoice.Items.Any())
                 throw new ArgumentException("Invoice is invalid");
 
-            // Define template path
-            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Invoice", "InvoiceTemplate.docx");
+            // define template path
+            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Invoice", "QCInvoiceTemplate.docx");
             if (!File.Exists(templatePath))
                 throw new FileNotFoundException("Invoice template not found.", templatePath);
 
-            // Define output directory
+            // define output directory
             string generatedDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GeneratedInvoicePdfs");
             Directory.CreateDirectory(generatedDir);
 
-            // Create safe client name and unique filename
+            // create safe client name and unique filename
             string safeClientName = string.IsNullOrWhiteSpace(invoice.ClientName)
                 ? "Client"
                 : string.Join("_", invoice.ClientName.Split(Path.GetInvalidFileNameChars()));
 
+            // unique timestamp for filename
             string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
             string pdfFileName = $"Invoice_{safeClientName}_{invoice.InvoiceNumber}_{timestamp}.pdf";
 
+            // temporary docx and final pdf paths
             string tempDocxPath = Path.Combine(generatedDir, $"{Path.GetFileNameWithoutExtension(pdfFileName)}.docx");
             string outputPdfPath = Path.Combine(generatedDir, pdfFileName);
 
-            // Generate the PDF
+            // generate the pdf
             GenerateInvoicePdf(invoice, templatePath, tempDocxPath, outputPdfPath);
 
+            // validate the pdf file content
             if (!File.Exists(outputPdfPath))
                 throw new FileNotFoundException("Failed to generate invoice PDF", outputPdfPath);
 
-            // Read the bytes
+            // read the bytes
             var pdfBytes = await File.ReadAllBytesAsync(outputPdfPath);
 
-            // Clean up temporary files
+            // clean up temporary files
             if (File.Exists(tempDocxPath))
                 File.Delete(tempDocxPath);
 
-            // Return both the PDF bytes and filename
+            // return both the pdf bytes and filename
             return (pdfBytes, pdfFileName);
         }
 
+        // method to generate and send invoice
         public async Task<bool> GenerateAndSendInvoiceAsync(Invoice invoice)
         {
             try
@@ -873,8 +1107,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 if (invoice.Items == null || !invoice.Items.Any())
                     throw new ArgumentException("Invoice items are missing.", nameof(invoice));
 
-                // defining the file paths ---
-                string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Invoice", "InvoiceTemplate.docx");
+                // defining the file paths
+                string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Invoice", "QCInvoiceTemplate.docx");
                 if (!File.Exists(templatePath))
                     throw new FileNotFoundException("Invoice template not found.", templatePath);
 
@@ -926,11 +1160,13 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 if (File.Exists(tempDocxPath))
                     File.Delete(tempDocxPath);
 
+                // success log
                 Console.WriteLine($"Invoice {invoice.InvoiceNumber} successfully generated and sent.");
                 return true;
             }
             catch (ArgumentException ex)
             {
+                // validation errors
                 Console.WriteLine($"Validation failed: {ex.Message}");
                 return false;
             }
@@ -946,61 +1182,96 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
+        // method to send invoice email
         private void GenerateInvoicePdf(Invoice invoice, string templatePath, string tempDocxPath, string outputPdfPath)
         {
+            // validating inputs
             if (invoice == null) throw new ArgumentNullException(nameof(invoice));
             if (invoice.Items == null || !invoice.Items.Any())
                 throw new ArgumentException("Invoice must have at least one item.", nameof(invoice));
 
-            // load the word template
+            // loading the Word template
             Document wordDoc = new Document();
             wordDoc.LoadFromFile(templatePath);
 
-            // Helper to replace placeholders
+            // replace placeholders
             void ReplaceText(string placeholder, string value)
             {
+                // find and replace the placeholder
                 TextSelection selection = wordDoc.FindString(placeholder, true, true);
                 if (selection != null)
                 {
+                    // replace text and set formatting
                     TextRange range = selection.GetAsOneRange();
                     range.Text = value ?? string.Empty;
-                    range.CharacterFormat.FontName = "Poppins";
+                    range.CharacterFormat.FontName = "Century Gothic";
                     range.CharacterFormat.FontSize = 11;
                 }
                 else
                 {
-                    Console.WriteLine($"[DEBUG] Placeholder '{placeholder}' not found in template.");
+                    // log missing placeholder
+                    Console.WriteLine($"[DEBUG] Placeholder '{placeholder}' not found.");
                 }
             }
 
+            // replacing the fields
             ReplaceText("{{ClientName}}", invoice.ClientName);
+            ReplaceText("{{CompanyName}}", invoice.CompanyName);
             ReplaceText("{{ClientEmail}}", invoice.Email);
+            ReplaceText("{{Address}}", invoice.Address ?? string.Empty);
+            ReplaceText("{{PhoneNumber}}", invoice.Phone);
             ReplaceText("{{InvoiceNumber}}", invoice.InvoiceNumber);
-            DateTime invoiceDate = invoice.CreatedAt.HasValue ? invoice.CreatedAt.Value.ToDateTime() : DateTime.UtcNow;
-            ReplaceText("{{InvoiceDate}}", invoiceDate.ToString("yyyy/MM/dd"));
+            ReplaceText("{{InvoiceDate}}", (invoice.CreatedAt?.ToDateTime() ?? DateTime.UtcNow).ToString("yyyy/MM/dd"));
 
-            // Build Items Table
-            Section section = wordDoc.Sections[0];
-            Table itemsTable = section.AddTable(true);
-
+            // build invoice table
+            var section = wordDoc.Sections[0];
             int itemCount = invoice.Items.Count;
-            int totalRows = itemCount + 2; // header + items + total
-            itemsTable.ResetCells(totalRows, 4);
+            int totalRows = itemCount + 2;
 
-            // Table header
-            string[] headers = { "QTY", "PRODUCT DESCRIPTION", "UNIT PRICE", "AMOUNT" };
-            TableRow headerRow = itemsTable.Rows[0];
-            for (int i = 0; i < headers.Length; i++)
+            var blue = Color.FromArgb(26, 46, 99);
+            Table table = section.AddTable(true);
+            table.ResetCells(totalRows, 4);
+            table.TableFormat.Paddings.All = 5f;
+            table.TableFormat.Borders.BorderType = BorderStyle.None;
+            table.PreferredWidth = new PreferredWidth(WidthType.Percentage, 100);
+
+            // remove all borders to start clean
+            foreach (TableRow r in table.Rows)
             {
-                TextRange headerText = headerRow.Cells[i].AddParagraph().AppendText(headers[i]);
-                headerText.CharacterFormat.Bold = true;
-                headerText.CharacterFormat.FontName = "Poppins";
-                headerText.CharacterFormat.FontSize = 11;
-                headerRow.Cells[i].CellFormat.VerticalAlignment = VerticalAlignment.Middle;
-                headerRow.Cells[i].Width = i == 1 ? 220f : 80f;
+                r.RowFormat.Borders.BorderType = BorderStyle.None;
+                foreach (TableCell c in r.Cells)
+                    c.CellFormat.Borders.BorderType = BorderStyle.None;
             }
 
-            // Item rows
+            // column widths
+            table.Rows[0].Cells[0].Width = 60;
+            table.Rows[0].Cells[1].Width = 320;
+            table.Rows[0].Cells[2].Width = 120;
+            table.Rows[0].Cells[3].Width = 120;
+
+            // header row
+            string[] headers = { "Qty", "Description", "Unit Price", "Amount" };
+            var headerRow = table.Rows[0];
+            for (int i = 0; i < headers.Length; i++)
+            {
+                Paragraph p = headerRow.Cells[i].AddParagraph();
+                TextRange tr = p.AppendText(headers[i]);
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = blue;
+
+                if (i == 0) p.Format.HorizontalAlignment = HorizontalAlignment.Center;
+                else if (i == 1) p.Format.HorizontalAlignment = HorizontalAlignment.Left;
+                else p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+
+                // blue underline below header
+                headerRow.Cells[i].CellFormat.Borders.Bottom.BorderType = BorderStyle.Single;
+                headerRow.Cells[i].CellFormat.Borders.Bottom.Color = blue;
+                headerRow.Cells[i].CellFormat.Borders.Bottom.LineWidth = 1.0f;
+            }
+
+            // item rows
             double totalAmount = 0;
             for (int i = 0; i < itemCount; i++)
             {
@@ -1010,57 +1281,120 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 double rowTotal = qty * price;
                 totalAmount += rowTotal;
 
-                TableRow row = itemsTable.Rows[i + 1];
-                row.Cells[0].AddParagraph().AppendText(qty.ToString()).CharacterFormat.FontName = "Poppins";
-                row.Cells[1].AddParagraph().AppendText(item.Description ?? string.Empty).CharacterFormat.FontName = "Poppins";
-                row.Cells[2].AddParagraph().AppendText($"R{price:0.00}").CharacterFormat.FontName = "Poppins";
-                row.Cells[3].AddParagraph().AppendText($"R{rowTotal:0.00}").CharacterFormat.FontName = "Poppins";
+                var row = table.Rows[i + 1];
+                foreach (TableCell c in row.Cells)
+                {
+                    c.CellFormat.Borders.Left.BorderType = BorderStyle.None;
+                    c.CellFormat.Borders.Right.BorderType = BorderStyle.None;
+                }
+
+                // qty
+                {
+                    Paragraph p = row.Cells[0].AddParagraph();
+                    TextRange tr = p.AppendText(qty.ToString());
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Center;
+                }
+
+                // description
+                {
+                    Paragraph p = row.Cells[1].AddParagraph();
+                    TextRange tr = p.AppendText(item.Description ?? "");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Left;
+                }
+
+                // unit Price
+                {
+                    Paragraph p = row.Cells[2].AddParagraph();
+                    TextRange tr = p.AppendText($"R{price:0.00}");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+                }
+
+                // amount
+                {
+                    Paragraph p = row.Cells[3].AddParagraph();
+                    TextRange tr = p.AppendText($"R{rowTotal:0.00}");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+                }
             }
 
-            // Total row
-            TableRow totalRow = itemsTable.Rows[totalRows - 1];
-            totalRow.Cells[2].AddParagraph().AppendText("Total Amount:").CharacterFormat.Bold = true;
-            totalRow.Cells[2].Paragraphs[0].Format.HorizontalAlignment = HorizontalAlignment.Right;
-            totalRow.Cells[3].AddParagraph().AppendText($"R{totalAmount:0.00}").CharacterFormat.Bold = true;
-            totalRow.Cells[3].Paragraphs[0].Format.HorizontalAlignment = HorizontalAlignment.Right;
+            // total row
+            var totalRow = table.Rows[totalRows - 1];
+            for (int i = 0; i < 4; i++)
+            {
+                totalRow.Cells[i].CellFormat.Borders.Top.BorderType = BorderStyle.Single;
+                totalRow.Cells[i].CellFormat.Borders.Top.Color = blue;
+                totalRow.Cells[i].CellFormat.Borders.Top.LineWidth = 1.0f;
+            }
 
-            // Insert table at placeholder
-            TextSelection placeholder = wordDoc.FindString("{{ItemsTable}}", true, true);
+            totalRow.Cells[0].AddParagraph().AppendText("");
+            totalRow.Cells[1].AddParagraph().AppendText("");
+
+            // TOTAL Label — blue and bold
+            {
+                Paragraph p = totalRow.Cells[2].AddParagraph();
+                TextRange tr = p.AppendText("TOTAL:");
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = blue;
+                p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+            }
+
+            // Amount — bold black
+            {
+                Paragraph p = totalRow.Cells[3].AddParagraph();
+                TextRange tr = p.AppendText($"R{totalAmount:0.00}");
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = Color.Black;
+                p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+            }
+
+            // insert table in the item table placeholder
+            var placeholder = wordDoc.FindString("{{ItemTable}}", true, true);
             if (placeholder != null)
             {
                 Paragraph para = placeholder.GetAsOneRange().OwnerParagraph;
                 Body body = para.OwnerTextBody;
                 int index = body.ChildObjects.IndexOf(para);
                 body.ChildObjects.Remove(para);
-                body.ChildObjects.Insert(index, itemsTable);
-                Console.WriteLine("[DEBUG] Inserted items table at placeholder.");
+                body.ChildObjects.Insert(index, table);
+                Console.WriteLine("[DEBUG] Inserted invoice table at placeholder.");
             }
             else
             {
-                // fallback: append to section body (log so you can inspect template)
-                section.Body.ChildObjects.Add(itemsTable);
-                Console.WriteLine("[DEBUG] Placeholder '{{ItemsTable}}' not found — appended table to section body.");
+                section.Body.ChildObjects.Add(table);
+                Console.WriteLine("[DEBUG] Placeholder not found — appended table.");
             }
 
-            // Save files
+            // save as docx and pdf
             wordDoc.SaveToFile(tempDocxPath, FileFormat.Docx);
             wordDoc.SaveToFile(outputPdfPath, FileFormat.PDF);
-
-            Console.WriteLine($"[DEBUG] Saved DOCX: {tempDocxPath}");
-            Console.WriteLine($"[DEBUG] Saved PDF: {outputPdfPath}");
         }
 
+        // method to send invoice email
         private async Task SendInvoiceEmailAsync(Invoice invoice, string pdfPath)
         {
+            // validate inputs
             if (invoice == null || string.IsNullOrWhiteSpace(invoice.Email) || !File.Exists(pdfPath))
                 throw new ArgumentException("Invalid invoice or PDF path");
 
-            // Build the email
+            // build the email
             var emailMessage = new MimeMessage();
             emailMessage.From.Add(new MailboxAddress("Quality Copiers", _senderEmail));
             emailMessage.To.Add(new MailboxAddress(invoice.ClientName, invoice.Email));
             emailMessage.Subject = $"Invoice {invoice.InvoiceNumber}";
 
+            // build the email body with html and attachment
             var builder = new BodyBuilder();
             builder.HtmlBody = $@"
                  <p>Dear {System.Net.WebUtility.HtmlEncode(invoice.ClientName)},</p>
@@ -1068,45 +1402,44 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                  <p>The status of this invoice is <strong>{System.Net.WebUtility.HtmlEncode(invoice.Status)}</strong>.</p>
                  <p>Kind regards,<br/>Quality Copiers</p>";
 
-            // Attach PDF using a FileStream kept open for the send operation
+            // attach pdf using a fileStream kept open for the send operation
             using (var pdfStream = File.OpenRead(pdfPath))
             {
-                // Use MimePart with MimeContent constructed from the stream (like your quotations code)
+                // use mime part with mime content constructed from the stream
                 var pdfAttachment = new MimePart("application", "pdf")
                 {
-                    Content = new MimeContent(pdfStream, ContentEncoding.Default), // let MimeKit set encoding on transfer
+                    Content = new MimeContent(pdfStream, ContentEncoding.Default),
                     ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
                     ContentTransferEncoding = ContentEncoding.Base64,
                     FileName = Path.GetFileName(pdfPath)
                 };
 
+                // create multipart/mixed to hold html and attachment
                 var multipart = new Multipart("mixed");
                 multipart.Add(new TextPart("html") { Text = builder.HtmlBody });
                 multipart.Add(pdfAttachment);
 
+                // set the email body
                 emailMessage.Body = multipart;
 
-                /*// Now send (stream must remain open until SendAsync completes)
-                using var smtp = new MailKit.Net.Smtp.SmtpClient();
-                await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-                await smtp.AuthenticateAsync("zimkhitha.sasanti@gmail.com", "pflq gfdg xyeb pitx");
-                await smtp.SendAsync(emailMessage);
-                await smtp.DisconnectAsync(true);*/
-
+                // send the email
                 await _mailService.SendEmailAsync(emailMessage);
             }
         }
 
+        // method to update invoice status
         public async Task UpdateInvoiceStatusAsync(string invoiceId, string status)
         {
-            // Access the invoice document inside the user's "invoices" subcollection
+            // access the invoice document inside the user's invoices subcollection
             var docRef = GetInvoicesCollection().Document(invoiceId);
 
+            // update the status field
             var updates = new Dictionary<string, object>
             {
                 { "status", status }
             };
 
+            // perform the update
             await docRef.UpdateAsync(updates);
             if (status == "Paid")
             {
@@ -1114,89 +1447,110 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
+        // method to delete an invoice by id
         public async Task DeleteInvoiceAsync(string invoiceId)
         {
             try
             {
+                // get the invoices collection reference
                 DocumentReference invoiceDoc = GetInvoicesCollection().Document(invoiceId);
 
+                // delete the invoice document
                 await invoiceDoc.DeleteAsync();
                 Console.WriteLine($"Invoice {invoiceId} deleted successfully.");
             }
             catch (Exception ex)
             {
+                // log the error
                 Console.WriteLine($"Error deleting quotation: {ex.Message}");
             }
         }
 
+        // helper method to get invoices collection reference
         private CollectionReference GetInvoicesCollection()
         {
             return _firestoreDb.Collection("invoices");
         }
 
-          public async Task<Dictionary<string, object>> GetManagerDataAsync(string userId)
+        // method to get manager data
+        public async Task<Dictionary<string, object>> GetManagerDataAsync(string userId)
         {
+            // access the manager data document for the user
             var docRef = _firestoreDb
                 .Collection("users")
                 .Document(userId)
                 .Collection("manager_data")
                 .Document(userId);
 
+            // fetch the document snapshot
             var snapshot = await docRef.GetSnapshotAsync();
 
+            // check if document exists and return data
             if (snapshot.Exists)
                 return snapshot.ToDictionary();
             else
                 throw new Exception("User data not found in Firestore.");
         }
 
+        // method to update manager data
         public async Task<(bool Success, string Message)> UpdateManagerDataAsync(string userId, Dictionary<string, object> updatedData)
         {
+            // input validation
             if (string.IsNullOrEmpty(userId))
                 return (false, "User ID cannot be null or empty.");
 
+            //  check for empty update data
             if (updatedData == null || updatedData.Count == 0)
                 return (false, "No update data provided.");
 
             try
             {
+                // reference to the manager data document
                 DocumentReference docRef = _firestoreDb.Collection("users").Document(userId).Collection("manager_data").Document(userId);
 
-                // Add a timestamp to track last update
+                // add a timestamp to track last update
                 updatedData["lastUpdated"] = Timestamp.GetCurrentTimestamp();
 
-                // ✅ Merge ensures we only update provided fields
+                // merge ensures we only update provided fields
                 await docRef.SetAsync(updatedData, SetOptions.MergeAll);
 
+                // success response
                 return (true, "Profile updated successfully.");
             }
             catch (Grpc.Core.RpcException grpcEx)
             {
-                Console.WriteLine($"🔥 Firestore RPC error for user {userId}: {grpcEx.Status.Detail}");
+                // log and return firestore rpc errors
+                Console.WriteLine($"Firestore RPC error for user {userId}: {grpcEx.Status.Detail}");
                 return (false, $"Firestore RPC error: {grpcEx.Status.Detail}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"🔥 Firestore update failed for user {userId}: {ex.Message}");
+                // log and return unexpected errors
+                Console.WriteLine($"Firestore update failed for user {userId}: {ex.Message}");
                 return (false, $"Unexpected error updating Firestore: {ex.Message}");
             }
         }
 
+        // method to get user details with decryption
         public async Task<Dictionary<string, object>> GetUserDetailsAsync(string userId)
         {
+            // access the user data document for the user
             string userDocument = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
 
+            // fetch the document snapshot
             var docRef = _firestoreDb
                 .Collection("users")
                 .Document(userDocument)
-                .Collection("employees") // Adjust collection name if needed
+                .Collection("employees")
                 .Document(userId);
 
+            // snapshot retrieval
             var snapshot = await docRef.GetSnapshotAsync();
 
             if (!snapshot.Exists)
                 throw new Exception("User data not found in Firestore.");
 
+            // decrypt each field in the document
             var encryptedData = snapshot.ToDictionary();
             var decryptedData = new Dictionary<string, object>();
 
@@ -1204,27 +1558,29 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             {
                 try
                 {
-                    // Only decrypt string values
+                    // only decrypt string values
                     if (kvp.Value is string encryptedValue)
                     {
                         decryptedData[kvp.Key] = _encryptionHelper.Decrypt(encryptedValue);
                     }
                     else
                     {
-                        // Keep non-string fields (like DateTime, bool, numbers) as is
+                        // keeping non-string fields -  date time, bool, numbers as is
                         decryptedData[kvp.Key] = kvp.Value;
                     }
                 }
                 catch
                 {
-                    // If decryption fails (e.g., field wasn't encrypted), store the original value
+                    // if decryption fails - store the original value
                     decryptedData[kvp.Key] = kvp.Value;
                 }
             }
 
+            // return the decrypted data
             return decryptedData;
         }
 
+        // method to update user details with encryption
         public async Task<(bool Success, string Message)> UpdateUserDetailsAsync(string userId, Dictionary<string, object> updatedData)
         {
             if (string.IsNullOrEmpty(userId))
@@ -1240,21 +1596,21 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 DocumentReference docRef = _firestoreDb
                     .Collection("users")
                     .Document(userDocument)
-                    .Collection("employees") // verify collection name when they're done
+                    .Collection("employees")
                     .Document(userId);
 
-                // 🔒 Encrypt all data before saving
+                // encrypting all data 
                 var encryptedData = new Dictionary<string, object>();
                 foreach (var entry in updatedData)
                 {
-                    // Don’t encrypt metadata like timestamps
+                    // preserve lastUpdated field as is
                     if (entry.Key.Equals("lastUpdated", StringComparison.OrdinalIgnoreCase))
                     {
                         encryptedData[entry.Key] = entry.Value;
                     }
                     else
                     {
-                        // Encrypt only string values; preserve non-string (like bool or numbers)
+                        // encrypt only string values and preserve non-string
                         if (entry.Value is string strValue)
                             encryptedData[entry.Key] = _encryptionHelper.Encrypt(strValue);
                         else
@@ -1262,37 +1618,42 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     }
                 }
 
-                // 🕒 Add or overwrite the lastUpdated field
+                // add or overwrite the last updated field
                 encryptedData["lastUpdated"] = Timestamp.GetCurrentTimestamp();
 
-                // ✅ Merge ensures only provided fields are updated
+                // merge ensures only provided fields are updated
                 await docRef.SetAsync(encryptedData, SetOptions.MergeAll);
 
+                // success response
                 return (true, "Profile updated successfully.");
             }
             catch (Grpc.Core.RpcException grpcEx)
             {
+                // log and return firestore rpc errors
                 Console.WriteLine($"Firestore RPC error for user {userId}: {grpcEx.Status.Detail}");
                 return (false, $"Firestore RPC error: {grpcEx.Status.Detail}");
             }
             catch (Exception ex)
             {
+                // log and return unexpected errors
                 Console.WriteLine($"Firestore update failed for user {userId}: {ex.Message}");
                 return (false, $"Unexpected error updating Firestore: {ex.Message}");
             }
         }
 
+        // method to get paid invoices within date range
         public async Task<List<Invoice>> GetPaidInvoicesByDateRangeAsync(int months)
         {
             try
             {
+                // fetch all invoices from firestore
                 var invoicesRef = _firestoreDb.Collection("invoices");
                 var snapshot = await invoicesRef.GetSnapshotAsync();
 
                 DateTime cutoffDate = DateTime.UtcNow.AddMonths(-months);
                 List<Invoice> paidInvoices = new();
 
-                // Local safe decryption helper
+                // local safe decryption helper
                 string SafeDecrypt(string value)
                 {
                     if (string.IsNullOrWhiteSpace(value))
@@ -1300,11 +1661,12 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
                     try
                     {
+                        // attempt decryption
                         return _encryptionHelper.Decrypt(value);
                     }
                     catch
                     {
-                        // Return the original value if not encrypted or invalid Base64
+                        // return the original value if not encrypted
                         return value;
                     }
                 }
@@ -1314,22 +1676,25 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     if (!doc.Exists) continue;
                     var invoice = doc.ConvertTo<Invoice>();
 
-                    // Use SafeDecrypt for every possibly-encrypted field
+                    // use safe decrypt for every possibly encrypted field
                     invoice.ClientName = SafeDecrypt(invoice.ClientName);
                     invoice.CompanyName = SafeDecrypt(invoice.CompanyName);
                     invoice.InvoiceNumber = SafeDecrypt(invoice.InvoiceNumber);
                     invoice.Email = SafeDecrypt(invoice.Email);
                     invoice.Phone = SafeDecrypt(invoice.Phone);
 
+                    // decrypt item descriptions
                     if (invoice.CreatedAt == null) continue;
                     DateTime createdAt = invoice.CreatedAt.Value.ToDateTime();
 
+                    // filter for paid invoices within date range
                     if (invoice.Status == "Paid" && createdAt >= cutoffDate)
                     {
                         paidInvoices.Add(invoice);
                     }
                 }
 
+                // return sorted list by created date descending
                 return paidInvoices.OrderByDescending(i => i.CreatedAt).ToList();
             }
             catch (Exception ex)
@@ -1338,8 +1703,11 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 return new List<Invoice>();
             }
         }
+
+        // method to generate payments report pdf
         public async Task<(byte[] PdfBytes, string FileName)> GeneratePaymentsReportPdfAsync(List<Invoice> invoices, int months)
         {
+            // validate input
             if (invoices == null || !invoices.Any())
                 throw new ArgumentException("No invoices found for report generation.");
 
@@ -1360,7 +1728,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             // Table
             Table table = section.AddTable(true);
-            table.ResetCells(invoices.Count + 1, 4); // +1 for header
+            table.ResetCells(invoices.Count + 1, 4);
 
             // Header row
             string[] headers = { "Client Name", "Company Name", "Invoice Number", "Total Amount" };

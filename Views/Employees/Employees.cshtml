@@ -354,72 +354,72 @@
 
           /* ---------------- DELETE CONFIRMATION MODAL (Employees) ---------------- */
 
-const employeeDeleteButtons = document.querySelectorAll(".delete-btn");
-const employeeDeleteModal = document.getElementById("deleteModal");
-const employeeConfirmDeleteBtn = document.getElementById("confirmDelete");
-const employeeCancelBtn = employeeDeleteModal.querySelector(".cancel-btn");
+    const employeeDeleteButtons = document.querySelectorAll(".delete-btn");
+    const employeeDeleteModal = document.getElementById("deleteModal");
+    const employeeConfirmDeleteBtn = document.getElementById("confirmDelete");
+    const employeeCancelBtn = employeeDeleteModal.querySelector(".cancel-btn");
 
-let employeeToDeleteId = null;
+    let employeeToDeleteId = null;
 
-// Open modal when delete button is clicked
-employeeDeleteButtons.forEach(btn => {
-    btn.addEventListener("click", (event) => {
-        event.preventDefault();
-        employeeToDeleteId = btn.dataset.employeeId;
-        employeeDeleteModal.classList.add("show");
-    });
-});
-
-// Confirm deletion
-employeeConfirmDeleteBtn.addEventListener("click", async () => {
-    if (!employeeToDeleteId) return;
-
-    try {
-        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        const response = await fetch('/Employees/DeleteEmployee', {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "RequestVerificationToken": token
-            },
-            body: JSON.stringify({ EmployeeId: employeeToDeleteId })
+    // Open modal when delete button is clicked
+    employeeDeleteButtons.forEach(btn => {
+        btn.addEventListener("click", (event) => {
+            event.preventDefault();
+            employeeToDeleteId = btn.dataset.employeeId;
+            employeeDeleteModal.classList.add("show");
         });
+    });
 
-        const data = await response.json();
+    // Confirm deletion
+    employeeConfirmDeleteBtn.addEventListener("click", async () => {
+        if (!employeeToDeleteId) return;
 
-        if (data.success) {
-            // Remove the deleted row
-            const row = document.querySelector(`tr[data-employee-id='${employeeToDeleteId}']`);
-            if (row) row.remove();
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-            alert("Employee deleted successfully!");
-        } else {
-            alert("Failed to delete employee.");
+            const response = await fetch('/Employees/DeleteEmployee', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "RequestVerificationToken": token
+                },
+                body: JSON.stringify({ EmployeeId: employeeToDeleteId })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Remove the deleted row
+                const row = document.querySelector(`tr[data-employee-id='${employeeToDeleteId}']`);
+                if (row) row.remove();
+
+                alert("Employee deleted successfully!");
+            } else {
+                alert("Failed to delete employee.");
+            }
+        } catch (error) {
+            console.error("Error deleting employee:", error);
+            alert("An error occurred while deleting the employee.");
         }
-    } catch (error) {
-        console.error("Error deleting employee:", error);
-        alert("An error occurred while deleting the employee.");
-    }
 
-    // Close modal
-    employeeDeleteModal.classList.remove("show");
-    employeeToDeleteId = null;
-});
-
-// Cancel deletion
-employeeCancelBtn.addEventListener("click", () => {
-    employeeDeleteModal.classList.remove("show");
-    employeeToDeleteId = null;
-});
-
-// Close modal when clicking outside content
-window.addEventListener("click", (event) => {
-    if (event.target === employeeDeleteModal) {
+        // Close modal
         employeeDeleteModal.classList.remove("show");
         employeeToDeleteId = null;
-    }
-});
-
     });
+
+    // Cancel deletion
+    employeeCancelBtn.addEventListener("click", () => {
+        employeeDeleteModal.classList.remove("show");
+        employeeToDeleteId = null;
+    });
+
+    // Close modal when clicking outside content
+    window.addEventListener("click", (event) => {
+        if (event.target === employeeDeleteModal) {
+            employeeDeleteModal.classList.remove("show");
+            employeeToDeleteId = null;
+        }
+    });
+
+});
 </script>

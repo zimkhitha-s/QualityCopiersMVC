@@ -10,11 +10,10 @@
     <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
 </head>
 <body>
-
         
     <!-- Main Content -->
         <main class="main-content">
-            <!-- Added banner section and repositioned profile elements for Twitter/LinkedIn style layout -->
+            
             <div class="profile-banner">
 
             </div>
@@ -79,7 +78,6 @@
 
                     
                 </div>
-
                 
                 
                 <div id="password-tab" class="tab-content">
@@ -187,7 +185,6 @@
                 const formData = new FormData();
                 formData.append('image', file);
 
-                // ✅ Correct route here
                 const response = await fetch('/Account/UploadImage', {
                     method: 'POST',
                     body: formData
@@ -195,56 +192,13 @@
 
                 if (response.ok) {
                     const imageUrl = await response.text();
-                    profileImage.src = imageUrl; // Update preview
+                    profileImage.src = imageUrl;
                 } else {
                     alert('Failed to upload image.');
                 }
             }
         });
-
-        //Change password logic
-        /*document.getElementById("changePasswordBtn").addEventListener("click", async () => {
-        const currentPassword = document.getElementById("current-password").value.trim();
-        const newPassword = document.getElementById("new-password").value.trim();
-        const confirmPassword = document.getElementById("confirm-password").value.trim();
-
-        // 1️⃣ Validation
-        if (!currentPassword || !newPassword || !confirmPassword) {
-            alert("⚠️ Please fill in all fields.");
-            return;
-        }
-
-        if (newPassword !== confirmPassword) {
-            alert("❌ New passwords do not match.");
-            return;
-        }
-
-        if (newPassword.length < 6) {
-            alert("⚠️ Password must be at least 6 characters long.");
-            return;
-        }
-
-        // 2️⃣ Send to backend
-        const response = await fetch('/Account/ChangePassword', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                currentPassword,
-                newPassword
-            })
-        });
-
-        if (response.ok) {
-            alert("✅ Password updated successfully!");
-            document.getElementById("passwordForm").reset();
-        } else {
-            const error = await response.text();
-            alert(`❌ Failed to update password: ${error}`);
-        }
-    });*/
-     
 </script>
-
 </body>
 </html>
 

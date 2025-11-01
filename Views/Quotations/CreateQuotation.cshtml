@@ -108,14 +108,14 @@
 
                     <div class="form-actions">
                         <button type="button" class="cancel-btn" onclick="location.href='@Url.Action("Quotations", "Quotations")'">Cancel</button>
-                        <button type="submit" class="save-btn">Create Quotation</button>
+                        <button type="submit" class="save-btn-createQuote">Create Quotation</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <script>
-            // --- Client Auto-Fill ---
+            // Client Auto-Fill
             const clientSelect = document.getElementById('clientSelect');
             const clientNameInput = document.getElementById('clientName');
             const emailInput = document.getElementById('email');
@@ -140,7 +140,7 @@
                 }
             });
 
-            // --- Item Handling ---
+            // Item Handling 
             function addItem() {
                 const itemsContainer = document.getElementById('itemsContainer');
                 const index = itemsContainer.querySelectorAll('.item-row').length;
@@ -204,12 +204,11 @@
                 document.getElementById('grandTotal').textContent = `R ${subtotal.toFixed(2)}`;
             }
 
-            // --- Initialize ---
+            // Initialize
             document.addEventListener('DOMContentLoaded', function () {
                 document.querySelectorAll('.item-row').forEach(row => attachCalculationListeners(row));
             });
 
-            // Disable readonly total inputs before submit to avoid validation issues
             document.querySelector('.quotation-form').addEventListener('submit', function () {
                 document.querySelectorAll('.total').forEach(el => el.disabled = true);
             });

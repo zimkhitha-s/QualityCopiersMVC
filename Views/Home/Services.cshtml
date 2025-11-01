@@ -129,9 +129,8 @@
 
         faqItems.forEach(item => {
             item.addEventListener('click', () => {
-                item.classList.toggle('open'); // toggle current
+                item.classList.toggle('open');
 
-                // Optional: close other items
                 faqItems.forEach(otherItem => {
                     if (otherItem !== item) {
                         otherItem.classList.remove('open');

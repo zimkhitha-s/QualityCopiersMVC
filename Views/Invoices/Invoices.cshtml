@@ -255,7 +255,6 @@
             }
         });
 
-        // Use event delegation on the table body to handle dynamic rows
         tableBody.addEventListener("change", function(e) {
             const dropdown = e.target.closest(".status-dropdown");
             if (!dropdown) return;
@@ -287,7 +286,6 @@
             .catch(err => {
                 console.error(err);
                 alert("Failed to update invoice status.");
-                // Optional: revert dropdown value if needed
             });
         });
 
