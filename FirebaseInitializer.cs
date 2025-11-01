@@ -1,29 +1,30 @@
-using Google.Cloud.SecretManager.V1;
-using FirebaseAdmin;
+﻿using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using Google.Cloud.SecretManager.V1;
 
-namespace INSY7315_ElevateDigitalStudios_POE;
-
-public class FirebaseInitializer
+public static class FirebaseInitializer
 {
     public static void Initialize()
     {
-        // Secret Manager client
-        var client = SecretManagerServiceClient.Create();
-        
-        // Replace "my-project-id" and "firebase-key" with your values
-        var secretName = "projects/98684336423/secrets/firebase-admin-key/versions/latest";
-        var secret = client.AccessSecretVersion(secretName);
+        if (FirebaseApp.DefaultInstance != null)
+            return;
 
-        // Get JSON string
+        var projectId = Environment.GetEnvironmentVariable("GCP_PROJECT_ID");
+        var secretName = Environment.GetEnvironmentVariable("GCP_SECRET_NAME");
+
+        var client = SecretManagerServiceClient.Create();
+        var secretVersion = "latest";
+        var secretFullName = $"projects/{projectId}/secrets/{secretName}/versions/{secretVersion}";
+        var secret = client.AccessSecretVersion(secretFullName);
+
         string jsonString = secret.Payload.Data.ToStringUtf8();
 
-        // Initialize Firebase Admin SDK using the JSON from Secret Manager
         var appOptions = new AppOptions()
         {
             Credential = GoogleCredential.FromJson(jsonString)
         };
-        if (FirebaseApp.DefaultInstance == null)
-            FirebaseApp.Create(appOptions);
+
+        FirebaseApp.Create(appOptions);
+        Console.WriteLine("✅ Firebase initialized successfully from Secret Manager.");
     }
 }

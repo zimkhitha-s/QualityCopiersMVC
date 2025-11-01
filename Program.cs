@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Mvc;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using DotNetEnv;
 
 namespace INSY7315_ElevateDigitalStudios_POE
 {
@@ -27,12 +28,16 @@ namespace INSY7315_ElevateDigitalStudios_POE
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession();
 
+            Env.Load();
+            // Initialize Firebase
+            FirebaseInitializer.Initialize();
+
             // Firebase Auth and Database Services
             builder.Services.AddSingleton<FirebaseAuthService>();
             builder.Services.AddSingleton<FirebaseService>();
             builder.Services.AddSingleton<MailService>();
 
-            FirebaseInitializer.Initialize();
+            
 
             var credentialsPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
 
