@@ -67,7 +67,7 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         export PATH="$PATH:/root/.dotnet/tools"
-        dotnet sonarscanner begin /k:"st10187895_INSY7315_ElevateDigitalStudios_POE" /o:"st10187895" /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+        dotnet sonarscanner begin /k:"zimkhitha-s_QualityCopiersMVC" /o:"zimkhitha-s" /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
         dotnet build --configuration Release
         dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
