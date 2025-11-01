@@ -1,3 +1,5 @@
+@model List<INSY7315_ElevateDigitalStudios_POE.Models.Notifications>
+
 @{
     ViewBag.Title = "Quotations";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
@@ -27,11 +29,11 @@
                 <tbody id="quotationTableBody">
                     @if (Model != null && Model.Any())
                     {
-                        foreach (var quotation in Model)
+                        foreach (var notifications in Model)
                         {
-                            <tr data-quote-id="@quotation.id">
-                                <td class="client-name">@quotation.clientName</td>
-                                <td class="client-email">@quotation.email</td>
+                            <tr data-quote-id="@notifications.Uid">
+                                <td class="client-name">@notifications.message</td>
+                                <td class="client-email">@notifications.Date.ToString("yyyy-MM-dd HH:mm")</td>
                             </tr>
                         }
                     }
@@ -39,7 +41,7 @@
                     {
                         <tr>
                             <td colspan="6" style="text-align:center; padding:20px; font-weight:500; color:#999;">
-                                "No New Notifications."
+                                No New Notifications.
                             </td>
                         </tr>
                     }

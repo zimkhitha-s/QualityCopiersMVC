@@ -10,6 +10,7 @@ using MimeKit;
 using Spire.Doc;
 using Spire.Doc.Documents;
 using Spire.Doc.Fields;
+using Google.Cloud.SecretManager.V1;
 using System.Drawing;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Services
@@ -28,13 +29,14 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         // firebase service constructor - initialize firestore connection and encryption helper
         public FirebaseService(EncryptionHelper encryptionHelper, MailService mailService, IConfiguration configuration)
         {
-            // check if firebase app is already initialized
+
             if (FirebaseApp.DefaultInstance == null)
             {
                 // initialize firebase app with default credentials
                 FirebaseApp.Create(new AppOptions()
                 {
-                    Credential = GoogleCredential.FromFile("database/firebase-key.json")
+                    Credential = GoogleCredential.GetApplicationDefault()
+                    // Credential = GoogleCredential.FromFile("database/firebase-key.json")
                 });
             }
 
@@ -1440,6 +1442,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             // perform the update
             await docRef.UpdateAsync(updates);
+            if (status == "Paid")
+            {
+                await AddPaymentRecordAsync(invoiceId);
+            }
         }
 
         // method to delete an invoice by id
@@ -1789,6 +1795,61 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             string fileName = $"Payments_Report_{months}Months.pdf";
             return (pdfBytes, fileName);
         }
+
+        private CollectionReference GetPaymentsCollection()
+        {
+            return _firestoreDb.Collection("Payments");
+        }
+
+        private async Task AddPaymentRecordAsync(string invoiceId)
+        {
+            // Get the invoice document
+            var invoiceDoc = await GetInvoicesCollection().Document(invoiceId).GetSnapshotAsync();
+
+            if (invoiceDoc.Exists)
+            {
+                var invoiceData = invoiceDoc.ToDictionary();
+
+                // Create a new Payment record using the invoice data
+                var paymentData = new Dictionary<string, object>
+                {
+                    { "invoiceId", invoiceId },
+                    { "clientName", invoiceData.ContainsKey("clientName") ? invoiceData["clientName"] : "" },
+                    { "amount", invoiceData.ContainsKey("amount") ? invoiceData["amount"] : 0 },
+                    { "dateIssued", invoiceData.ContainsKey("dateIssued") ? invoiceData["dateIssued"] : null },
+                    { "status", "Paid" },
+                    { "paymentDate", DateTime.UtcNow }, // Track when payment was made
+                    { "createdAt", Timestamp.GetCurrentTimestamp() }
+                };
+
+                // Add the payment record to the Payments collection
+                await GetPaymentsCollection().AddAsync(paymentData);
+            }
+        }
+
+        public CollectionReference GetNotificationCollection()
+        {
+            return _firestoreDb.Collection("notifications");
+        }
+        public async Task<List<Notifications>> GetRecentNotificationsAsync()
+        {
+            var notificationsRef = GetNotificationCollection();
+            var snapshot = await notificationsRef.GetSnapshotAsync();
+
+            var allNotifications = snapshot.Documents
+                .Select(doc => doc.ConvertTo<Notifications>())
+                .ToList();
+
+            // Filter notifications to only those within the last 7 days
+            var oneWeekAgo = DateTime.UtcNow.AddDays(-7);
+            var recentNotifications = allNotifications
+                .Where(n => n.timestamp.ToDateTime() >= oneWeekAgo)
+                .OrderByDescending(n => n.timestamp.ToDateTime())
+                .ToList();
+
+            return recentNotifications;
+        }
+
     }
 }
 //-------------------------------------------------------------------------------------------End Of File--------------------------------------------------------------------//
