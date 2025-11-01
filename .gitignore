@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 Database/firebase-key.json
 Database/firebase-key.json
+.env
+.gitignore

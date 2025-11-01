@@ -8,9 +8,9 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         private readonly string _apiKey;
         private readonly HttpClient _httpClient;
 
-        public FirebaseAuthService(IConfiguration configuration)
+        public FirebaseAuthService()
         {
-            _apiKey = configuration["Firebase:ApiKey"];
+            _apiKey = Environment.GetEnvironmentVariable("FIREBASE_API_KEY");
             _httpClient = new HttpClient();
         }
 
@@ -20,8 +20,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             var requestBody = new
             {
-                email = email,
-                password = password,
+                email,
+                password,
                 returnSecureToken = true
             };
 
@@ -32,7 +32,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                // Print the Firebase error for debugging
                 Console.WriteLine("Firebase login failed:");
                 Console.WriteLine(responseString);
                 return null;
@@ -41,6 +40,5 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             var jsonDoc = JsonDocument.Parse(responseString);
             return jsonDoc.RootElement.GetProperty("idToken").GetString();
         }
-
     }
 }

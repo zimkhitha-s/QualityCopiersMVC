@@ -3,6 +3,7 @@ using INSY7315_ElevateDigitalStudios_POE.Security;
 using INSY7315_ElevateDigitalStudios_POE.Services;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Mvc;
+using DotNetEnv;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 
@@ -19,11 +20,13 @@ namespace INSY7315_ElevateDigitalStudios_POE
 
             builder.Services.AddControllersWithViews(options =>
             {
-                
+
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
             });
+            Env.Load();
 
-            
+            FirebaseInitializer.Initialize();
+
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession();
 
@@ -32,7 +35,7 @@ namespace INSY7315_ElevateDigitalStudios_POE
             builder.Services.AddSingleton<FirebaseService>();
             builder.Services.AddSingleton<MailService>();
 
-            FirebaseInitializer.Initialize();
+            
 
             var credentialsPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
             
