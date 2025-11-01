@@ -32,6 +32,26 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             return View();
         }
 
+        // logout endpoint
+        [HttpGet]
+        public IActionResult Logout()
+        {
+            // Clear all session data
+            HttpContext.Session.Clear();
+            HttpContext.Session.Remove("UserEmail");
+            HttpContext.Session.Remove("UserId");
+            HttpContext.Session.Remove("UserRole");
+            HttpContext.Session.Remove("FullName");
+            HttpContext.Session.Remove("UserName");
+            HttpContext.Session.Remove("UserSurname");
+
+            // End the session completely
+            HttpContext.Session.CommitAsync();
+
+            // Redirect user to Login page
+            return RedirectToAction("Login", "Account");
+        }
+
         // login endpoints - POST
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
