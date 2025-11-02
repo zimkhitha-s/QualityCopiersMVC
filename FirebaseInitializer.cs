@@ -25,6 +25,6 @@ public static class FirebaseInitializer
         };
 
         FirebaseApp.Create(appOptions);
-        Console.WriteLine("✅ Firebase initialized successfully from Secret Manager.");
+        Console.WriteLine("Firebase initialized successfully from Secret Manager.");
     }
 }

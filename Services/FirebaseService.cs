@@ -12,6 +12,7 @@ using Spire.Doc.Documents;
 using Spire.Doc.Fields;
 using Google.Cloud.SecretManager.V1;
 using System.Drawing;
+using INSY7315_ElevateDigitalStudios_POE.Helper;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Services
 {
@@ -25,31 +26,36 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
         private readonly string _senderEmail;
         private readonly string _smtpPassword;
+        private readonly string _firebaseProjectId;
 
         // firebase service constructor - initialize firestore connection and encryption helper
         public FirebaseService(EncryptionHelper encryptionHelper, MailService mailService, IConfiguration configuration)
         {
+            _encryptionHelper = encryptionHelper;
+            _mailService = mailService;
+            _configuration = configuration;
+
+            _firebaseProjectId = Environment.GetEnvironmentVariable("GCP_PROJECT_ID");
+
+            var firebaseKeyJson = SecretManagerHelper.GetSecret(_firebaseProjectId, "firebase-admin-key");
 
             if (FirebaseApp.DefaultInstance == null)
             {
                 // initialize firebase app with default credentials
                 FirebaseApp.Create(new AppOptions()
                 {
-                    Credential = GoogleCredential.GetApplicationDefault()
-                    // Credential = GoogleCredential.FromFile("database/firebase-key.json")
+                    Credential = GoogleCredential.FromJson(firebaseKeyJson)
                 });
             }
 
             // initialize firestore database and encryption helper
-            _firestoreDb = FirestoreDb.Create("insy7315-database2");
-            _encryptionHelper = encryptionHelper;
-            _mailService = mailService;
-            _configuration = configuration;
+            _firestoreDb = FirestoreDb.Create("_firebaseProjectId)");
 
-            // load email settings from configuration
-            _senderEmail = _configuration["EmailSettings:SmtpUser"];
-            _smtpPassword = _configuration["EmailSettings:SmtpPassword"];
+            _senderEmail = SecretManagerHelper.GetSecret(_firebaseProjectId, "email-smtp-user");
+            _smtpPassword = SecretManagerHelper.GetSecret(_firebaseProjectId, "email-smtp-password");
         }
+
+        public string ManagerEmail => _mailService.ManagerEmail;
 
         // method to get firestore database instance
         public FirestoreDb GetFirestore()
@@ -798,7 +804,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             // compose the email
             var email = new MimeMessage();
-            email.From.Add(new MailboxAddress("Quality Copiers", _senderEmail));
+            email.From.Add(new MailboxAddress("Quality Copiers", ManagerEmail));
             email.To.Add(new MailboxAddress(quotation.clientName, quotation.email));
             email.Subject = $"Quotation {quotation.quoteNumber}";
 
@@ -1391,9 +1397,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
             // build the email
             var emailMessage = new MimeMessage();
-            emailMessage.From.Add(new MailboxAddress("Quality Copiers", _senderEmail));
+            emailMessage.From.Add(new MailboxAddress("Quality Copiers", ManagerEmail));
             emailMessage.To.Add(new MailboxAddress(invoice.ClientName, invoice.Email));
             emailMessage.Subject = $"Invoice {invoice.InvoiceNumber}";
+
 
             // build the email body with html and attachment
             var builder = new BodyBuilder();

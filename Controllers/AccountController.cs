@@ -1,4 +1,6 @@
-﻿using INSY7315_ElevateDigitalStudios_POE.Models.Dtos;
+﻿using Google.Cloud.SecretManager.V1;
+using INSY7315_ElevateDigitalStudios_POE.Helper;
+using INSY7315_ElevateDigitalStudios_POE.Models.Dtos;
 using INSY7315_ElevateDigitalStudios_POE.Models.Requests;
 using INSY7315_ElevateDigitalStudios_POE.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -12,17 +14,30 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         private readonly FirebaseAuthService _firebaseAuthService;
         private readonly FirebaseService _firebaseService;
         private readonly IWebHostEnvironment _env;
-        private readonly string _firebaseApiKey;
         private readonly IConfiguration _configuration;
 
+        // Secrets
+        private readonly string _firebaseApiKey;
+        private readonly string _managerEmail;
+
         // Constructor to inject dependencies
-        public AccountController(FirebaseAuthService firebaseAuthService, FirebaseService firebaseService, IWebHostEnvironment env, IConfiguration config, IConfiguration configuration)
+        public AccountController(
+            FirebaseAuthService firebaseAuthService,
+            FirebaseService firebaseService,
+            IWebHostEnvironment env,
+            IConfiguration configuration)
         {
             _firebaseAuthService = firebaseAuthService;
             _firebaseService = firebaseService;
             _env = env;
-            _firebaseApiKey = config["Firebase:ApiKey"];
             _configuration = configuration;
+
+            // Fetch Google Cloud project ID
+            var projectId = Environment.GetEnvironmentVariable("GCP_PROJECT_ID");
+
+            // Retrieve secrets via centralized helper
+            _firebaseApiKey = SecretManagerHelper.GetSecret(projectId, "firebase-web-API-key");
+            _managerEmail = SecretManagerHelper.GetSecret(projectId, "manager-email");
         }
 
         // login endpoints - GET
@@ -56,10 +71,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
-            // authenticate with firebase
+            // Authenticate with Firebase
             var idToken = await _firebaseAuthService.SignInWithEmailPasswordAsync(email, password);
 
-            // handle invalid login
+            // Handle invalid login
             if (string.IsNullOrEmpty(idToken))
             {
                 ViewBag.Error = "Invalid login attempt.";
@@ -68,41 +83,57 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 
             try
             {
-                // decode firebase using token to extract uid
+                // Decode Firebase token to extract UID
                 var firebaseAuth = FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance;
                 var decodedToken = await firebaseAuth.VerifyIdTokenAsync(idToken);
                 var userId = decodedToken.Uid;
-                var userDetails = new Dictionary<string, object>() ;
+                Dictionary<string, object> userDetails;
 
-                // fetch user role from firestore
-                string managerEmail = _configuration["AppSettings:ManagerEmail"];
-
-                // check if the email matches manager email
-                if (email == managerEmail)
+                // Lazy-load Google Cloud project ID and manager email
+                var projectId = Environment.GetEnvironmentVariable("GCP_PROJECT_ID");
+                if (string.IsNullOrEmpty(projectId))
                 {
-                    // fetch manager details
+                    ViewBag.Error = "Server configuration error: GCP_PROJECT_ID not set.";
+                    return View();
+                }
+
+                string managerEmail;
+                try
+                {
+                    managerEmail = SecretManagerHelper.GetSecret(projectId, "manager-email");
+                }
+                catch (Grpc.Core.RpcException rpcEx)
+                {
+                    Console.WriteLine($"SecretManager error: {rpcEx.Message}");
+                    ViewBag.Error = "Server error retrieving manager email. Please try again later.";
+                    return View();
+                }
+
+                // Determine if user is manager or regular employee
+                if (email.Equals(managerEmail, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Ensure service account has Firestore access for manager
                     userDetails = await _firebaseService.GetManagerDataAsync(userId);
                 }
                 else
                 {
-                    // fetch regular user details - employees
                     userDetails = await _firebaseService.GetUserDetailsAsync(userId);
                 }
 
-                // validate the users details
+                // Validate user details
                 if (userDetails == null || !userDetails.ContainsKey("role"))
                 {
                     ViewBag.Error = "User details not found.";
                     return View();
                 }
 
-                // extract the decrypted details
+                // Extract user information
                 string role = userDetails["role"]?.ToString() ?? "";
                 string name = userDetails.ContainsKey("name") ? userDetails["name"]?.ToString() ?? "" : "";
                 string surname = userDetails.ContainsKey("surname") ? userDetails["surname"]?.ToString() ?? "" : "";
                 string fullname = $"{name} {surname}";
 
-                // store the information in the session
+                // Store information in session
                 HttpContext.Session.SetString("UserEmail", email);
                 HttpContext.Session.SetString("UserId", userId);
                 HttpContext.Session.SetString("UserRole", role);
@@ -110,18 +141,25 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 HttpContext.Session.SetString("UserName", name);
                 HttpContext.Session.SetString("UserSurname", surname);
 
-                // setting the default fallback redirect
+                // Redirect to dashboard
                 return RedirectToAction("Index", "Dashboard");
-
+            }
+            catch (Grpc.Core.RpcException rpcEx)
+            {
+                // Handles Firestore or Secret Manager permission errors
+                Console.WriteLine($"GCP RPC Error: {rpcEx.Status.Detail}");
+                ViewBag.Error = "Server error accessing data. Please check your permissions.";
+                return View();
             }
             catch (Exception ex)
             {
-                // log the exception for debugging
+                // Log general errors
                 Console.WriteLine($"Error verifying token or fetching role: {ex.Message}");
                 ViewBag.Error = "An error occurred while logging in.";
                 return View();
             }
         }
+
 
         // get endpoint for forgot password
         [HttpGet]
