@@ -39,9 +39,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Models
         public string Address { get; set; }
 
         // list of items
-        [FirestoreProperty]
-        public List<Dictionary<string, object>> Items { get; set; } = new List<Dictionary<string, object>>();
-
+        [FirestoreProperty("items")]
+        public List<PaymentItem> Items { get; set; } = new();
         // amounts
         [FirestoreProperty("amount")]
         public double? Amount { get; set; }

@@ -49,7 +49,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
 
             // initialize firestore database and encryption helper
-            _firestoreDb = FirestoreDb.Create("_firebaseProjectId)");
+            _firestoreDb = FirestoreDb.Create("insy7315-database2");
 
             _senderEmail = SecretManagerHelper.GetSecret(_firebaseProjectId, "email-smtp-user");
             _smtpPassword = SecretManagerHelper.GetSecret(_firebaseProjectId, "email-smtp-password");
@@ -143,7 +143,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             // decrypt sensitive fields
             client.name = _encryptionHelper.Decrypt(client.name).Trim();
             client.surname = _encryptionHelper.Decrypt(client.surname).Trim();
-            client.email = client.email.Trim();
+            client.email = _encryptionHelper.Decrypt(client.email).Trim();
             client.phoneNumber = _encryptionHelper.Decrypt(client.phoneNumber).Trim();
             client.address = _encryptionHelper.Decrypt(client.address).Trim()   ;
             client.companyName = _encryptionHelper.Decrypt(client.companyName).Trim();
@@ -1010,7 +1010,47 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             // return the list of invoices
             return invoices;
         }
-        
+
+        // method to get all invoices
+        /*public async Task<List<Invoice>> GetPaymentsAsync()
+        {
+            // fetch all invoices from firestore
+            var paymentsRef = GetPaymentsCollection();
+            var snapshot = await paymentsRef.GetSnapshotAsync();
+
+            // decrypt sensitive fields before returning
+            var payments = new List<Payment>();
+
+            // decryption loop
+            foreach (var doc in snapshot.Documents)
+            {
+                var payment = doc.ConvertTo<Payment>();
+
+                // decrypt sensitive fields
+                payment.ClientName = _encryptionHelper.Decrypt(payment.ClientName);
+                payment.CompanyName = _encryptionHelper.Decrypt(payment.CompanyName);
+                payment.Email = _encryptionHelper.Decrypt(payment.Email);
+                payment.Phone = _encryptionHelper.Decrypt(payment.Phone);
+                payment.Address = _encryptionHelper.Decrypt(payment.Address ?? string.Empty);
+                payment.QuoteNumber = _encryptionHelper.Decrypt(payment.QuoteNumber ?? string.Empty);
+                payment.Status = payment.Status;
+
+                if (payment.Items != null)
+                {
+                    foreach (var item in payment.Items)
+                    {
+                        item.Description = _encryptionHelper.Decrypt(item.Description);
+                    }
+                }
+
+                // add to list
+                payments.Add(payment);
+            }
+
+            // return the list of invoices
+            return payments;
+        }*/
+
         // get invoice details by id for payments
         public async Task<Invoice?> GetInvoiceDetailsAsync(string id)
         {
@@ -1825,7 +1865,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     { "amount", invoiceData.ContainsKey("amount") ? invoiceData["amount"] : 0 },
                     { "dateIssued", invoiceData.ContainsKey("dateIssued") ? invoiceData["dateIssued"] : null },
                     { "status", "Paid" },
-                    { "paymentDate", DateTime.UtcNow }, // Track when payment was made
+                    { "paymentDate", DateTime.UtcNow },
                     { "createdAt", Timestamp.GetCurrentTimestamp() }
                 };
 

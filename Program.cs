@@ -37,8 +37,6 @@ namespace INSY7315_ElevateDigitalStudios_POE
             builder.Services.AddSingleton<FirebaseService>();
             builder.Services.AddSingleton<MailService>();
 
-            
-
             var credentialsPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
 
             // Encryption Helper
