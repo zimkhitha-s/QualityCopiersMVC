@@ -842,20 +842,20 @@ save-btn-createQuote
             padding-top: 2rem;
             border-top: 1px solid #e0e0e0;
         }
-        
-        .save-btn {
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.2s ease;
-        }
-        
-        .save-btn:hover {
-            background: #222;
-        }
+
+.save-btn {
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 500;
+    background: #222;
+    color: #f2f2f2;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+       
         
         @media (max-width: 768px) {
             .form-row {

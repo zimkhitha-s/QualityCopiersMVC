@@ -63,6 +63,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             return _firestoreDb;
         }
 
+        //--------------------------------------------------------------------------- Customers Section ---------------------------------------------------------------------------//
+
         // method to add a new client to firestore
         public async Task AddClientAsync(Client client)
         {
@@ -226,6 +228,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         {
             return _firestoreDb.Collection("clients");
         }
+
+        //--------------------------------------------------------------------------- Employee Section ---------------------------------------------------------------------------//
 
         // method to add a new employee
         public async Task<(bool Success, string ErrorMessage, string TempPassword)> AddEmployeeAsync(Employee employee)
@@ -437,6 +441,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         {
             return _firestoreDb.Collection("users").Document(userId).Collection("employees");
         }
+
+        //--------------------------------------------------------------------------- Quotations Section ---------------------------------------------------------------------------//
 
         // method to add a new quotation
         public async Task<(bool Success, string ErrorMessage, string QuoteId)> AddQuotationAsync(Quotation quotation)
@@ -971,6 +977,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             return _firestoreDb.Collection("quotes");
         }
 
+        //--------------------------------------------------------------------------- Invoices Section ---------------------------------------------------------------------------//
+
         // method to get all invoices
         public async Task<List<Invoice>> GetInvoicesAsync()
         {
@@ -1010,46 +1018,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             // return the list of invoices
             return invoices;
         }
-
-        // method to get all invoices
-        /*public async Task<List<Invoice>> GetPaymentsAsync()
-        {
-            // fetch all invoices from firestore
-            var paymentsRef = GetPaymentsCollection();
-            var snapshot = await paymentsRef.GetSnapshotAsync();
-
-            // decrypt sensitive fields before returning
-            var payments = new List<Payment>();
-
-            // decryption loop
-            foreach (var doc in snapshot.Documents)
-            {
-                var payment = doc.ConvertTo<Payment>();
-
-                // decrypt sensitive fields
-                payment.ClientName = _encryptionHelper.Decrypt(payment.ClientName);
-                payment.CompanyName = _encryptionHelper.Decrypt(payment.CompanyName);
-                payment.Email = _encryptionHelper.Decrypt(payment.Email);
-                payment.Phone = _encryptionHelper.Decrypt(payment.Phone);
-                payment.Address = _encryptionHelper.Decrypt(payment.Address ?? string.Empty);
-                payment.QuoteNumber = _encryptionHelper.Decrypt(payment.QuoteNumber ?? string.Empty);
-                payment.Status = payment.Status;
-
-                if (payment.Items != null)
-                {
-                    foreach (var item in payment.Items)
-                    {
-                        item.Description = _encryptionHelper.Decrypt(item.Description);
-                    }
-                }
-
-                // add to list
-                payments.Add(payment);
-            }
-
-            // return the list of invoices
-            return payments;
-        }*/
 
         // get invoice details by id for payments
         public async Task<Invoice?> GetInvoiceDetailsAsync(string id)
@@ -1520,6 +1488,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             return _firestoreDb.Collection("invoices");
         }
 
+        //--------------------------------------------------------------------------- Profile Section ---------------------------------------------------------------------------//
+
         // method to get manager data
         public async Task<Dictionary<string, object>> GetManagerDataAsync(string userId)
         {
@@ -1689,6 +1659,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
+        //--------------------------------------------------------------------------- Payment Section ---------------------------------------------------------------------------//
+
         // method to get paid invoices within date range
         public async Task<List<Invoice>> GetPaidInvoicesByDateRangeAsync(int months)
         {
@@ -1752,132 +1724,556 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
         }
 
-        // method to generate payments report pdf
-        public async Task<(byte[] PdfBytes, string FileName)> GeneratePaymentsReportPdfAsync(List<Invoice> invoices, int months)
+        public async Task AddPaymentRecordAsync(string invoiceId)
         {
-            // validate input
-            if (invoices == null || !invoices.Any())
-                throw new ArgumentException("No invoices found for report generation.");
+            // fetch the invoice details (already decrypted inside GetInvoiceDetailsAsync)
+            var invoice = await GetInvoiceDetailsAsync(invoiceId);
+            if (invoice == null) return;
 
-            string tempDocPath = Path.Combine(Path.GetTempPath(), $"Payments_Report_{months}Months_{DateTime.Now:yyyyMMddHHmmss}.docx");
-            string tempPdfPath = Path.ChangeExtension(tempDocPath, ".pdf");
+            // get payments collection
+            var paymentsCollection = GetPaymentsCollection();
 
-            Document document = new Document();
-            Section section = document.AddSection();
+            // Check if a payment for this invoice already exists
+            var existingPaymentsQuery = await paymentsCollection
+                .WhereEqualTo("InvoiceNumber", _encryptionHelper.Encrypt(invoice.InvoiceNumber))
+                .GetSnapshotAsync();
 
-            // Title
-            Paragraph title = section.AddParagraph();
-            TextRange titleText = title.AppendText($"Payments Received Report (Last {months} Months)");
-            titleText.CharacterFormat.FontName = "Poppins";
-            titleText.CharacterFormat.FontSize = 18;
-            titleText.CharacterFormat.Bold = true;
-            title.Format.HorizontalAlignment = HorizontalAlignment.Center;
-            title.Format.AfterSpacing = 15;
+            if (existingPaymentsQuery.Count > 0)
+            {
+                Console.WriteLine($"Payment for Invoice {invoice.InvoiceNumber} already exists. Skipping duplicate.");
+                return;
+            }
 
-            // Table
+            // map invoice to Payment
+            var payment = new Payment
+            {
+                InvoiceNumber = _encryptionHelper.Encrypt(invoice.InvoiceNumber),
+                QuoteNumber = _encryptionHelper.Encrypt(invoice.QuoteNumber),
+                ClientName = _encryptionHelper.Encrypt(invoice.ClientName),
+                CompanyName = _encryptionHelper.Encrypt(invoice.CompanyName),
+                Email = _encryptionHelper.Encrypt(invoice.Email),
+                Phone = _encryptionHelper.Encrypt(invoice.Phone),
+                Address = _encryptionHelper.Encrypt(invoice.Address),
+                Items = invoice.Items?.Select(i => new PaymentItem
+                {
+                    Description = _encryptionHelper.Encrypt(i.Description),
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice,
+                    Amount = i.Amount
+                }).ToList(),
+                TotalAmount = invoice.TotalAmount,
+                Status = "Paid",
+                CreatedAt = Timestamp.GetCurrentTimestamp(),
+                PaidAt = Timestamp.GetCurrentTimestamp(),
+                Month = DateTime.UtcNow.Month.ToString(),
+                Year = DateTime.UtcNow.Year.ToString()
+            };
+
+            // save to Firestore Payments collection
+            await paymentsCollection.AddAsync(payment);
+        }
+
+
+        public async Task<List<Payment>> GetPaymentsAsync()
+        {
+            var paymentsRef = GetPaymentsCollection();
+            var snapshot = await paymentsRef.GetSnapshotAsync();
+
+            var payments = new List<Payment>();
+
+            foreach (var doc in snapshot.Documents)
+            {
+                // convert Firestore doc to Payment object
+                var payment = doc.ConvertTo<Payment>();
+                payment.Id = doc.Id;
+
+                // decrypt sensitive string fields
+                payment.InvoiceNumber = _encryptionHelper.Decrypt(payment.InvoiceNumber);
+                payment.ClientName = _encryptionHelper.Decrypt(payment.ClientName);
+                payment.CompanyName = _encryptionHelper.Decrypt(payment.CompanyName);
+                payment.Email = _encryptionHelper.Decrypt(payment.Email);
+                payment.Phone = _encryptionHelper.Decrypt(payment.Phone);
+                payment.Address = _encryptionHelper.Decrypt(payment.Address);
+
+                // decrypt PaymentItem descriptions
+                if (payment.Items != null)
+                {
+                    foreach (var item in payment.Items)
+                    {
+                        item.Description = _encryptionHelper.Decrypt(item.Description);
+                    }
+                }
+
+                payments.Add(payment);
+            }
+
+            // return sorted list by payment date (newest first)
+            return payments.OrderByDescending(p => p.PaidAt).ToList();
+        }
+
+        public async Task<(byte[] PdfBytes, string PdfFileName)> GeneratePaymentPdfBytesAsync(Payment payment)
+        {
+            if (payment == null || payment.Items == null || !payment.Items.Any())
+                throw new ArgumentException("Payment is invalid");
+
+            // define template path
+            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Payment", "QCPaymentTemplate.docx");
+            if (!File.Exists(templatePath))
+                throw new FileNotFoundException("Payment template not found.", templatePath);
+
+            // define output directory
+            string generatedDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GeneratedPaymentPdfs");
+            Directory.CreateDirectory(generatedDir);
+
+            string safeClientName = string.IsNullOrWhiteSpace(payment.ClientName)
+                ? "Client"
+                : string.Join("_", payment.ClientName.Split(Path.GetInvalidFileNameChars()));
+
+            string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            string pdfFileName = $"Payment_{safeClientName}_{payment.InvoiceNumber}_{timestamp}.pdf";
+
+            string tempDocxPath = Path.Combine(generatedDir, $"{Path.GetFileNameWithoutExtension(pdfFileName)}.docx");
+            string outputPdfPath = Path.Combine(generatedDir, pdfFileName);
+
+            GeneratePaymentPdf(payment, templatePath, tempDocxPath, outputPdfPath);
+
+            if (!File.Exists(outputPdfPath))
+                throw new FileNotFoundException("Failed to generate payment PDF", outputPdfPath);
+
+            var pdfBytes = await File.ReadAllBytesAsync(outputPdfPath);
+
+            if (File.Exists(tempDocxPath))
+                File.Delete(tempDocxPath);
+
+            return (pdfBytes, pdfFileName);
+        }
+
+        private void GeneratePaymentPdf(Payment payment, string templatePath, string tempDocxPath, string outputPdfPath)
+        {
+            if (payment == null) throw new ArgumentNullException(nameof(payment));
+            if (payment.Items == null || !payment.Items.Any())
+                throw new ArgumentException("Payment must have at least one item.", nameof(payment));
+
+            Document wordDoc = new Document();
+            wordDoc.LoadFromFile(templatePath);
+
+            void ReplaceText(string placeholder, string value)
+            {
+                TextSelection selection = wordDoc.FindString(placeholder, true, true);
+                if (selection != null)
+                {
+                    TextRange range = selection.GetAsOneRange();
+                    range.Text = value ?? string.Empty;
+                    range.CharacterFormat.FontName = "Century Gothic";
+                    range.CharacterFormat.FontSize = 11;
+                }
+            }
+
+            ReplaceText("{{ClientName}}", payment.ClientName);
+            ReplaceText("{{CompanyName}}", payment.CompanyName);
+            ReplaceText("{{ClientEmail}}", payment.Email);
+            ReplaceText("{{Address}}", payment.Address ?? string.Empty);
+            ReplaceText("{{PhoneNumber}}", payment.Phone);
+            ReplaceText("{{PaymentNumber}}", payment.InvoiceNumber);
+            ReplaceText("{{PaymentDate}}", (payment.PaidAt?.ToDateTime() ?? DateTime.UtcNow).ToString("yyyy/MM/dd"));
+
+            var section = wordDoc.Sections[0];
+            int itemCount = payment.Items.Count;
+            int totalRows = itemCount + 2;
+
+            var blue = Color.FromArgb(26, 46, 99);
             Table table = section.AddTable(true);
-            table.ResetCells(invoices.Count + 1, 4);
+            table.ResetCells(totalRows, 4);
+            table.TableFormat.Paddings.All = 5f;
+            table.TableFormat.Borders.BorderType = BorderStyle.None;
+            table.PreferredWidth = new PreferredWidth(WidthType.Percentage, 100);
+
+            string[] headers = { "Qty", "Description", "Unit Price", "Amount" };
+            var headerRow = table.Rows[0];
+            for (int i = 0; i < headers.Length; i++)
+            {
+                Paragraph p = headerRow.Cells[i].AddParagraph();
+                TextRange tr = p.AppendText(headers[i]);
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = blue;
+                p.Format.HorizontalAlignment = (i == 1) ? HorizontalAlignment.Left : HorizontalAlignment.Right;
+            }
+
+            double totalAmount = 0;
+            for (int i = 0; i < itemCount; i++)
+            {
+                var item = payment.Items[i];
+                double qty = item.Quantity;
+                double price = item.UnitPrice;
+                double rowTotal = qty * price;
+                totalAmount += rowTotal;
+
+                var row = table.Rows[i + 1];
+                row.Cells[0].AddParagraph().AppendText(qty.ToString());
+                row.Cells[1].AddParagraph().AppendText(item.Description ?? "");
+                row.Cells[2].AddParagraph().AppendText($"R{price:0.00}");
+                row.Cells[3].AddParagraph().AppendText($"R{rowTotal:0.00}");
+            }
+
+            var totalRow = table.Rows[totalRows - 1];
+            totalRow.Cells[2].AddParagraph().AppendText("TOTAL:");
+            totalRow.Cells[3].AddParagraph().AppendText($"R{totalAmount:0.00}");
+
+            var placeholder = wordDoc.FindString("{{ItemTable}}", true, true);
+            if (placeholder != null)
+            {
+                Paragraph para = placeholder.GetAsOneRange().OwnerParagraph;
+                Body body = para.OwnerTextBody;
+                int index = body.ChildObjects.IndexOf(para);
+                body.ChildObjects.Remove(para);
+                body.ChildObjects.Insert(index, table);
+            }
+
+            wordDoc.SaveToFile(tempDocxPath, FileFormat.Docx);
+            wordDoc.SaveToFile(outputPdfPath, FileFormat.PDF);
+        }
+
+        public async Task<bool> GenerateAndSendPaymentAsync(Payment payment)
+        {
+            try
+            {
+                if (payment == null)
+                    throw new ArgumentNullException(nameof(payment), "Payment cannot be null.");
+                if (payment.Items == null || !payment.Items.Any())
+                    throw new ArgumentException("Payment items are missing.", nameof(payment));
+
+                // Template for payment
+                string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Payment", "QCPaymentTemplate.docx");
+                if (!File.Exists(templatePath))
+                    throw new FileNotFoundException("Payment template not found.", templatePath);
+
+                string generatedDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GeneratedPaymentPdfs");
+                Directory.CreateDirectory(generatedDir);
+
+                string safeClientName = string.IsNullOrWhiteSpace(payment.ClientName)
+                    ? "Client"
+                    : string.Join("_", payment.ClientName.Split(Path.GetInvalidFileNameChars()));
+
+                string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                string pdfFileName = $"Payment_{safeClientName}_{payment.InvoiceNumber}_{timestamp}.pdf";
+
+                string tempDocxPath = Path.Combine(generatedDir, $"{Path.GetFileNameWithoutExtension(pdfFileName)}.docx");
+                string outputPdfPath = Path.Combine(generatedDir, pdfFileName);
+
+                // generate pdf (reuse your invoice PDF generator method if flexible)
+                GeneratePaymentPdf(payment, templatePath, tempDocxPath, outputPdfPath);
+
+                if (!File.Exists(outputPdfPath))
+                    throw new FileNotFoundException("Failed to generate payment PDF.", outputPdfPath);
+
+                // simple validation
+                var fi = new FileInfo(outputPdfPath);
+                if (fi.Length < 100)
+                    throw new InvalidOperationException($"Generated PDF too small ({fi.Length} bytes).");
+
+                using (var fs = File.OpenRead(outputPdfPath))
+                {
+                    var header = new byte[5];
+                    fs.Read(header, 0, header.Length);
+                    if (!System.Text.Encoding.ASCII.GetString(header).StartsWith("%PDF"))
+                        throw new InvalidOperationException("Generated file is not a valid PDF.");
+                }
+
+                await SendPaymentEmailAsync(payment, outputPdfPath);
+
+                if (File.Exists(tempDocxPath))
+                    File.Delete(tempDocxPath);
+
+                Console.WriteLine($"Payment {payment.InvoiceNumber} successfully generated and sent.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Failed to generate/send payment {payment?.InvoiceNumber}: {ex}");
+                return false;
+            }
+        }
+
+        private async Task SendPaymentEmailAsync(Payment payment, string pdfPath)
+        {
+            if (payment == null || string.IsNullOrWhiteSpace(payment.Email) || !File.Exists(pdfPath))
+                throw new ArgumentException("Invalid payment or PDF path");
+
+            var emailMessage = new MimeMessage();
+            emailMessage.From.Add(new MailboxAddress("Quality Copiers", ManagerEmail));
+            emailMessage.To.Add(new MailboxAddress(payment.ClientName, payment.Email));
+            emailMessage.Subject = $"Payment Receipt - Payment {payment.InvoiceNumber}";
+
+            var builder = new BodyBuilder();
+            builder.HtmlBody = $@"
+            <p>Dear {System.Net.WebUtility.HtmlEncode(payment.ClientName)},</p>
+            <p>Thank you for your payment. Please find your payment receipt attached.</p>
+            <p>The status of this payment is <strong>{System.Net.WebUtility.HtmlEncode(payment.Status)}</strong>.</p>
+            <p>Kind regards,<br/>Quality Copiers</p>";
+
+            using (var pdfStream = File.OpenRead(pdfPath))
+            {
+                var pdfAttachment = new MimePart("application", "pdf")
+                {
+                    Content = new MimeContent(pdfStream, ContentEncoding.Default),
+                    ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
+                    ContentTransferEncoding = ContentEncoding.Base64,
+                    FileName = Path.GetFileName(pdfPath)
+                };
+
+                var multipart = new Multipart("mixed");
+                multipart.Add(new TextPart("html") { Text = builder.HtmlBody });
+                multipart.Add(pdfAttachment);
+                emailMessage.Body = multipart;
+
+                await _mailService.SendEmailAsync(emailMessage);
+            }
+        }
+
+        public async Task DeletePaymentAsync(string paymentId)
+        {
+            try
+            {
+                var paymentsCollection = GetPaymentsCollection();
+                DocumentReference paymentDoc = paymentsCollection.Document(paymentId);
+
+                // Optionally check exists before delete
+                var snapshot = await paymentDoc.GetSnapshotAsync();
+                if (!snapshot.Exists)
+                {
+                    Console.WriteLine($"DeletePaymentAsync: payment {paymentId} not found.");
+                    return;
+                }
+
+                await paymentDoc.DeleteAsync();
+                Console.WriteLine($"Payment {paymentId} deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting payment {paymentId}: {ex}");
+                throw;
+            }
+        }
+
+        public async Task<List<Payment>> GetPaymentsForPeriodAsync(int months)
+        {
+            var paymentsRef = GetPaymentsCollection();
+            var snapshot = await paymentsRef.GetSnapshotAsync();
+
+            var fromDate = DateTime.UtcNow.AddMonths(-months);
+            var payments = new List<Payment>();
+
+            foreach (var doc in snapshot.Documents)
+            {
+                var payment = doc.ConvertTo<Payment>();
+                payment.Id = doc.Id;
+
+                // Only include payments within range
+                if (payment.PaidAt?.ToDateTime() >= fromDate)
+                {
+                    // Decrypt sensitive fields before adding
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(payment.ClientName))
+                            payment.ClientName = _encryptionHelper.Decrypt(payment.ClientName);
+
+                        if (!string.IsNullOrEmpty(payment.InvoiceNumber))
+                            payment.InvoiceNumber = _encryptionHelper.Decrypt(payment.InvoiceNumber);
+
+                        // (Add any other encrypted fields here if needed)
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Decryption failed for payment {payment.Id}: {ex.Message}");
+                        payment.ClientName = "[Decryption Error]";
+                    }
+
+                    payments.Add(payment);
+                }
+            }
+
+            return payments.OrderByDescending(p => p.PaidAt?.ToDateTime()).ToList();
+        }
+
+
+        public async Task<string> GeneratePaymentReportPdfAsync(List<Payment> payments, int months)
+        {
+            // filename and folder setup
+            string fileName = $"Payments_Report_{months}Months_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "PaymentReport", "QCPaymentsReportTemplate.docx");
+            string outputDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GeneratedPaymentReports");
+            Directory.CreateDirectory(outputDir);
+
+            string docxPath = Path.Combine(outputDir, $"{Path.GetFileNameWithoutExtension(fileName)}.docx");
+            string pdfPath = Path.Combine(outputDir, fileName);
+
+            // load Word template
+            Document wordDoc = new Document();
+            wordDoc.LoadFromFile(templatePath);
+
+            // replace placeholders
+            ReplaceText(wordDoc, "{{PaymentsReportDate}}", DateTime.Now.ToString("yyyy-MM-dd"));
+
+            // insert table
+            InsertPaymentsTable(wordDoc, payments);
+
+            // save files
+            wordDoc.SaveToFile(docxPath, FileFormat.Docx);
+            wordDoc.SaveToFile(pdfPath, FileFormat.PDF);
+
+            return pdfPath;
+        }
+
+        private void InsertPaymentsTable(Document wordDoc, List<Payment> payments)
+        {
+            var section = wordDoc.Sections[0];
+            var blue = Color.FromArgb(26, 46, 99);
+
+            int itemCount = payments?.Count ?? 0;
+            int totalRows = itemCount + 2;
+
+            Table table = section.AddTable(true);
+            table.ResetCells(totalRows, 4);
+            table.TableFormat.Paddings.All = 5f;
+            table.TableFormat.HorizontalAlignment = RowAlignment.Left;
+            table.TableFormat.Borders.BorderType = BorderStyle.None;
+            table.PreferredWidth = new PreferredWidth(WidthType.Percentage, 100);
+
+            // remove all borders
+            foreach (TableRow r in table.Rows)
+            {
+                r.RowFormat.Borders.BorderType = BorderStyle.None;
+                foreach (TableCell c in r.Cells)
+                    c.CellFormat.Borders.BorderType = BorderStyle.None;
+            }
+
+            // Column widths
+            table.Rows[0].Cells[0].Width = 60;   
+            table.Rows[0].Cells[1].Width = 150;  
+            table.Rows[0].Cells[2].Width = 250; 
+            table.Rows[0].Cells[3].Width = 150;
 
             // Header row
-            string[] headers = { "Client Name", "Company Name", "Invoice Number", "Total Amount" };
-            TableRow headerRow = table.Rows[0];
-            headerRow.RowFormat.BackColor = Color.LightGray;
+            string[] headers = { "No.", "Payment Date", "Client Name", "Total (R)" };
+            var headerRow = table.Rows[0];
 
             for (int i = 0; i < headers.Length; i++)
             {
                 Paragraph p = headerRow.Cells[i].AddParagraph();
                 TextRange tr = p.AppendText(headers[i]);
-                tr.CharacterFormat.FontName = "Poppins";
-                tr.CharacterFormat.FontSize = 12;
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
                 tr.CharacterFormat.Bold = true;
-                p.Format.HorizontalAlignment = HorizontalAlignment.Center;
+                tr.CharacterFormat.TextColor = blue;
+
+                p.Format.HorizontalAlignment = i == 0 ? HorizontalAlignment.Center :
+                                                (i == 1 ? HorizontalAlignment.Left :
+                                                (i == 2 ? HorizontalAlignment.Left : HorizontalAlignment.Right));
+
+                // Blue underline below header
+                headerRow.Cells[i].CellFormat.Borders.Bottom.BorderType = BorderStyle.Single;
+                headerRow.Cells[i].CellFormat.Borders.Bottom.Color = blue;
+                headerRow.Cells[i].CellFormat.Borders.Bottom.LineWidth = 1f;
             }
 
-            // Data rows
-            double totalAmount = 0;
-            for (int i = 0; i < invoices.Count; i++)
+            // Rows
+            double grandTotal = 0;
+            for (int i = 0; i < itemCount; i++)
             {
-                Invoice inv = invoices[i];
-                TableRow row = table.Rows[i + 1];
+                var pmt = payments[i];
+                var row = table.Rows[i + 1];
 
-                row.Cells[0].AddParagraph().AppendText(inv.ClientName ?? "-");
-                row.Cells[1].AddParagraph().AppendText(inv.CompanyName ?? "-");
-                row.Cells[2].AddParagraph().AppendText(inv.InvoiceNumber ?? "-");
-                row.Cells[3].AddParagraph().AppendText($"R {inv.TotalAmount:F2}");
+                // No.
+                {
+                    var p = row.Cells[0].AddParagraph();
+                    var tr = p.AppendText((i + 1).ToString());
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Center;
+                }
 
-                totalAmount += inv.TotalAmount;
+                // Payment Date
+                {
+                    var p = row.Cells[1].AddParagraph();
+                    var tr = p.AppendText(pmt.PaidAt?.ToDateTime().ToString("yyyy-MM-dd") ?? "");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Left;
+                }
+
+                // Client Name
+                {
+                    var p = row.Cells[2].AddParagraph();
+                    var tr = p.AppendText(pmt.ClientName ?? "N/A");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Left;
+                }
+
+                // Total Amount
+                {
+                    var p = row.Cells[3].AddParagraph();
+                    var tr = p.AppendText($"R{pmt.TotalAmount:0.00}");
+                    tr.CharacterFormat.FontName = "Century Gothic";
+                    tr.CharacterFormat.FontSize = 11;
+                    p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+                }
+
+                grandTotal += pmt.TotalAmount ?? 0;
+
             }
 
-            table.TableFormat.Borders.LineWidth = 0.5f;
-            table.TableFormat.Borders.Color = Color.LightGray;
-            table.Rows[0].Height = 20;
-            table.AutoFit(AutoFitBehaviorType.AutoFitToWindow);
+            // Total row
+            var totalRow = table.Rows[totalRows - 1];
+            for (int i = 0; i < 4; i++)
+            {
+                totalRow.Cells[i].CellFormat.Borders.Top.BorderType = BorderStyle.Single;
+                totalRow.Cells[i].CellFormat.Borders.Top.Color = blue;
+                totalRow.Cells[i].CellFormat.Borders.Top.LineWidth = 1f;
+            }
 
-            // Total line
-            Paragraph totalParagraph = section.AddParagraph();
-            totalParagraph.AppendText($"\nTotal Paid Amount: R {totalAmount:F2}");
-            totalParagraph.Format.HorizontalAlignment = HorizontalAlignment.Right;
-            totalParagraph.Format.AfterSpacing = 10;
-            totalParagraph.BreakCharacterFormat.Bold = true;
-            totalParagraph.BreakCharacterFormat.FontSize = 12;
+            totalRow.Cells[0].AddParagraph().AppendText("");
+            totalRow.Cells[1].AddParagraph().AppendText("");
+            {
+                var p = totalRow.Cells[2].AddParagraph();
+                var tr = p.AppendText("TOTAL PAYMENTS:");
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = blue;
+                p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+            }
+            {
+                var p = totalRow.Cells[3].AddParagraph();
+                var tr = p.AppendText($"R{grandTotal:0.00}");
+                tr.CharacterFormat.FontName = "Century Gothic";
+                tr.CharacterFormat.FontSize = 11;
+                tr.CharacterFormat.Bold = true;
+                tr.CharacterFormat.TextColor = Color.Black;
+                p.Format.HorizontalAlignment = HorizontalAlignment.Right;
+            }
 
-            // Footer
-            Paragraph footer = section.AddParagraph();
-            footer.AppendText($"Generated on: {DateTime.Now:yyyy-MM-dd HH:mm}");
-            footer.Format.HorizontalAlignment = HorizontalAlignment.Right;
-            footer.BreakCharacterFormat.FontSize = 10;
-            footer.BreakCharacterFormat.Italic = true;
-            footer.BreakCharacterFormat.TextColor = Color.Gray;
-
-            // Save DOCX, then export to PDF
-            document.SaveToFile(tempDocPath, FileFormat.Docx);
-            document.SaveToFile(tempPdfPath, FileFormat.PDF);
-
-            byte[] pdfBytes = await File.ReadAllBytesAsync(tempPdfPath);
-
-            // Cleanup temp files
-            if (File.Exists(tempDocPath)) File.Delete(tempDocPath);
-            if (File.Exists(tempPdfPath)) File.Delete(tempPdfPath);
-
-            string fileName = $"Payments_Report_{months}Months.pdf";
-            return (pdfBytes, fileName);
+            // Replace {{ItemTable}} placeholder
+            var placeholder = wordDoc.FindString("{{ItemTable}}", true, true);
+            if (placeholder != null)
+            {
+                var para = placeholder.GetAsOneRange().OwnerParagraph;
+                var body = para.OwnerTextBody;
+                int idx = body.ChildObjects.IndexOf(para);
+                body.ChildObjects.Remove(para);
+                body.ChildObjects.Insert(idx, table);
+            }
         }
 
         private CollectionReference GetPaymentsCollection()
         {
-            return _firestoreDb.Collection("Payments");
+            return _firestoreDb.Collection("payments");
         }
 
-        private async Task AddPaymentRecordAsync(string invoiceId)
-        {
-            // Get the invoice document
-            var invoiceDoc = await GetInvoicesCollection().Document(invoiceId).GetSnapshotAsync();
+        //--------------------------------------------------------------------------- Payment Section ---------------------------------------------------------------------------//
 
-            if (invoiceDoc.Exists)
-            {
-                var invoiceData = invoiceDoc.ToDictionary();
-
-                // Create a new Payment record using the invoice data
-                var paymentData = new Dictionary<string, object>
-                {
-                    { "invoiceId", invoiceId },
-                    { "clientName", invoiceData.ContainsKey("clientName") ? invoiceData["clientName"] : "" },
-                    { "amount", invoiceData.ContainsKey("amount") ? invoiceData["amount"] : 0 },
-                    { "dateIssued", invoiceData.ContainsKey("dateIssued") ? invoiceData["dateIssued"] : null },
-                    { "status", "Paid" },
-                    { "paymentDate", DateTime.UtcNow },
-                    { "createdAt", Timestamp.GetCurrentTimestamp() }
-                };
-
-                // Add the payment record to the Payments collection
-                await GetPaymentsCollection().AddAsync(paymentData);
-            }
-        }
-
-        public CollectionReference GetNotificationCollection()
-        {
-            return _firestoreDb.Collection("notifications");
-        }
         public async Task<List<Notifications>> GetRecentNotificationsAsync()
         {
             var notificationsRef = GetNotificationCollection();
@@ -1895,6 +2291,11 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 .ToList();
 
             return recentNotifications;
+        }
+
+        public CollectionReference GetNotificationCollection()
+        {
+            return _firestoreDb.Collection("notifications");
         }
 
     }

@@ -1,4 +1,4 @@
-@model List<INSY7315_ElevateDigitalStudios_POE.Models.Invoice>
+@model List<INSY7315_ElevateDigitalStudios_POE.Models.Payment>
 
 @{
     ViewBag.Title = "Payments";
@@ -33,9 +33,9 @@
                     <a class="btn-icon"><img src="~/images/filter-btn.png" width="20" height="20"></a>
                     Filter
                 </button>
-                <button class="btn btn-success" onclick="downloadPaymentsReport(3)">Last 3 Months</button>
-                <button class="btn btn-success" onclick="downloadPaymentsReport(6)">Last 6 Months</button>
-                <button class="btn btn-success" onclick="downloadPaymentsReport(12)">Last 12 Months</button>
+                <button class="btn btn-success" id="btnLast3Months">Last 3 Months</button>
+                <button class="btn btn-success" id="btnLast6Months">Last 6 Months</button>
+                <button class="btn btn-success" id="btnLast12Months">Last 12 Months</button>
             </div>
 
             <div class="table-container">
@@ -144,6 +144,7 @@
     </div>
 
     <script>
+
         let selectedPaymentId = null;
 
         const tableBody = document.querySelector('.quotations-table tbody');
@@ -235,107 +236,148 @@
         function hideDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; }
 
         document.addEventListener("DOMContentLoaded", () => {
-        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
 
-        document.querySelectorAll('.save-btn-payments').forEach(btn => {
-            btn.addEventListener('click', e => {
-                e.preventDefault();
-                showSaveModal(btn.dataset.invoiceId);
-            });
-        });
-
-        document.querySelectorAll('.send-btn-payments').forEach(btn => {
-            btn.addEventListener('click', e => {
-                e.preventDefault();
-                showShareModal(btn.dataset.invoiceId);
-            });
-        });
-
-        document.querySelectorAll('.delete-btn-payments').forEach(btn => {
-            btn.addEventListener('click', e => {
-                e.preventDefault();
-                showDeleteModal(btn.dataset.invoiceId);
-            });
-        });
-
-        document.getElementById('confirmSaveBtn').addEventListener('click', async () => {
-            if (!selectedPaymentId) return;
-            hideSaveModal();
-            const res = await fetch('@Url.Action("SaveInvoice", "Invoices")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                body: JSON.stringify({ invoiceId: selectedPaymentId })
+            document.querySelectorAll('.save-btn-payments').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.preventDefault();
+                    showSaveModal(btn.dataset.invoiceId);
+                });
             });
 
-            if (res.ok) {
+            document.querySelectorAll('.send-btn-payments').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.preventDefault();
+                    showShareModal(btn.dataset.invoiceId);
+                });
+            });
+
+            document.querySelectorAll('.delete-btn-payments').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.preventDefault();
+                    showDeleteModal(btn.dataset.invoiceId);
+                });
+            });
+
+            document.getElementById('confirmSaveBtn').addEventListener('click', async () => {
+                if (!selectedPaymentId) return;
+                hideSaveModal();
+
+                const res = await fetch('@Url.Action("SavePayment", "Payments")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ paymentId: selectedPaymentId })
+                });
+
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Payment_${selectedPaymentId}.pdf`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                } else {
+                    alert("Failed to download payment PDF.");
+                }
+
+                selectedPaymentId = null;
+            });
+
+
+            document.getElementById('confirmShareBtn').addEventListener('click', async () => {
+                if (!selectedPaymentId) return;
+                hideShareModal();
+
+                const res = await fetch('@Url.Action("SendPayment", "Payments")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ paymentId: selectedPaymentId })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    alert("Payment sent successfully!");
+                } else {
+                    alert(result.message || "Failed to send payment.");
+                }
+                selectedPaymentId = null;
+            });
+
+
+            document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+                if (!selectedPaymentId) return;
+                hideDeleteModal();
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+
+                    const res = await fetch('@Url.Action("DeletePayment", "Payments")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify({ paymentId: selectedPaymentId })
+                    });
+
+                    if (!res.ok) {
+                        let errMsg = "Failed to delete payment.";
+                        try {
+                            const err = await res.json();
+                            if (err?.message) errMsg = err.message;
+                        } catch { }
+                        throw new Error(errMsg);
+                    }
+
+                    const result = await res.json();
+                    if (result.success) {
+                        document.querySelector(`tr[data-invoice-id="${selectedPaymentId}"]`)?.remove();
+                        alert("Payment deleted successfully.");
+                    } else {
+                        alert(result.message || "Failed to delete payment.");
+                    }
+                } catch (err) {
+                    console.error("Delete payment error:", err);
+                    alert(err.message || "Failed to delete payment.");
+                } finally {
+                    selectedPaymentId = null;
+                }
+            });
+
+
+            async function downloadPaymentsReport(months) {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+                const res = await fetch('@Url.Action("DownloadPaymentsReport", "Payments")', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({ months })
+                });
+
+                if (!res.ok) return alert("Failed to generate report.");
+
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `Payment_${selectedPaymentId}.pdf`;
+                a.download = `Payments_Report_${months}Months.pdf`;
                 a.click();
                 URL.revokeObjectURL(url);
-            } else {
-                alert("Failed to download payment PDF.");
             }
-            selectedPaymentId = null;
-        });
 
-        document.getElementById('confirmShareBtn').addEventListener('click', async () => {
-            if (!selectedPaymentId) return;
-            hideShareModal();
 
-            const res = await fetch('@Url.Action("SendInvoice", "Invoices")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                body: JSON.stringify({ invoiceId: selectedPaymentId })
+
+            document.getElementById('btnLast3Months').addEventListener('click', () => downloadPaymentsReport(3));
+            document.getElementById('btnLast6Months').addEventListener('click', () => downloadPaymentsReport(6));
+            document.getElementById('btnLast12Months').addEventListener('click', () => downloadPaymentsReport(12));
+
             });
-
-            const result = await res.json();
-            if (result.success) alert("Payment sent successfully!");
-            else alert("Failed to send payment.");
-            selectedPaymentId = null;
-        });
-
-        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
-            if (!selectedPaymentId) return;
-            hideDeleteModal();
-
-            const res = await fetch('@Url.Action("DeleteInvoice", "Invoices")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                body: JSON.stringify({ invoiceId: selectedPaymentId })
-            });
-
-            const result = await res.json();
-            if (result.success) {
-                document.querySelector(`tr[data-invoice-id="${selectedPaymentId}"]`)?.remove();
-                alert("Payment deleted successfully.");
-            } else {
-                alert("Failed to delete payment.");
-            }
-            selectedPaymentId = null;
-        });
-    });
-
-    async function downloadPaymentsReport(months) {
-        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
-        const res = await fetch('/Payments/DownloadPaymentsReport', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-            body: JSON.stringify({ months })
-        });
-
-        if (!res.ok) return alert("Failed to generate report.");
-
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Payments_Report_${months}Months.pdf`;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
     </script>
 </body>
 </html>
