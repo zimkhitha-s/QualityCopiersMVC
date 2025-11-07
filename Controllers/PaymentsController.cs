@@ -53,31 +53,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             }
         }
 
-        // get invoice details
-        [HttpGet]
-        public async Task<IActionResult> GetInvoiceDetails(string id)
-        {
-            try
-            {
-                // validate id
-                if (string.IsNullOrEmpty(id))
-                    return BadRequest(new { error = "Missing invoice ID." });
-
-                // fetch invoice details
-                var invoice = await _firebaseService.GetInvoiceDetailsAsync(id);
-                if (invoice == null)
-                    return NotFound(new { error = "Invoice not found." });
-
-                // return invoice as json
-                return Json(invoice);
-            }
-            catch (Exception ex)
-            {
-                // handle errors
-                return StatusCode(500, new { error = $"Error fetching invoice: {ex.Message}" });
-            }
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DownloadPaymentsReport([FromBody] PaymentReportRequest request)

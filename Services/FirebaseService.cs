@@ -1661,99 +1661,31 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
 
         //--------------------------------------------------------------------------- Payment Section ---------------------------------------------------------------------------//
 
-        // method to get paid invoices within date range
-        public async Task<List<Invoice>> GetPaidInvoicesByDateRangeAsync(int months)
-        {
-            try
-            {
-                // fetch all invoices from firestore
-                var invoicesRef = _firestoreDb.Collection("invoices");
-                var snapshot = await invoicesRef.GetSnapshotAsync();
-
-                DateTime cutoffDate = DateTime.UtcNow.AddMonths(-months);
-                List<Invoice> paidInvoices = new();
-
-                // local safe decryption helper
-                string SafeDecrypt(string value)
-                {
-                    if (string.IsNullOrWhiteSpace(value))
-                        return value;
-
-                    try
-                    {
-                        // attempt decryption
-                        return _encryptionHelper.Decrypt(value);
-                    }
-                    catch
-                    {
-                        // return the original value if not encrypted
-                        return value;
-                    }
-                }
-
-                foreach (var doc in snapshot.Documents)
-                {
-                    if (!doc.Exists) continue;
-                    var invoice = doc.ConvertTo<Invoice>();
-
-                    // use safe decrypt for every possibly encrypted field
-                    invoice.ClientName = SafeDecrypt(invoice.ClientName);
-                    invoice.CompanyName = SafeDecrypt(invoice.CompanyName);
-                    invoice.InvoiceNumber = SafeDecrypt(invoice.InvoiceNumber);
-                    invoice.Email = SafeDecrypt(invoice.Email);
-                    invoice.Phone = SafeDecrypt(invoice.Phone);
-
-                    // decrypt item descriptions
-                    if (invoice.CreatedAt == null) continue;
-                    DateTime createdAt = invoice.CreatedAt.Value.ToDateTime();
-
-                    // filter for paid invoices within date range
-                    if (invoice.Status == "Paid" && createdAt >= cutoffDate)
-                    {
-                        paidInvoices.Add(invoice);
-                    }
-                }
-
-                // return sorted list by created date descending
-                return paidInvoices.OrderByDescending(i => i.CreatedAt).ToList();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching paid invoices: {ex.Message}");
-                return new List<Invoice>();
-            }
-        }
-
         public async Task AddPaymentRecordAsync(string invoiceId)
         {
-            // fetch the invoice details (already decrypted inside GetInvoiceDetailsAsync)
             var invoice = await GetInvoiceDetailsAsync(invoiceId);
             if (invoice == null) return;
 
-            // get payments collection
             var paymentsCollection = GetPaymentsCollection();
 
-            // Check if a payment for this invoice already exists
-            var existingPaymentsQuery = await paymentsCollection
-                .WhereEqualTo("InvoiceNumber", _encryptionHelper.Encrypt(invoice.InvoiceNumber))
-                .GetSnapshotAsync();
+            var paymentDocRef = paymentsCollection.Document(invoiceId);
+            var existingPayment = await paymentDocRef.GetSnapshotAsync();
 
-            if (existingPaymentsQuery.Count > 0)
+            if (existingPayment.Exists)
             {
                 Console.WriteLine($"Payment for Invoice {invoice.InvoiceNumber} already exists. Skipping duplicate.");
                 return;
             }
 
-            // map invoice to Payment
             var payment = new Payment
             {
                 InvoiceNumber = _encryptionHelper.Encrypt(invoice.InvoiceNumber),
-                QuoteNumber = _encryptionHelper.Encrypt(invoice.QuoteNumber),
+                QuoteNumber = _encryptionHelper.Encrypt(invoice.QuoteNumber ?? string.Empty),
                 ClientName = _encryptionHelper.Encrypt(invoice.ClientName),
                 CompanyName = _encryptionHelper.Encrypt(invoice.CompanyName),
                 Email = _encryptionHelper.Encrypt(invoice.Email),
                 Phone = _encryptionHelper.Encrypt(invoice.Phone),
-                Address = _encryptionHelper.Encrypt(invoice.Address),
+                Address = _encryptionHelper.Encrypt(invoice.Address ?? string.Empty),
                 Items = invoice.Items?.Select(i => new PaymentItem
                 {
                     Description = _encryptionHelper.Encrypt(i.Description),
@@ -1769,8 +1701,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 Year = DateTime.UtcNow.Year.ToString()
             };
 
-            // save to Firestore Payments collection
-            await paymentsCollection.AddAsync(payment);
+            // save to firestore
+            await paymentDocRef.SetAsync(payment);
         }
 
 
@@ -1807,7 +1739,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 payments.Add(payment);
             }
 
-            // return sorted list by payment date (newest first)
+            // return sorted list by payment date
             return payments.OrderByDescending(p => p.PaidAt).ToList();
         }
 
@@ -1962,7 +1894,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                 string tempDocxPath = Path.Combine(generatedDir, $"{Path.GetFileNameWithoutExtension(pdfFileName)}.docx");
                 string outputPdfPath = Path.Combine(generatedDir, pdfFileName);
 
-                // generate pdf (reuse your invoice PDF generator method if flexible)
+                // generate pdf
                 GeneratePaymentPdf(payment, templatePath, tempDocxPath, outputPdfPath);
 
                 if (!File.Exists(outputPdfPath))
@@ -2272,7 +2204,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             return _firestoreDb.Collection("payments");
         }
 
-        //--------------------------------------------------------------------------- Payment Section ---------------------------------------------------------------------------//
+        //--------------------------------------------------------------------------- Notifications Section ---------------------------------------------------------------------------//
 
         public async Task<List<Notifications>> GetRecentNotificationsAsync()
         {
