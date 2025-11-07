@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text;
 using System.Linq;
+using INSY7315_ElevateDigitalStudios_POE.Helper;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 {
+    [SessionAuthorize]
     public class PaymentsController : Controller
     {
         // dependencies injection - firebase service

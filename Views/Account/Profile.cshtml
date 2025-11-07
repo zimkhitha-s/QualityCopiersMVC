@@ -99,6 +99,9 @@
                                 <input type="password" id="confirm-password" placeholder="*************" />
                             </div>
                         </form>
+
+                        <button type="button" class="save-button" id="changePasswordBtn">Change Password</button>
+
                     </div>
                 </div>
                     <div class="action-buttons">
@@ -174,30 +177,45 @@
             }
         });
 
-        editButton.addEventListener('click', () => {
-        imageInput.click();
-        });
+        document.getElementById("changePasswordBtn").addEventListener("click", async () => {
+        const currentPassword = document.getElementById("current-password").value;
+        const newPassword = document.getElementById("new-password").value;
+        const confirmPassword = document.getElementById("confirm-password").value;
 
-        imageInput.addEventListener('change', async (event) => {
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            alert("Please fill in all password fields.");
+            return;
+        }
 
-            const file = event.target.files[0];
-            if (file) {
-                const formData = new FormData();
-                formData.append('image', file);
+        if (newPassword !== confirmPassword) {
+            alert("New passwords do not match.");
+            return;
+        }
 
-                const response = await fetch('/Account/UploadImage', {
-                    method: 'POST',
-                    body: formData
-                });
+        try {
+            const response = await fetch("/Account/ChangePassword", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
 
-                if (response.ok) {
-                    const imageUrl = await response.text();
-                    profileImage.src = imageUrl;
-                } else {
-                    alert('Failed to upload image.');
-                }
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("Password changed successfully!");
+                document.getElementById("current-password").value = "";
+                document.getElementById("new-password").value = "";
+                document.getElementById("confirm-password").value = "";
+            } else {
+                alert("" + (data.error || "Failed to change password."));
             }
-        });
+        } catch (error) {
+            console.error("Error changing password:", error);
+            alert("Error changing password: " + error.message);
+        }
+    });
 </script>
 </body>
 </html>

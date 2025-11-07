@@ -4,6 +4,10 @@ using INSY7315_ElevateDigitalStudios_POE.Models.Dtos;
 using INSY7315_ElevateDigitalStudios_POE.Models.Requests;
 using INSY7315_ElevateDigitalStudios_POE.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 {
@@ -41,7 +45,9 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         }
 
         // login endpoints - GET
+
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult Login()
         {
             return View();
@@ -68,7 +74,9 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         }
 
         // login endpoints - POST
+
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Login(string email, string password)
         {
             // Authenticate with Firebase
@@ -141,6 +149,27 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 HttpContext.Session.SetString("UserName", name);
                 HttpContext.Session.SetString("UserSurname", surname);
 
+                // ✅ Create the authentication identity & sign in user
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, userId),
+                    new Claim(ClaimTypes.Email, email),
+                    new Claim(ClaimTypes.Role, role),
+                    new Claim(ClaimTypes.Name, fullname)
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(30)
+                };
+
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity),
+                    authProperties);
+
                 // Redirect to dashboard
                 return RedirectToAction("Index", "Dashboard");
             }
@@ -162,14 +191,18 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 
 
         // get endpoint for forgot password
+
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult ForgotPassword()
         {
             return View();
         }
 
         // post endpoint for forgot password
+        
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword(string email)
         {
             // validate email input
@@ -261,12 +294,41 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 { "language", updatedData.Language }
             };
 
-            var (success, message) = await _firebaseService.UpdateManagerDataAsync(userId, data);
+            var (success, message) = await _firebaseService.UpdateUserDetailsAsync(userId, data);
 
             if (!success)
                 return StatusCode(500, new { message });
 
             return Ok(new { message });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var email = HttpContext.Session.GetString("UserEmail");
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return Unauthorized(new { error = "User email not found. Please log in again." });
+            }
+
+            if (request == null ||
+                string.IsNullOrWhiteSpace(request.CurrentPassword) ||
+                string.IsNullOrWhiteSpace(request.NewPassword))
+            {
+                return BadRequest(new { error = "All fields are required." });
+            }
+
+            var (success, errorMessage) = await _firebaseAuthService.ChangePasswordAsync(
+                email,
+                request.CurrentPassword,
+                request.NewPassword
+            );
+
+            if (!success)
+                return BadRequest(new { error = errorMessage ?? "Failed to change password." });
+
+            return Ok(new { message = "Password changed successfully." });
         }
 
         // upload profile image

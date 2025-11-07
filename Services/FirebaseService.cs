@@ -49,7 +49,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             }
 
             // initialize firestore database and encryption helper
-            _firestoreDb = FirestoreDb.Create("_firebaseProjectId)");
+            _firestoreDb = FirestoreDb.Create("insy7315-database2");
 
             _senderEmail = SecretManagerHelper.GetSecret(_firebaseProjectId, "email-smtp-user");
             _smtpPassword = SecretManagerHelper.GetSecret(_firebaseProjectId, "email-smtp-password");
@@ -1010,6 +1010,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
             // return the list of invoices
             return invoices;
         }
+        
         
         // get invoice details by id for payments
         public async Task<Invoice?> GetInvoiceDetailsAsync(string id)
