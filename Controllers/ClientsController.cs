@@ -1,4 +1,5 @@
-﻿using INSY7315_ElevateDigitalStudios_POE.Models;
+﻿using INSY7315_ElevateDigitalStudios_POE.Helper;
+using INSY7315_ElevateDigitalStudios_POE.Models;
 using INSY7315_ElevateDigitalStudios_POE.Models.Dtos;
 using INSY7315_ElevateDigitalStudios_POE.Models.Requests;
 using INSY7315_ElevateDigitalStudios_POE.Security;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 {
+    [SessionAuthorize]
     public class ClientsController : Controller
     {
 

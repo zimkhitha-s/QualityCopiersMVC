@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using DotNetEnv;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using INSY7315_ElevateDigitalStudios_POE.Helper;
 
 namespace INSY7315_ElevateDigitalStudios_POE
 {
@@ -15,12 +18,34 @@ namespace INSY7315_ElevateDigitalStudios_POE
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // 1) Add authentication (cookie) and authorization
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Account/Login";            // redirect here when unauthenticated
+                    options.LogoutPath = "/Account/Logout";
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                    options.SlidingExpiration = true;
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SameSite = SameSiteMode.Lax;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // set to Always in prod (HTTPS)
+                    // optional: options.Events.OnValidatePrincipal = ... // see server-side checks below
+                });
+
+            builder.Services.AddAuthorization(options =>
+            {
+                // make authentication required by default for all endpoints
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+            });
+
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddControllersWithViews(options =>
             {
-                
+                options.Filters.Add<SessionAuthorizeAttribute>();
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
             });
 
@@ -67,6 +92,7 @@ namespace INSY7315_ElevateDigitalStudios_POE
                 HttpOnly = HttpOnlyPolicy.Always      // Prevent JavaScript access to cookies
             });
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             // Map your routes

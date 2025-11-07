@@ -1,9 +1,12 @@
 using System.Diagnostics;
+using INSY7315_ElevateDigitalStudios_POE.Helper;
 using INSY7315_ElevateDigitalStudios_POE.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 {
+    [AllowAnonymous]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

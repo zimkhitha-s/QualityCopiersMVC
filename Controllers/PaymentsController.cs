@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text;
 using System.Linq;
+using INSY7315_ElevateDigitalStudios_POE.Helper;
 using INSY7315_ElevateDigitalStudios_POE.Models.Requests;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Controllers
@@ -18,9 +19,11 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             _firebaseService = firebaseService;
         }
 
+        // load all invoices - Unpaid and Paid
         [HttpGet]
         public async Task<IActionResult> Payments()
         {
+            // set session variables for view
             ViewBag.FullName = HttpContext.Session.GetString("FullName");
             ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
 
