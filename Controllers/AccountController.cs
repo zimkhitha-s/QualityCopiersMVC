@@ -14,17 +14,17 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
     
     public class AccountController : Controller
     {
-        // Dependencies - firebase auth, firestore service, hosting env, configuration
+        // dependencies - firebase auth, firestore service, hosting env, configuration
         private readonly FirebaseAuthService _firebaseAuthService;
         private readonly FirebaseService _firebaseService;
         private readonly IWebHostEnvironment _env;
         private readonly IConfiguration _configuration;
 
-        // Secrets
+        // secrets
         private readonly string _firebaseApiKey;
         private readonly string _managerEmail;
 
-        // Constructor to inject dependencies
+        // constructor to inject dependencies
         public AccountController(
             FirebaseAuthService firebaseAuthService,
             FirebaseService firebaseService,
@@ -36,10 +36,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             _env = env;
             _configuration = configuration;
 
-            // Fetch Google Cloud project ID
+            // fetch Google Cloud project ID
             var projectId = Environment.GetEnvironmentVariable("GCP_PROJECT_ID");
 
-            // Retrieve secrets via centralized helper
+            // retrieve secrets via centralized helper
             _firebaseApiKey = SecretManagerHelper.GetSecret(projectId, "firebase-web-API-key");
             _managerEmail = SecretManagerHelper.GetSecret(projectId, "manager-email");
         }
@@ -57,7 +57,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [HttpGet]
         public IActionResult Logout()
         {
-            // Clear all session data
+            // clear all session data
             HttpContext.Session.Clear();
             HttpContext.Session.Remove("UserEmail");
             HttpContext.Session.Remove("UserId");
@@ -66,10 +66,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             HttpContext.Session.Remove("UserName");
             HttpContext.Session.Remove("UserSurname");
 
-            // End the session completely
+            // end the session
             HttpContext.Session.CommitAsync();
 
-            // Redirect user to Login page
+            // redirect user to Login page
             return RedirectToAction("Login", "Account");
         }
 
@@ -79,10 +79,10 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login(string email, string password)
         {
-            // Authenticate with Firebase
+            // authenticate with firebase
             var idToken = await _firebaseAuthService.SignInWithEmailPasswordAsync(email, password);
 
-            // Handle invalid login
+            // handle invalid login
             if (string.IsNullOrEmpty(idToken))
             {
                 ViewBag.Error = "Invalid login attempt.";
@@ -91,13 +91,13 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 
             try
             {
-                // Decode Firebase token to extract UID
+                // decode Firebase token to extract uid
                 var firebaseAuth = FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance;
                 var decodedToken = await firebaseAuth.VerifyIdTokenAsync(idToken);
                 var userId = decodedToken.Uid;
                 Dictionary<string, object> userDetails;
 
-                // Lazy-load Google Cloud project ID and manager email
+                // google cloud project id and manager email
                 var projectId = Environment.GetEnvironmentVariable("GCP_PROJECT_ID");
                 if (string.IsNullOrEmpty(projectId))
                 {
@@ -117,7 +117,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                     return View();
                 }
 
-                // Determine if user is manager or regular employee
+                // determine if user is manager or regular employee
                 if (email.Equals(managerEmail, StringComparison.OrdinalIgnoreCase))
                 {
                     // Ensure service account has Firestore access for manager
@@ -128,20 +128,20 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                     userDetails = await _firebaseService.GetUserDetailsAsync(userId);
                 }
 
-                // Validate user details
+                // validate user details
                 if (userDetails == null || !userDetails.ContainsKey("role"))
                 {
                     ViewBag.Error = "User details not found.";
                     return View();
                 }
 
-                // Extract user information
+                // extract user information
                 string role = userDetails["role"]?.ToString() ?? "";
                 string name = userDetails.ContainsKey("name") ? userDetails["name"]?.ToString() ?? "" : "";
                 string surname = userDetails.ContainsKey("surname") ? userDetails["surname"]?.ToString() ?? "" : "";
                 string fullname = $"{name} {surname}";
 
-                // Store information in session
+                // store information in session
                 HttpContext.Session.SetString("UserEmail", email);
                 HttpContext.Session.SetString("UserId", userId);
                 HttpContext.Session.SetString("UserRole", role);
@@ -149,7 +149,7 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
                 HttpContext.Session.SetString("UserName", name);
                 HttpContext.Session.SetString("UserSurname", surname);
 
-                // ✅ Create the authentication identity & sign in user
+                // create the authentication identity & sign in user
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.NameIdentifier, userId),

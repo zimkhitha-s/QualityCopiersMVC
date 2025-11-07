@@ -8,7 +8,6 @@ namespace INSY7315_ElevateDigitalStudios_POE.Helper
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            // Skip if the action or controller has [AllowAnonymous]
             var endpoint = context.HttpContext.GetEndpoint();
             if (endpoint != null && endpoint.Metadata.GetMetadata<AllowAnonymousAttribute>() != null)
             {
@@ -24,3 +23,4 @@ namespace INSY7315_ElevateDigitalStudios_POE.Helper
         }
     }
 }
+//-------------------------------------------------------------------------------------------End Of File--------------------------------------------------------------------//

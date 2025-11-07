@@ -10,8 +10,6 @@ using MimeKit;
 using Spire.Doc;
 using Spire.Doc.Documents;
 using Spire.Doc.Fields;
-using Google.Cloud.SecretManager.V1;
-using System.Drawing;
 using INSY7315_ElevateDigitalStudios_POE.Helper;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Services
