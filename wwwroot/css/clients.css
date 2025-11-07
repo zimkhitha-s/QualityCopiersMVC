@@ -326,7 +326,7 @@
     font-weight: 600;
     color: black;
     margin-top: 30px;
-    font-family: 'Poppins';
+    font-family: 'Poppins', sans-serif;
 }
 
 /* ===== CLOSE ICON ===== */
