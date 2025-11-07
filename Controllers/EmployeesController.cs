@@ -47,6 +47,8 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddEmployees(Employee employee)
         {
+            ViewBag.FullName = HttpContext.Session.GetString("FullName");
+            ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Please correct the errors and try again.";
