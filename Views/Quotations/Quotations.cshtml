@@ -140,7 +140,6 @@
 
 <script>
     (function () {
-
         const antiForgeryInput = document.querySelector('input[name="__RequestVerificationToken"]');
         const antiForgeryToken = antiForgeryInput ? antiForgeryInput.value : null;
 
@@ -157,6 +156,7 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             const tableBody = document.getElementById('quotationTableBody');
+            if (!tableBody) return console.warn('quotationTableBody not found.');
 
             const originalRows = Array.from(tableBody.querySelectorAll('tr')).map(r => r.cloneNode(true));
 
@@ -173,7 +173,6 @@
             });
 
             window.applyFilter = function (filterType) {
-
                 let rows = originalRows.map(r => r.cloneNode(true)).filter(r => !r.querySelector('td[colspan]'));
 
                 switch (filterType) {
@@ -206,135 +205,167 @@
             };
 
             let selectedQuotationIdForDownload = null;
-            const quotationTableBody = document.getElementById("quotationTableBody"); // change to your actual table body ID
+            const downloadModal = document.getElementById('quotationDownloadModal');
+            const confirmDownloadBtn = document.getElementById('confirmDownloadQuotationBtn');
 
-// handle download button click
-quotationTableBody.addEventListener('click', function (e) {
-    const btn = e.target.closest('.download-quotation-btn');
-    if (!btn) return;
-
-    e.preventDefault();
-    selectedQuotationIdForDownload = btn.dataset.quotationId;
-
-    if (!selectedQuotationIdForDownload) {
-        alert("Invalid quotation ID.");
-        return;
-    }
-
-    document.getElementById('quotationDownloadModal').style.display = 'flex';
-});
-
-// hide modal
-function hideQuotationDownloadModal() {
-    document.getElementById('quotationDownloadModal').style.display = 'none';
-}
-
-// confirm download
-document.getElementById('confirmDownloadQuotationBtn').addEventListener('click', async function () {
-    if (!selectedQuotationIdForDownload) return alert("Invalid quotation ID.");
-
-    const confirmBtn = this;
-    confirmBtn.disabled = true;
-    confirmBtn.textContent = 'Downloading...';
-
-    try {
-        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-        const token = tokenInput ? tokenInput.value : '';
-
-        const payload = { QuotationId: selectedQuotationIdForDownload };
-        const response = await fetch('/Quotations/DownloadQuotation', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': token
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            const errText = await response.text();
-            console.error("Download error response:", errText);
-            alert("Failed to download quotation.");
-            return;
-        }
-
-        // get PDF blob and trigger download
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-
-        // get filename from backend if provided
-        const disposition = response.headers.get('Content-Disposition');
-        let fileName = `Quotation_${selectedQuotationIdForDownload}.pdf`; // fallback
-
-        if (disposition && disposition.includes('filename=')) {
-            fileName = disposition.split('filename=')[1].replace(/"/g, '');
-        }
-
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        window.URL.revokeObjectURL(url);
-        hideQuotationDownloadModal();
-    } catch (err) {
-        console.error("Error downloading quotation:", err);
-        alert("An error occurred while downloading the quotation.");
-    } finally {
-        selectedQuotationIdForDownload = null;
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = 'Yes, Download';
-    }
-});
-
-
-
-            // Delete Functionality
-            let quoteToDelete = null;
             tableBody.addEventListener('click', function (e) {
-                const btn = e.target.closest('.delete-btn, .delete-btn *');
-                if (!btn) return;
+                const anchor = e.target.closest('a.download-btn-quotation');
+                if (!anchor) return; 
                 e.preventDefault();
-                const anchor = btn.closest('.delete-btn');
-                quoteToDelete = anchor?.dataset.quoteId;
-                if (!quoteToDelete) return;
-                showDeleteModal();
+
+                const qid = anchor.dataset.quotationId || anchor.getAttribute('data-quotation-id');
+                if (!qid) {
+                    alert('Invalid quotation ID.');
+                    return;
+                }
+                selectedQuotationIdForDownload = qid;
+                if (downloadModal) downloadModal.style.display = 'flex';
             });
 
-            // Confirm delete
-            document.getElementById('confirmDeleteBtn').addEventListener('click', async function () {
-                if (!quoteToDelete) return;
-                try {
-                    const resp = await safePost('@Url.Action("DeleteQuotation","Quotations")', { quotationId: quoteToDelete });
-                    const data = await resp.json();
+            // hide modal function
+            window.hideQuotationDownloadModal = function () {
+                if (downloadModal) downloadModal.style.display = 'none';
+                selectedQuotationIdForDownload = null;
+                if (confirmDownloadBtn) {
+                    confirmDownloadBtn.disabled = false;
+                    confirmDownloadBtn.textContent = 'Yes, Download';
+                }
+            };
 
-                    if (resp.ok && data && data.success) {
-                        const row = tableBody.querySelector(`tr[data-quote-id="${quoteToDelete}"]`);
-                        if (row) row.remove();
-                        alert('Quotation deleted successfully.');
-                    } else {
-                        alert('Failed to delete quotation.');
+            if (downloadModal) {
+                downloadModal.addEventListener('click', function () {
+                    hideQuotationDownloadModal();
+                });
+            }
+
+            // confirm download action
+            if (confirmDownloadBtn) {
+                confirmDownloadBtn.addEventListener('click', async function () {
+                    if (!selectedQuotationIdForDownload) return alert('Invalid quotation ID.');
+
+                    const btn = this;
+                    btn.disabled = true;
+                    btn.textContent = 'Downloading...';
+
+                    try {
+                        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                        const token = tokenInput ? tokenInput.value : '';
+
+                        const payload = { QuotationId: selectedQuotationIdForDownload };
+                        const response = await fetch('/Quotations/DownloadQuotation', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': token
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            const errText = await response.text();
+                            console.error('Download error response:', errText);
+                            alert('Failed to download quotation.');
+                            return;
+                        }
+
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+
+                        const disposition = response.headers.get('Content-Disposition');
+                        let fileName = `Quotation_${selectedQuotationIdForDownload}.pdf`;
+                        if (disposition && disposition.includes('filename=')) {
+                            fileName = disposition.split('filename=')[1].replace(/"/g, '').trim();
+                        }
+
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                        hideQuotationDownloadModal();
+                    } catch (err) {
+                        console.error('Error downloading quotation:', err);
+                        alert('An error occurred while downloading the quotation.');
+                    } finally {
+                        selectedQuotationIdForDownload = null;
+                        btn.disabled = false;
+                        btn.textContent = 'Yes, Download';
                     }
-                } catch (err) {
-                    console.error(err);
-                    alert('Error deleting quotation.');
-                } finally {
+                });
+            }
+
+            // --- DELETE modal logic ---
+            let quoteToDelete = null;
+            const deleteModal = document.getElementById('deleteModal');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+            tableBody.addEventListener('click', function (e) {
+                const anchor = e.target.closest('a.delete-btn-quotations');
+                if (!anchor) return;
+                e.preventDefault();
+
+                const qid = anchor.dataset.quoteId || anchor.getAttribute('data-quote-id');
+                if (!qid) return alert('Invalid quotation id for delete.');
+
+                quoteToDelete = qid;
+                if (deleteModal) deleteModal.style.display = 'flex';
+            });
+
+            // hide delete modal
+            window.hideDeleteModal = function () {
+                if (deleteModal) deleteModal.style.display = 'none';
+                quoteToDelete = null;
+            };
+
+            if (deleteModal) {
+                deleteModal.addEventListener('click', function () {
                     hideDeleteModal();
-                    quoteToDelete = null;
+                });
+            }
+
+            // confirm delete
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.addEventListener('click', async function () {
+                    if (!quoteToDelete) return;
+                    try {
+                        const resp = await safePost('@Url.Action("DeleteQuotation", "Quotations")', { quotationId: quoteToDelete });
+                        let data = null;
+                        try { data = await resp.json(); } catch (err) { console.warn('Delete: no json response'); }
+
+                        if (resp.ok && data && data.success) {
+                            const row = tableBody.querySelector(`tr[data-quote-id="${quoteToDelete}"]`);
+                            if (row) row.remove();
+                            alert('Quotation deleted successfully.');
+                        } else {
+                            alert('Failed to delete quotation.');
+                        }
+                    } catch (err) {
+                        console.error('Error deleting quotation:', err);
+                        alert('Error deleting quotation.');
+                    } finally {
+                        hideDeleteModal();
+                        quoteToDelete = null;
+                    }
+                });
+            }
+
+            // keyboard shortcuts
+            document.addEventListener('keydown', function (ev) {
+                if (ev.key === 'Escape') {
+                    hideFilterModal();
+                    hideQuotationDownloadModal();
+                    hideDeleteModal();
                 }
             });
-
-            document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') hideFilterModal(); });
         });
 
-        window.showFilterModal = function () { document.getElementById("filterModal").style.display = "flex"; };
-        window.hideFilterModal = function () { document.getElementById("filterModal").style.display = "none"; };
-        window.showDeleteModal = function () { document.getElementById("deleteModal").style.display = "flex"; };
-        window.hideDeleteModal = function () { document.getElementById("deleteModal").style.display = "none"; };
+        window.showFilterModal = function () { document.getElementById('filterModal').style.display = 'flex'; };
+        window.hideFilterModal = function () { document.getElementById('filterModal').style.display = 'none'; };
 
     })();
 </script>
+
 
 <!------------------------------------------------------------------------------------------End Of File------------------------------------------------------------------------------>  

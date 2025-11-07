@@ -234,14 +234,30 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
         {
             try
             {
-                // input validation
+                // validate id number length
+                if (string.IsNullOrEmpty(employee.IdNumber) || employee.IdNumber.Length < 6)
+                {
+                    return (false, "Employee ID Number must be at least 6 characters.", null);
+                }
+
                 string managerUid = "daMmNRUlirZSsh4zC1c3N7AtqCG2";
 
-                // generate a temp password for the employees - they can change it later
+                // generate a temp password
                 employee.Password = employee.IdNumber.Substring(employee.IdNumber.Length - 6) + "@QC";
                 employee.Role = "Employee";
 
-                // create user in firebase authentication
+                // diagnosting firebase app info
+                if (FirebaseApp.DefaultInstance == null)
+                {
+                    return (false, "FirebaseApp is not initialized.", null);
+                }
+
+                Console.WriteLine($"[Debug] FirebaseApp Name: {FirebaseApp.DefaultInstance.Name}");
+                Console.WriteLine($"[Debug] Firebase ProjectId: {FirebaseApp.DefaultInstance.Options.ProjectId}");
+                Console.WriteLine($"[Debug] Employee Email: {employee.Email}");
+                Console.WriteLine($"[Debug] Current UTC: {DateTime.UtcNow}");
+
+                // create the user in frebase auth
                 var userRecordArgs = new UserRecordArgs
                 {
                     Email = employee.Email,
@@ -251,13 +267,26 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     Disabled = false
                 };
 
-                // create the user in firebase auth
-                UserRecord newUser = await FirebaseAuth.DefaultInstance.CreateUserAsync(userRecordArgs);
+                UserRecord newUser = null;
+                try
+                {
+                    newUser = await FirebaseAuth.DefaultInstance.CreateUserAsync(userRecordArgs);
+                    Console.WriteLine($"[Debug] Firebase UID created: {newUser.Uid}");
+                }
+                catch (FirebaseAuthException fex)
+                {
+                    Console.WriteLine($"[Error] FirebaseAuthException: {fex.Message}");
+                    return (false, $"Firebase Auth Error: {fex.Message}", null);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Error] Exception creating user: {ex.Message}");
+                    return (false, $"Error creating Firebase user: {ex.Message}", null);
+                }
 
-                // set udi and encrypt fields
                 employee.Uid = newUser.Uid;
 
-                // encrypt sensitive fields
+                // encrypt employee fields
                 var encryptedEmployee = new Employee
                 {
                     Uid = employee.Uid,
@@ -271,24 +300,28 @@ namespace INSY7315_ElevateDigitalStudios_POE.Services
                     CreatedAt = employee.CreatedAtDateTime
                 };
 
-                // store the encrypted employee in firestore
-                var employeesRef = GetEmployeesCollection(managerUid);
-                await employeesRef.Document(encryptedEmployee.Uid).SetAsync(encryptedEmployee);
+                // store in firestore
+                try
+                {
+                    var employeesRef = GetEmployeesCollection(managerUid);
+                    await employeesRef.Document(encryptedEmployee.Uid).SetAsync(encryptedEmployee);
+                    Console.WriteLine("[Debug] Employee stored in Firestore successfully.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Error] Firestore storage failed: {ex.Message}");
+                    return (false, $"Error saving employee to Firestore: {ex.Message}", null);
+                }
 
-                // return success with temp password
                 return (true, null, employee.Password);
-            }
-            catch (FirebaseAuthException ex)
-            {
-                // handle firebase auth errors
-                return (false, $"Firebase Auth Error: {ex.Message}", null);
             }
             catch (Exception ex)
             {
-                // handle general errors
+                Console.WriteLine($"[Error] General exception in AddEmployeeAsync: {ex.Message}");
                 return (false, $"Error adding employee: {ex.Message}", null);
             }
         }
+
 
         // method to get all employees
         public async Task<List<Employee>> GetAllEmployeesAsync()

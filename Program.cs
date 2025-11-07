@@ -18,18 +18,17 @@ namespace INSY7315_ElevateDigitalStudios_POE
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // 1) Add authentication (cookie) and authorization
+            // Add authentication cookie and authorization
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
-                    options.LoginPath = "/Account/Login";            // redirect here when unauthenticated
+                    options.LoginPath = "/Account/Login";
                     options.LogoutPath = "/Account/Logout";
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                     options.SlidingExpiration = true;
                     options.Cookie.HttpOnly = true;
                     options.Cookie.SameSite = SameSiteMode.Lax;
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // set to Always in prod (HTTPS)
-                    // optional: options.Events.OnValidatePrincipal = ... // see server-side checks below
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 });
 
             builder.Services.AddAuthorization(options =>
@@ -54,6 +53,7 @@ namespace INSY7315_ElevateDigitalStudios_POE
             builder.Services.AddSession();
 
             Env.Load();
+
             // Initialize Firebase
             FirebaseInitializer.Initialize();
 
@@ -62,7 +62,7 @@ namespace INSY7315_ElevateDigitalStudios_POE
             builder.Services.AddSingleton<FirebaseService>();
             builder.Services.AddSingleton<MailService>();
 
-            var credentialsPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
+            /*var credentialsPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");*/
 
             // Encryption Helper
             builder.Services.AddSingleton<EncryptionHelper>();
@@ -82,14 +82,13 @@ namespace INSY7315_ElevateDigitalStudios_POE
 
             app.UseRouting();
 
-            // Make sure session middleware is added before UseAuthorization
             app.UseSession();
 
             // Enable secure cookies
             app.UseCookiePolicy(new CookiePolicyOptions
             {
-                Secure = CookieSecurePolicy.Always,   // Only send cookies via HTTPS
-                HttpOnly = HttpOnlyPolicy.Always      // Prevent JavaScript access to cookies
+                Secure = CookieSecurePolicy.Always, 
+                HttpOnly = HttpOnlyPolicy.Always    
             });
 
             app.UseAuthentication();
@@ -104,3 +103,4 @@ namespace INSY7315_ElevateDigitalStudios_POE
         }
     }
 }
+//-------------------------------------------------------------------------------------------End Of File--------------------------------------------------------------------//
