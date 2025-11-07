@@ -34,8 +34,4 @@
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.10" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Database/" />
-  </ItemGroup>
-
 </Project>
