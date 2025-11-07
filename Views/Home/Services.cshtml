@@ -1,9 +1,12 @@
 ﻿@{
     ViewData["Title"] = "Services";
 }
+@section PageCss {
+    <link rel="stylesheet" href="~/css/website.css" />
+}
 
 <!-- Services Intro -->
-<section class="services-header">
+<section class="services-page-header">
     <h1>Our Services</h1>
     <p class="subtitle">Comprehensive Printing Solutions</p>
     <p>
@@ -13,120 +16,105 @@
 </section>
 
 <!-- Service Cards -->
-<section class="services-grid">
-    <div class="service-card">
+<section class="services-page-grid">
+    <div class="service-page-card">
         <img src="~/images/service1.jpeg" alt="Printer & Copier Repair" />
         <h3>Printer & Copier Repair</h3>
         <p>Our certified technicians can diagnose and fix issues with all major brands of printers and copiers.</p>
+        <br />
         <ul>
-            <li>✔ Fast response times</li>
-            <li>✔ Genuine replacement parts</li>
-            <li>✔ Warranty on all repairs</li>
+            <li> Fast response times</li>
+            <li> Genuine replacement parts</li>
+            <li> Warranty on all repairs</li>
         </ul>
     </div>
 
-    <div class="service-card">
+    <div class="service-page-card">
         <img src="~/images/service2.jpeg" alt="Maintenance Services" />
         <h3>Maintenance Services</h3>
         <p>Regular maintenance is essential for prolonging the life of your printing equipment.</p>
+        <br />
+        <br />
         <ul>
-            <li>✔ Scheduled maintenance visits</li>
-            <li>✔ Thorough cleaning and checks</li>
-            <li>✔ Parts replacement as needed</li>
+            <li> Scheduled maintenance visits</li>
+            <li> Thorough cleaning and checks</li>
+            <li> Parts replacement as needed</li>
         </ul>
     </div>
 
-    <div class="service-card">
+    <div class="service-page-card">
         <img src="~/images/service3.jpeg" alt="Consumable Sales" />
         <h3>Consumable Sales</h3>
         <p>We offer a complete range of genuine and compatible consumables for all major printer brands.</p>
+        <br />
         <ul>
-            <li>✔ Toner cartridges and ink</li>
-            <li>✔ Drums and maintenance kits</li>
-            <li>✔ Bulk order discounts</li>
+            <li> Toner cartridges and ink</li>
+            <li> Drums and maintenance kits</li>
+            <li> Bulk order discounts</li>
         </ul>
     </div>
 
-    <div class="service-card">
-        <img src="~/images/service4.jpeg" alt="New & Refurbished Equipment" />
+    <div class="service-page-card">
+        <img src="~/images/services_image1.png" alt="New & Refurbished Equipment" />
         <h3>New & Refurbished Equipment</h3>
         <p>Get high-quality printers and copiers — new or refurbished — at competitive prices.</p>
+        
         <ul>
-            <li>✔ Fast response times</li>
-            <li>✔ Genuine replacement parts</li>
-            <li>✔ Expert setup included</li>
+            <li> Fast response times</li>
+            <li> Genuine replacement parts</li>
+            <li> Expert setup included</li>
         </ul>
     </div>
 
-    <div class="service-card">
-        <img src="~/images/service5.jpeg" alt="Service Contracts" />
+    <div class="service-page-card">
+        <img src="~/images/services_image2.png" alt="Service Contracts" />
         <h3>Service Contracts</h3>
         <p>Our preventive maintenance programs help you avoid costly breakdowns and ensure optimal performance.</p>
         <ul>
-            <li>✔ Fast response times</li>
-            <li>✔ Genuine replacement parts</li>
-            <li>✔ Customizable plans</li>
+            <li> Fast response times</li>
+            <li> Genuine replacement parts</li>
+            <li> Customizable plans</li>
         </ul>
     </div>
 
-    <div class="service-card">
-        <img src="~/images/service6.jpeg" alt="Technical Consultation" />
+    <div class="service-page-card">
+        <img src="~/images/services_image3.png" alt="Technical Consultation" />
         <h3>Technical Consultation</h3>
         <p>Our experts provide tailored advice to help optimize your office printing infrastructure.</p>
         <ul>
-            <li>✔ Fast response times</li>
-            <li>✔ Genuine replacement parts</li>
-            <li>✔ Expert recommendations</li>
+            <li> Fast response times</li>
+            <li> Genuine replacement parts</li>
+            <li> Expert recommendations</li>
         </ul>
     </div>
 </section>
 
 <!-- Service Process -->
-<section class="service-process">
+<section class="service-page-process">
     <h2>Our Service Process</h2>
     <p>How we deliver exceptional service to our clients</p>
-
-    <div class="process-steps">
-        <div class="step">
-            <div class="circle">1</div>
-            <h4>Contact Us</h4>
-            <p>Reach out by phone, email, or our contact form to describe your issue.</p>
-        </div>
-        <div class="step">
-            <div class="circle">2</div>
-            <h4>Diagnosis</h4>
-            <p>Our technicians identify the problem and provide a clear quote.</p>
-        </div>
-        <div class="step">
-            <div class="circle">3</div>
-            <h4>Repair / Service</h4>
-            <p>We perform the repair or service with quality parts and expert care.</p>
-        </div>
-        <div class="step">
-            <div class="circle">4</div>
-            <h4>Follow Up</h4>
-            <p>We ensure your satisfaction and provide ongoing support as needed.</p>
-        </div>
-    </div>
-</section>
+    <img src="~/images/ourServiceProcess.png" alt="Services Process" />
+ </section>
 
 <!-- FAQ Section -->
 <section class="faq">
     <div class="faq-left">
-        <h2>Got Any Questions?</h2>
-        <p class="highlight">We've got answers.</p>
+        <h2>Got Any <br />Questions?</h2>
+        <p class="highlight">We've got <br />answers.</p>
         <p>
-            These are some of the most commonly asked questions about Quality Copiers.<br />
+            These are some of the most commonly asked <br />questions about Quality Copiers.<br /><br />
             Can’t find what you’re looking for? <a asp-controller="Home" asp-action="Contact">Contact Us</a>
         </p>
     </div>
 
     <div class="faq-right">
-        <div class="faq-item">
+        <div class="faq-item open">
             <h4>How quickly can you respond to service calls?</h4>
+            <p>We typically respond same day to any servces needed on any equipment.</p>
         </div>
-        <div class="faq-item">
+        <div class="faq-item open">
             <h4>Do you offer service contracts?</h4>
+            <p>Yes please contact us for more information on that. </p>
         </div>
         <div class="faq-item open">
             <h4>Do you sell genuine OEM supplies?</h4>
@@ -135,3 +123,20 @@
     </div>
 </section>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const faqItems = document.querySelectorAll('.faq-item');
+
+        faqItems.forEach(item => {
+            item.addEventListener('click', () => {
+                item.classList.toggle('open');
+
+                faqItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.classList.remove('open');
+                    }
+                });
+            });
+        });
+    });
+</script>

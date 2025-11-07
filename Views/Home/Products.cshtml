@@ -1,0 +1,159 @@
+﻿@{
+    ViewData["Title"] = "Products";
+}
+@section PageCss {
+    <link rel="stylesheet" href="~/css/website.css" />
+}
+
+
+<!-- Products Intro -->
+<section class="products-page-header">
+    <h1>Our Products</h1>
+    <p class="subtitle">High-Quality Printing Solutions</p>
+    <p>
+       We offer a wide range of high quality printing and copying equipment from leading
+       manufacturers, designed to meet the needs of businesses of all sizes.
+    </p>
+</section>
+
+<!-- Products Types -->
+<section class="products-page-items">
+    <div class="products-page-left">
+        <h1>Minolta</h1>
+        <img src="~/images/product_image1.png" alt="Minolta" />
+        <p>
+            Minolta's professional-grade printing and copying <br />solutions offer advanced features,durability,and<br />
+            outstanding performance for demanding work <br />environments.
+        </p>
+        <br />
+        <h3>Popular Models</h3>
+        <ul>
+            <li>Konica Minolta bizhub C336Oi</li>
+            <li>Konica Minolta 4700i</li>
+            <li>Konica Minolta AccurioPress C3080</li>
+        </ul>
+        <a asp-controller="Home" asp-action="Contact" class="text-button">Request a qoute</a>
+    </div>
+    <div class="products-page-right">
+        <h1>Ricoh & Gestetner</h1>
+        <img src="~/images/product_image2.png" alt="Minolta" />
+        <p>
+           As specialits in Ricoh and Gestetner equipment, we <br />offer their complete range of reliable printers, <br />
+           copiers, and multifunction devices suitable for <br />businesses of all sizes.
+        </p>
+        <br />
+        <h3>Popular Models</h3>
+        <ul>
+            <li>Epson WorkForce Pro WF-C5790</li>
+            <li>Epson EcoTank ET-5850</li>
+            <li>Epson SureColor P-Series (for graphics)</li>
+        </ul>
+        <a asp-controller="Home" asp-action="Contact" class="text-button">Request a qoute</a>
+    </div>
+  
+</section>
+
+<!-- Products Categories -->
+<section class="products-page categories-grid">
+    <h1>Product Categories</h1>
+    <p>Find the perfect solution for your business needs</p>
+
+    <div class="categories-cards-container">
+    <div class="categories-card">
+        <h3>Desktop Printers</h3>
+        <br />
+        <p> Compact efficient printers for <br />small offices or personal <br />workspaces.
+            These devices <br />offer reliable printing for <br />individuals or small teams with<br /> light 
+            to moderate printing <br />needs.
+        </p>
+    </div>
+    <div class="categories-card">
+        <h3>Multifunctional Devices</h3>
+        <br />
+        <p>
+            All in one solutions combining<br /> printing, copying, scanning, and <br />faxing capabilities in
+            a single <br />device. Perfect for businesses <br />looking to optimize office space<br /> and streamline document <br />workflows.
+        </p>
+    </div>
+
+    <div class="categories-card">
+        <h3>Department Printers</h3>
+        <br />
+        <p>
+            High-capacity, robust printing <br />solutions designed for busy <br />departments or workgroups. 
+            These <br />devices handle high volumes with <br />speed and reliability, often<br /> supporting advanced 
+            finishing <br />options.
+        </p>
+    </div>
+    <div class="categories-card">
+        <h3>Production Printers</h3>
+        <br />
+        <p>
+            Compact, effecient printers for <br />small offices or personal <br /> workspaces. These devices offer <br /> reliable printing for individuals or 
+            <br /> small teams with light to moderate printing
+        </p>
+    </div>
+    <div class="categories-card">
+        <h3>Specialty Printers</h3>
+        <br />
+        <p>
+            Specialized printing solutions <br />for specific applications such<br /> as wide-format printing,
+            label <br />printing, or photo printing.<br /> These devices cater to unique<br /> business requirements.
+        </p>
+    </div>
+    <div class="categories-card">
+        <h3>Refurbished Equipments</h3>
+        <br />
+        <p>
+            Quality-tested, professionally <br />refurbished printers and copiers at <br />competitive prices.
+            These devices <br />offer excellent value while <br />maintaining reliable performance<br /> for budget-conscious 
+            businesses.
+        </p>
+    </div>
+    </div>
+</section>
+
+<!--Product Consumables -->
+<section class="products-page-consumables">
+    <div class="consumables-container">
+        <div class="consumables-text">
+            <h1>Printer Consumables</h1>
+            <p>Quality supplies for all major printer brands</p>
+            <br />
+
+            <h2>Genuine & Compatible Options</h2>
+            <p>
+                We stock a comprehensive range of consumables for all the printer brands we support, including toner
+                cartridges, ink cartridges, drums, maintenance kits, and more. Our customers can choose between:
+            </p>
+            <br />
+
+            <ul>
+                <li><strong>OEM (Original Equipment Manufacturer)</strong></li>
+                <p>Genuine cartridges and supplies from the original manufacturer, ensuring perfect compatibility and optimal print quality.</p>
+            </ul>
+            <ul>
+                <li><strong>Compatible Alternatives</strong></li>
+                <p>
+                    High-quality compatible cartridges that meet or exceed OEM specifications at more affordable prices, perfect for
+                    cost-conscious businesses.
+                </p>
+            </ul>
+            <a asp-controller="Home" asp-action="Contact" class="text-button">Request Price List</a>
+        </div>
+        <div class="consumables-image">
+            <img src="~/images/printer_consumables.png" alt="Consumables" />
+        </div> 
+    </div>
+</section>
+
+<section class="products-page-contact">
+    <h1>Need help finding the right <br />printer for your business?</h1>
+    <br />
+    <p>
+        Our experts can assess your needs and reccommend the perfect solution that <br />
+        balances performance and budget.
+    </p>
+    <br />
+    <a asp-controller="Home" asp-action="Contact" class="text-button-line">Get a Free Consultation</a>
+</section>

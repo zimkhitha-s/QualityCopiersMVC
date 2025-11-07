@@ -1,47 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using INSY7315_ElevateDigitalStudios_POE.Helper;
+using INSY7315_ElevateDigitalStudios_POE.Models;
+using INSY7315_ElevateDigitalStudios_POE.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 {
+    [SessionAuthorize]
     public class DashboardController : Controller
     {
         public IActionResult Index()
         {
-            return View();
-        }
-
-        public IActionResult Quotations()
-        {
-            return View();
-        }
-
-        public IActionResult CreateQuotation()
-        {
-            return View();
-        }
-
-        public IActionResult Invoices()
-        {
-            return View();
-        }
-
-        public IActionResult CreateInvoice()
-        {
-            return View();
-        }
-
-        public IActionResult Profile()
-        {
-            return View();
-        }
-
-        public IActionResult Employees()
-        {
-            return View();
-        }
-
-        public IActionResult Clients()
-        {
+            ViewBag.FullName = HttpContext.Session.GetString("FullName");
+            ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
             return View();
         }
     }
 }
+//-------------------------------------------------------------------------------------------End Of File--------------------------------------------------------------------//

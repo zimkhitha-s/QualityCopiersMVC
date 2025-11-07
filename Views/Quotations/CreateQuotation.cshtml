@@ -1,0 +1,217 @@
+﻿@model Quotation
+
+@{
+    ViewBag.Title = "Create Quotations";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Quotation - Quality Copiers</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/quotations-styles.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/agrandir" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <div class="main-content">
+            <div class="content-header">
+                <h1>Create New Quotation</h1>
+            </div>
+
+            <div class="content-body">
+                <form asp-action="CreateQuotation" asp-controller="Quotations" method="post" class="quotation-form">
+                    <div class="form-section">
+                        <h3>Select Client</h3>
+                        <div class="form-group" style="max-width: 300px;">
+                            <select id="clientSelect" name="clientId">
+                                <option value="">Select Client</option>
+                                @foreach (var client in ViewBag.Clients as IEnumerable<Client> ?? Enumerable.Empty<Client>())
+                                {
+                                    <option value="@client.id"
+                                            data-first="@client.name"
+                                            data-last="@client.surname"
+                                            data-email="@client.email"
+                                            data-company="@client.companyName"
+                                            data-phone="@client.phoneNumber"
+                                            data-address="@client.address">
+                                        @($"{client.name} {client.surname}")
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="phone" name="phone" />
+                    <input type="hidden" id="address" name="address" />
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clientName">Client Name</label>
+                            <input type="text" id="clientName" name="clientName" readonly />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" readonly />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="companyName">Company Name</label>
+                            <input type="text" id="companyName" name="companyName" readonly />
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Quotation Items</h3>
+                        <div class="items-container">
+                            <div class="items-header">
+                                <div class="item-field">Description</div>
+                                <div class="item-field">Quantity</div>
+                                <div class="item-field">Unit Price</div>
+                                <div class="item-field">Total</div>
+                                <div class="item-field">Action</div>
+                            </div>
+
+                            <div id="itemsContainer">
+                                <div class="item-row">
+                                    <input type="text" class="item-input description" placeholder="Enter description" name="Items[0].description">
+                                    <input type="number" class="item-input quantity" placeholder="1" min="1" step="1" name="Items[0].quantity" value="1">
+                                    <input type="number" class="item-input unit-price" placeholder="0.00" min="0" step="0.01" name="Items[0].unitPrice">
+                                    <input type="number" class="item-input total" placeholder="0.00" readonly name="Items[0].amount" value="0.00">
+                                    <button type="button" class="remove-item-btn" onclick="removeItem(this)">
+                                        <a href="#" class="delete-btn">
+                                            <img src="~/images/delete.png" alt="Delete" width="35" height="35">
+                                        </a>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="button" class="add-item-btn" onclick="addItem()">+ Add Item</button>
+
+                            <div class="quotation-summary">
+                                <div class="summary-row">
+                                    <span class="summary-label">Subtotal:</span>
+                                    <span class="summary-value" id="subtotal">R 0.00</span>
+                                </div>
+                                <div class="summary-row total-row">
+                                    <span class="summary-label">Total:</span>
+                                    <span class="summary-value" id="grandTotal">R 0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="cancel-btn" onclick="location.href='@Url.Action("Quotations", "Quotations")'">Cancel</button>
+                        <button type="submit" class="save-btn">Create Quotation</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            // Client Auto-Fill
+            const clientSelect = document.getElementById('clientSelect');
+            const clientNameInput = document.getElementById('clientName');
+            const emailInput = document.getElementById('email');
+            const companyNameInput = document.getElementById('companyName');
+            const phoneInput = document.getElementById('phone');
+            const addressInput = document.getElementById('address');
+
+            clientSelect.addEventListener('change', function () {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value) {
+                    clientNameInput.value = `${selectedOption.getAttribute('data-first')} ${selectedOption.getAttribute('data-last')}`;
+                    emailInput.value = selectedOption.getAttribute('data-email');
+                    companyNameInput.value = selectedOption.getAttribute('data-company');
+                    phoneInput.value = selectedOption.getAttribute('data-phone');
+                    addressInput.value = selectedOption.getAttribute('data-address');
+                } else {
+                    clientNameInput.value = "";
+                    emailInput.value = "";
+                    companyNameInput.value = "";
+                    phoneInput.value = "";
+                    addressInput.value = "";
+                }
+            });
+
+            // Item Handling 
+            function addItem() {
+                const itemsContainer = document.getElementById('itemsContainer');
+                const index = itemsContainer.querySelectorAll('.item-row').length;
+
+                const newRow = document.createElement('div');
+                newRow.className = 'item-row';
+                newRow.innerHTML = `
+                                <input type="text" class="item-input description" placeholder="Enter description" name="Items[${index}].description">
+                                <input type="number" class="item-input quantity" placeholder="1" min="1" step="1" name="Items[${index}].quantity" value="1">
+                                <input type="number" class="item-input unit-price" placeholder="0.00" min="0" step="0.01" name="Items[${index}].unitPrice">
+                                <input type="number" class="item-input total" placeholder="0.00" readonly name="Items[${index}].amount" value="0.00">
+                                <button type="button" class="remove-item-btn" onclick="removeItem(this)">
+                                    <a href="#" class="delete-btn">
+                                        <img src="/images/delete.png" alt="Delete" width="35" height="35">
+                                    </a>
+                                </button>
+                            `;
+                itemsContainer.appendChild(newRow);
+                attachCalculationListeners(newRow);
+            }
+
+            function removeItem(button) {
+                const row = button.closest('.item-row');
+                row.remove();
+                reindexItems();
+                calculateTotals();
+            }
+
+            function reindexItems() {
+                const rows = document.querySelectorAll('#itemsContainer .item-row');
+                rows.forEach((row, index) => {
+                    row.querySelector('.description').name = `Items[${index}].description`;
+                    row.querySelector('.quantity').name = `Items[${index}].quantity`;
+                    row.querySelector('.unit-price').name = `Items[${index}].unitPrice`;
+                    row.querySelector('.total').name = `Items[${index}].amount`;
+                });
+            }
+
+            function attachCalculationListeners(row) {
+                const quantityInput = row.querySelector('.quantity');
+                const unitPriceInput = row.querySelector('.unit-price');
+                const totalInput = row.querySelector('.total');
+
+                function calculateRowTotal() {
+                    const quantity = parseFloat(quantityInput.value) || 0;
+                    const unitPrice = parseFloat(unitPriceInput.value) || 0;
+                    const total = quantity * unitPrice;
+                    totalInput.value = total.toFixed(2);
+                    calculateTotals();
+                }
+
+                quantityInput.addEventListener('input', calculateRowTotal);
+                unitPriceInput.addEventListener('input', calculateRowTotal);
+            }
+
+            function calculateTotals() {
+                const totalInputs = document.querySelectorAll('.total');
+                let subtotal = 0;
+                totalInputs.forEach(input => subtotal += parseFloat(input.value) || 0);
+                document.getElementById('subtotal').textContent = `R ${subtotal.toFixed(2)}`;
+                document.getElementById('grandTotal').textContent = `R ${subtotal.toFixed(2)}`;
+            }
+
+            // Initialize
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('.item-row').forEach(row => attachCalculationListeners(row));
+            });
+
+            document.querySelector('.quotation-form').addEventListener('submit', function () {
+                document.querySelectorAll('.total').forEach(el => el.disabled = true);
+            });
+        </script>
+    </div>
+</body>
+</html>

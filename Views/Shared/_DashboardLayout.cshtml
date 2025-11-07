@@ -7,8 +7,9 @@
 
     <link rel="icon" type="image/png" href="~/images/logo2.png" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/dashboard.css" />
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/clients.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-papq3tUj..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
@@ -27,27 +28,54 @@
             <div class="sidebar-account">
                 <img src="~/images/usericon.jpeg" alt="User Icon" class="user-icon" />
                 <div class="user-details">
-                    <span class="user-name">Craig Diedricks</span>
-                    <span class="user-job">Manager</span>
+                    <span class="user-name">@ViewBag.FullName</span>
+                    <span class="user-job">@ViewBag.UserRole</span>
                 </div>
             </div>
 
             <!-- Middle menu -->
-            <ul class="sidebar-menu">
-                <li><a href="@Url.Action("Index", "Dashboard")"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="@Url.Action("Index", "Clients")"><i class="fas fa-users"></i> Clients</a></li>
-                <li><a class="highlight-menu" href="#"><i class="fas fa-users"></i> Employees</a></li>
-                <li><a href="#"><i class="fas fa-user-tie"></i> Invoices</a></li>
-                <li><a href="#"><i class="fas fa-file-alt"></i> Quotations</a></li>
-                <li><a class="highlight-menu" href="#"><i class="fas fa-credit-card"></i> Payments</a></li>
+            <div class="sidebar-nav">
+                <a href="@Url.Action("Index", "Dashboard")" class="nav-item">
+                    <img src="~/images/dashboard_icon.png" alt="Logo" class="nav-bar-items">
+                    <span class="nav-label-white">Dashboard</span>
+                </a>
+                <a href="@Url.Action("Clients", "Clients")" class="nav-item">
+                    <img src="~/images/client_icon.png" alt="Logo" class="nav-bar-items">
+                    <span class="nav-label-white">Clients</span>
+                </a>
+                <a href="@Url.Action("Employees", "Employees")" class="nav-item">
+                    <img src="~/images/employee_icon.png" alt="Logo" class="nav-bar-items">
+                    <span class="nav-label-blue">Employees</span>
+                </a>
 
-                <div class="menu-spacer"></div>
+                <a href="@Url.Action("Invoices", "Invoices")" class="nav-item">
+                    <img src="~/images/invoices_quote_icon.png" alt="Logo" class="nav-bar-items">
+                    <span class="nav-label-white">Invoices</span>
+                </a>
+                <a href="@Url.Action("Quotations", "Quotations")" class="nav-item">
+                    <img src="~/images/invoices_quote_icon.png" alt="Logo" class="nav-bar-items">
+                    <span class="nav-label-white">Quotations</span>
+                </a>
+                <a href="@Url.Action("Payments", "Payments")" class="nav-item">
+                    <img src="~/images/money_icon.png" alt="Logo" class="nav-bar-items">
+                    <span class="nav-label-blue">Payments</span>
+                </a>
+            </div>
 
-                <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
-                <li><a href="#"><i class="fas fa-user-circle"></i> Account</a></li>
-                <li><a class="highlight-menu" href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                <li><a href="#"><i class="fas fa-question-circle"></i> Help</a></li>
-            </ul>
+            <div class="sidebar-footer">
+                <a href="@Url.Action("Notifications", "Notifications")" class="nav-item">
+                    <img src="~/images/notification_icon.png" alt="Logo" class="nav-bar-items2">
+                    <span class="nav-label-white">Notifications</span>
+                </a>
+                <a href="@Url.Action("Profile", "Account")" class="nav-item">
+                    <img src="~/images/profile_icon.png" alt="Logo" class="nav-bar-items2">
+                    <span class="nav-label-white">Account</span>
+                </a>
+                <a href="@Url.Action("Logout", "Account")" class="nav-item">
+                    <img src="~/images/logout_icon.png" alt="Logo" class="nav-bar-items2">
+                    <span class="nav-label-blue">Logout</span>
+                </a>
+            </div>
 
         </aside>
 
@@ -57,7 +85,40 @@
         </main>
     </div>
 
+    @RenderSection("Scripts", required: false)
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Get the userRole from the backend
+        const userRole = "@ViewBag.UserRole";
+
+        // Define all nav items
+        const navItems = document.querySelectorAll(".sidebar-nav .nav-item, .sidebar-footer .nav-item");
+
+        // Define allowed links for non-managers
+        const allowedForOthers = [
+            "Clients",
+            "Quotations",
+            "Invoices",
+            "Dashboard",
+            "Account",
+            "Logout", 
+            "Help" 
+        ];
+
+        if (userRole !== "Manager") {
+            navItems.forEach(item => {
+                const label = item.querySelector("span")?.textContent.trim();
+
+                if (!allowedForOthers.includes(label)) {
+                    item.style.display = "none";
+                }
+            });
+        }
+    });
+    </script>
 </body>
 </html>

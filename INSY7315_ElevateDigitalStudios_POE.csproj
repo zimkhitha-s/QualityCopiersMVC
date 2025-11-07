@@ -6,4 +6,47 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Database\**" />
+    <Content Remove="Database\**" />
+    <EmbeddedResource Remove="Database\**" />
+    <None Remove="Database\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Templates\InvoiceTemplate.docx" />
+    <None Remove="Templates\Invoice\QCInvoiceTemplate.docx" />
+    <None Remove="Templates\PaymentReport\QCPaymentsReportTemplate.docx" />
+    <None Remove="Templates\Payment\QCPaymentTemplate.docx" />
+    <None Remove="Templates\QuotationTemplate.docx" />
+    <None Remove="Templates\Quotation\QCQuotationsTemplate.docx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Templates\Invoice\QCInvoiceTemplate.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Templates\PaymentReport\QCPaymentsReportTemplate.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Templates\Payment\QCPaymentTemplate.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Templates\Quotation\QCQuotationsTemplate.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+    <PackageReference Include="FirebaseAdmin" Version="3.4.0" />
+    <PackageReference Include="Google.Cloud.Firestore" Version="3.11.0" />
+    <PackageReference Include="Google.Cloud.SecretManager.V1" Version="2.6.0" />
+    <PackageReference Include="itext7" Version="9.3.0" />
+    <PackageReference Include="MailKit" Version="4.14.1" />
+    <PackageReference Include="QuestPDF" Version="2025.7.3" />
+    <PackageReference Include="Spire.Doc" Version="13.9.10" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.10" />
+  </ItemGroup>
+
 </Project>

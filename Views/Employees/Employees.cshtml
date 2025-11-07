@@ -1,0 +1,425 @@
+﻿@model List<INSY7315_ElevateDigitalStudios_POE.Models.Employee>
+
+@{
+    ViewBag.Title = "Employees";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+
+<link rel="stylesheet" href="~/css/employees.css" />
+<meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+
+
+<div class="clients-page">
+    <div class="clients-header">
+        <h1>Employees</h1>
+        <div class="search-container">
+            <input type="text" id="employeeSearch" class="search-input" placeholder="Search employees ...">
+            <a class="search-icon">
+                <img src="~/images/search.png" width="10" height="10">
+            </a>
+        </div>
+    </div>
+
+     @Html.AntiForgeryToken()
+
+    <div class="clients-actions">
+        <a href="@Url.Action("AddEmployees", "Employees")" class="btn add-btn"><i class="fas fa-plus-circle"></i> Add new</a>
+        <button class="btn filter-btn" onclick="toggleFilterMenu()"><i class="fas fa-filter"></i> Filter</button>
+    </div>
+
+    <div class="employees-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Employee Name</th>
+                    <th>Mobile</th>
+                    <th>Email</th>
+                    <th>Operation</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var employee in Model)
+                    {
+                        <tr data-employee-id="@employee.Uid" data-created-at="@employee.CreatedAtDateTime.ToString("o")">
+                            <td class="employee-name">@(employee.FullName)</td>
+                            <td class="employee-phone">@employee.PhoneNumber</td>
+                            <td class="employee-email">@employee.Email</td>
+                            <td>
+                                <div class="td-employee-actions">
+                                    <a href="#" class="edit-btn" data-employee-id="@employee.Uid">
+                                        <img src="~/images/edit_icon.png" alt="Logo" class="operation-icons-employee">
+                                    </a>
+                                    <a href="#" class="delete-btn" data-employee-id="@employee.Uid">
+                                        <img src="~/images/delete_icon.png" alt="Delete" class="operation-icons-employee">
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" style="text-align:center; color:#64748b; font-style:italic;">
+                            No employees found.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Filter Popup Menu -->
+<div id="filterMenu" class="filter-popup">
+    <div class="filter-popup-content">
+        <span class="filter-close" onclick="closeFilterMenu()">&times;</span>
+        <h3 class="filter-heading">Filter Employees</h3>
+        <ul class="filter-options">
+            <li><a href="#" onclick="selectFilter('alphabetical')">Alphabetical A-Z</a></li>
+            <li><a href="#" onclick="selectFilter('newest')">Date Added newest - oldest</a></li>
+            <li><a href="#" onclick="selectFilter('oldest')">Date added oldest - newest</a></li>
+            <li><a href="#" onclick="selectFilter('recent')">Recently added</a></li>
+            <li class="clear-filter"><a href="#" onclick="clearEmployeeFilters()">Clear Filters</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Edit Employee Modal -->
+<div id="editEmployeeModal" class="edit-client-modal">
+    <div class="edit-client-content">
+        <span class="close" id="closeEditEmployee">&times;</span>
+        <h2 class="edit-client-title">Edit Employee</h2>
+
+        <form id="editEmployeeForm">
+            <input type="hidden" id="editEmployeeId" name="Uid">
+
+            <div class="form-group">
+                <label for="editEmployeeName">Employee Name</label>
+                <input type="text" id="editEmployeeName" name="Name" placeholder="John Doe" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editPhoneNumber">Phone Number</label>
+                <input type="text" id="editPhoneNumber" name="PhoneNumber" placeholder="072 944 0916" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editEmail">Email</label>
+                <input type="email" id="editEmail" name="Email" placeholder="john.doe@gmail.com" required>
+            </div>
+
+            <button type="submit" class="edit-confirm-btn">Confirm</button>
+        </form>
+    </div>
+</div>
+
+
+<!-- Delete Confirmation Modal not programmed just a pop up -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <h2>Delete Employee</h2>
+        <p>Are you sure you want to delete this employee?</p>
+        <div class="modal-actions">
+            <button id="confirmDelete" class="btn confirm-btn">Yes</button>
+            <button id="cancelDelete"  class="btn cancel-btn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            // Live search for quotations by client name
+            const searchInput = document.getElementById('employeeSearch');
+            searchInput.addEventListener('input', function () {
+                const query = this.value.toLowerCase().trim();
+                const rows = document.querySelectorAll('.employees-table tbody tr');
+
+                rows.forEach(row => {
+                    const employeeName = row.querySelector('td:first-child').textContent.toLowerCase();
+                        if (employeeName.includes(query)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+
+            /* ---------------- FILTER MENU FOR EMPLOYEES ---------------- */
+
+            // --- Store original rows for reset ---
+            const originalEmployeeRows = Array.from(document.querySelectorAll("tbody tr[data-employee-id]"));
+
+            // --- Show/Hide Filter Menu ---
+            window.toggleFilterMenu = function () {
+                const filterMenu = document.getElementById("filterMenu");
+                filterMenu.classList.toggle("show");
+            };
+
+            window.closeFilterMenu = function () {
+                document.getElementById("filterMenu").classList.remove("show");
+            };
+
+            // Close filter when clicking outside the content
+            function closeFilterMenuOutside(event) {
+                const content = document.querySelector(".filter-popup-content");
+                if (!content.contains(event.target)) {
+                    closeFilterMenu();
+                }
+            }
+
+            // --- Parse created date from data attribute ---
+            function getRowDate(row) {
+                const dateAttr = row.dataset.createdAt;
+                if (!dateAttr) return new Date(0); // fallback
+                const parsed = new Date(dateAttr);
+                return isNaN(parsed) ? new Date(0) : parsed;
+            }
+
+            // --- Apply Filters ---
+            window.selectFilter = function (filterType) {
+                const tbody = document.querySelector("tbody");
+                let rows = [...originalEmployeeRows];
+
+                switch (filterType) {
+                    case "alphabetical":
+                        rows.sort((a, b) => {
+                            const nameA = a.querySelector(".employee-name").innerText.trim().toLowerCase();
+                            const nameB = b.querySelector(".employee-name").innerText.trim().toLowerCase();
+                            return nameA.localeCompare(nameB);
+                        });
+                        break;
+
+                    case "newest":
+                        rows.sort((a, b) => getRowDate(b) - getRowDate(a)); // newest first
+                        break;
+
+                    case "oldest":
+                        rows.sort((a, b) => getRowDate(a) - getRowDate(b)); // oldest first
+                        break;
+
+                    case "recent":
+                        rows.sort((a, b) => getRowDate(b) - getRowDate(a)); // newest first
+                        rows = rows.slice(0, 3); // show top 3
+                        break;
+                }
+
+                // Clear and reinsert rows
+                tbody.innerHTML = "";
+                rows.forEach(row => tbody.appendChild(row));
+
+                // Close filter popup
+                closeFilterMenu();
+            };
+
+            // --- Clear Filters ---
+            window.clearEmployeeFilters = function () {
+                const tbody = document.querySelector("tbody");
+                tbody.innerHTML = "";
+                originalEmployeeRows.forEach(row => tbody.appendChild(row));
+                closeFilterMenu();
+            };
+
+            // --- Allow closing with ESC key ---
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape") closeFilterMenu();
+            });
+
+           /* -----------------------EDIT EMPLOYEE DETAILS FUNCTIONALITY----------------- */
+
+            // --- Edit Employee Modal Controls ---
+            const editEmployeeModal = document.getElementById("editEmployeeModal");
+            const closeEditEmployee = document.getElementById("closeEditEmployee");
+            const editEmployeeForm = document.getElementById("editEmployeeForm");
+
+            const editEmployeeId = document.getElementById("editEmployeeId");
+            const editEmployeeName = document.getElementById("editEmployeeName");
+            const editPhoneNumber = document.getElementById("editPhoneNumber");
+            const editEmail = document.getElementById("editEmail");
+
+            let currentEmployeeId = null;
+
+            // --- Open modal and fetch employee details from database ---
+            document.querySelectorAll(".edit-btn").forEach(btn => {
+                btn.addEventListener("click", async (e) => {
+                    e.preventDefault();
+
+                    const employeeId = btn.dataset.employeeId;
+                    console.log("Opening modal for employee ID:", employeeId);
+
+                    try {
+                        const response = await fetch(`/Employees/GetEmployee?id=${employeeId}`);
+                        if (!response.ok) throw new Error("Failed to fetch employee data");
+
+                        const employee = await response.json();
+                        console.log("Fetched employee:", employee);
+
+                        // Populate form fields
+                        editEmployeeName.value = `${employee.name || ""} ${employee.surname || ""}`.trim();
+                        editPhoneNumber.value = employee.phoneNumber || "";
+                        editEmail.value = employee.email || "";
+                        currentEmployeeId = employee.uid;
+                        console.log("Setting currentEmployeeId to:", currentEmployeeId);
+
+                        // Show modal
+                        editEmployeeModal.style.display = "flex";
+
+                    } catch (err) {
+                        console.error("Error loading employee details:", err);
+                        alert("Unable to fetch employee details.");
+                    }
+                });
+            });
+
+            // --- Close modal ---
+            closeEditEmployee.onclick = () => editEmployeeModal.style.display = "none";
+            window.onclick = (event) => {
+                if (event.target === editEmployeeModal) editEmployeeModal.style.display = "none";
+            };
+
+            // --- Submit form with validation ---
+            editEmployeeForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                if (!currentEmployeeId) {
+                    console.warn("No current employee ID, aborting submit");
+                    return;
+                }
+
+                // Basic validations
+                if (!editEmployeeName.value.trim()) {
+                    alert("Employee name is required");
+                    return;
+                }
+
+                if (!editEmail.value.includes("\u0040") || !editEmail.value.includes(".")) {
+                    alert("Invalid email format");
+                    return;
+                }
+
+                // Split full name into Name + Surname
+                const fullName = editEmployeeName.value.trim();
+
+                const updatedEmployee = {
+                    Id: currentEmployeeId,
+                    FullName: fullName,               // send FullName instead of Name + Surname
+                    PhoneNumber: editPhoneNumber.value.trim(),
+                    Email: editEmail.value.trim()
+                };
+
+                console.log("Payload to send:", updatedEmployee);
+
+                try {
+                    const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                    const response = await fetch("/Employees/UpdateEmployee", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "RequestVerificationToken": token
+                        },
+                        body: JSON.stringify(updatedEmployee)
+                    });
+
+                    console.log("Response status:", response.status);
+                    const responseText = await response.text();
+                    console.log("Response text:", responseText);
+
+                    if (response.ok) {
+                        // Update table row values immediately
+                        const row = document.querySelector(`tr[data-employee-id="${currentEmployeeId}"]`);
+                        if (row) {
+                            row.querySelector(".employee-name").innerText = editEmployeeName.value.trim();
+                            row.querySelector(".employee-phone").innerText = editPhoneNumber.value.trim();
+                            row.querySelector(".employee-email").innerText = editEmail.value.trim();
+                        }
+
+                        editEmployeeModal.style.display = "none";
+                        currentEmployeeId = null;
+                    } else {
+                        console.error("Failed to update employee");
+                        alert("Failed to update employee.");
+                    }
+                } catch (err) {
+                    console.error("Error updating employee:", err);
+                    alert("Error updating employee.");
+                }
+            });
+
+          /* ---------------- DELETE CONFIRMATION MODAL (Employees) ---------------- */
+
+    const employeeDeleteButtons = document.querySelectorAll(".delete-btn");
+    const employeeDeleteModal = document.getElementById("deleteModal");
+    const employeeConfirmDeleteBtn = document.getElementById("confirmDelete");
+    const employeeCancelBtn = employeeDeleteModal.querySelector(".cancel-btn");
+
+    let employeeToDeleteId = null;
+
+    // Open modal when delete button is clicked
+    employeeDeleteButtons.forEach(btn => {
+        btn.addEventListener("click", (event) => {
+            event.preventDefault();
+            employeeToDeleteId = btn.dataset.employeeId;
+            employeeDeleteModal.classList.add("show");
+        });
+    });
+
+    // Confirm deletion
+    employeeConfirmDeleteBtn.addEventListener("click", async () => {
+        if (!employeeToDeleteId) return;
+
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            const response = await fetch('/Employees/DeleteEmployee', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "RequestVerificationToken": token
+                },
+                body: JSON.stringify({ EmployeeId: employeeToDeleteId })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Remove the deleted row
+                const row = document.querySelector(`tr[data-employee-id='${employeeToDeleteId}']`);
+                if (row) row.remove();
+
+                alert("Employee deleted successfully!");
+            } else {
+                alert("Failed to delete employee.");
+            }
+        } catch (error) {
+            console.error("Error deleting employee:", error);
+            alert("An error occurred while deleting the employee.");
+        }
+
+        // Close modal
+        employeeDeleteModal.classList.remove("show");
+        employeeToDeleteId = null;
+    });
+
+    // Cancel deletion
+    employeeCancelBtn.addEventListener("click", () => {
+        employeeDeleteModal.classList.remove("show");
+        employeeToDeleteId = null;
+    });
+
+    // Close modal when clicking outside content
+    window.addEventListener("click", (event) => {
+        if (event.target === employeeDeleteModal) {
+            employeeDeleteModal.classList.remove("show");
+            employeeToDeleteId = null;
+        }
+    });
+
+});
+</script>

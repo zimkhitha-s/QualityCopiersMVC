@@ -1,0 +1,245 @@
+﻿@model INSY7315_ElevateDigitalStudios_POE.Models.Employee
+
+@{
+    ViewBag.Title = "Add Employee";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+<link rel="stylesheet" href="~/css/dashboard.css" />
+
+<div class="add-client-container">
+    <div class="add-client-header">
+        <h1>Add New Employee</h1>
+        <p>Enter the employees information below to add them to your system.</p>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-warning">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        </div>
+    }
+
+    <div class="add-client-form-container">
+        <form asp-action="AddEmployees" asp-controller="Employees" method="post" class="add-client-form">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label asp-for="IdNumber">ID Number *</label>
+                <input asp-for="IdNumber" class="form-control" required pattern="\d{13}" title="ID Number must be exactly 13 digits" />
+                <span asp-validation-for="IdNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Name">Name *</label>
+                <input asp-for="Name" class="form-control" required pattern="[A-Za-z\s]+" title="Only letters allowed" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Surname">Surname *</label>
+                <input asp-for="Surname" class="form-control" required pattern="[A-Za-z\s]+" title="Only letters allowed" />
+                <span asp-validation-for="Surname" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email">Email *</label>
+                <input asp-for="Email" type="email" class="form-control" required />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="PhoneNumber">Phone Number *</label>
+                <input asp-for="PhoneNumber" type="tel" class="form-control" required pattern="^\+?\d{10,15}$" title="Phone number must be 10-15 digits and can start with +" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-actions">
+                <a class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Add Employee</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+
+
+<style>
+    /* === ALERT STYLES === */
+    .alert {
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+    }
+
+    .alert-success {
+        background-color: #d1f3d1;
+        color: #1a6b1a;
+        border: 1px solid #a7e0a7;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #842029;
+        border: 1px solid #f5c2c7;
+    }
+
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
+    /* === MAIN PAGE CONTAINER === */
+    .add-client-form-wrapper {
+        display: block;
+        justify-content: center;
+        align-items: center;
+        min-height: 90vh;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        font-family: 'Agrandir', sans-serif;
+        padding: 2rem;
+    }
+
+    /* === HEADER SECTION === */
+    .add-client-header {
+        padding-top: 4rem;
+        padding-bottom: 2rem;
+        text-align: center;
+    }
+
+        .add-client-header h1 {
+            font-family: 'Agrandir', sans-serif;
+            font-size: 25.4px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .add-client-header p {
+            font-family: 'Agrandir', sans-serif;
+            font-size: 16px;
+            color: #64748b;
+            margin: 0;
+        }
+
+    /* === FORM CONTAINER === */
+    .add-client-form-container {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        max-width: 800px;
+        width: 100%;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease-in-out;
+        margin: 0 auto;
+    }
+
+    /* === FORM GRID (2 columns, 3 rows) === */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem 2rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .add-client-form label {
+        font-family: 'Agrandir', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .add-client-form .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-family: 'Agrandir', sans-serif;
+        font-size: 14px;
+        color: #1e293b;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-sizing: border-box;
+        background: #ffffff;
+    }
+
+        .add-client-form .form-control:focus {
+            outline: none;
+            border-color: #98B5DF;
+            box-shadow: 0 0 0 3px rgba(152, 181, 223, 0.1);
+        }
+
+        .add-client-form .form-control::placeholder {
+            color: #94a3b8;
+        }
+
+    .add-client-form textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    /* === BUTTONS AREA === */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 12px;
+        font-family: 'Agrandir', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #98B5DF 0%, #8BB8F4 100%);
+        color: #ffffff;
+    }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #7aa8e3 0%, #7aa8e3 100%);
+            color: #ffffff;
+        }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        color: #ffffff;
+    }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            color: #ffffff;
+        }
+
+    /* === SMOOTH TRANSITIONS === */
+    .add-client-form-container,
+    .add-client-form-container > * {
+        transition: all 0.3s ease-in-out;
+    }
+
+</style>

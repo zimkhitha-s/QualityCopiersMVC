@@ -1,0 +1,222 @@
+﻿@{
+    ViewBag.Title = "Profile";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+</head>
+<body>
+        
+    <!-- Main Content -->
+        <main class="main-content">
+            
+            <div class="profile-banner">
+
+            </div>
+            
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <div class="avatar-placeholder">
+                        <img id="profile-image" src="~/images/about.png"/>
+                    </div>
+                    <button class="edit-button" id="editButton">Edit</button>
+                    <input type="file" id="imageInput" accept="image/*" style="display:none" />
+                </div>
+                <div class="profile-info">
+                    <h1>My profile</h1>
+                    <h2 id="fullName">@ViewBag.FullName</h2>
+                </div>
+                
+            </div>
+
+            <div class="profile-content">
+                <div class="tabs">
+                    <!-- Added click handlers and data attributes for tab switching -->
+                    <button class="tab active" data-tab="personal" onclick="switchTab('personal')">Personal Details</button>
+                    <button class="tab" data-tab="password" onclick="switchTab('password')">Password</button>
+                </div>
+
+                <!-- Added tab content containers with IDs for switching -->
+                <div id="personal-tab" class="tab-content active">
+                @Html.AntiForgeryToken()
+                    <form class="profile-form" id="profileForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="fullname">Name</label>
+                                <input type="text" id="name" />
+                            </div>
+                            <div class="form-group">
+                                <label for="role">Role</label>
+                                <input type="text" id="role" />
+                            </div>
+                            <div class="form-group">
+                                <label for="surname">Surname</label>
+                                <input type="text" id="surname" />
+                            </div>
+                            <div class="form-group">
+                                <label for="mobile">Mobile</label>
+                                <input type="text" id="mobile" />
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" />
+                            </div>
+                            <div class="form-group">
+                                <label for="language">Language</label>
+                                <select id="language">
+                                    <option value="english">English</option>
+                                    <option value="afrikaans">Afrikaans</option>
+                                    <option value="french">French</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+
+                    
+                </div>
+                
+                
+                <div id="password-tab" class="tab-content">
+                    <div class="password-section">
+                        <h3>Password</h3>
+                        <p class="password-subtitle">Please enter your current password to change your password</p>
+                        
+                        <form class="password-form">
+                            <div class="form-group full-width">
+                                <label for="current-password">Current Password</label>
+                                <input type="password" id="current-password" placeholder="*************" />
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="new-password">New Password</label>
+                                <input type="password" id="new-password" placeholder="*************" />
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="confirm-password">Confirm Password</label>
+                                <input type="password" id="confirm-password" placeholder="*************" />
+                            </div>
+                        </form>
+
+                        <button type="button" class="save-button" id="changePasswordBtn">Change Password</button>
+
+                    </div>
+                </div>
+                    <div class="action-buttons">
+                        <button class="cancel-button">Cancel</button>
+                        <button type="button" class="save-button" id="saveChangesBtn">Save Changes</button>
+                    </div>
+            </div>
+        </main>
+    </div>
+
+    <!--JavaScript for tab switching functionality -->
+    <script>
+        function switchTab(tabName) {
+            const editButton = document.getElementById('editButton');
+            const imageInput = document.getElementById('imageInput');
+            const profileImage = document.getElementById('profile-image');
+
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const response = await fetch('/account/getprofile');
+            const data = await response.json();
+
+            // Populate fields
+            document.getElementById("name").value = data.name || "";
+            document.getElementById("role").value = data.role || "";
+            document.getElementById("surname").value = data.surname || "";
+            document.getElementById("mobile").value = data.mobile || "";
+            document.getElementById("email").value = data.email || "";
+            document.getElementById("language").value = data.language?.toLowerCase() || "english";
+            document.getElementById("profile-image").value = data.iconName || "";
+            document.getElementById("")
+        });
+
+        document.getElementById("saveChangesBtn").addEventListener("click", async () => {
+            const data = {
+                fullname: document.getElementById("name").value,
+                surname: document.getElementById("surname").value,
+                mobile: document.getElementById("mobile").value,
+                email: document.getElementById("email").value,
+                role: document.getElementById("role").value
+            };
+
+            console.log("Sending data:", data);
+
+            try {
+                
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const response = await fetch("/Account/UpdateProfile", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": token
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const text = await response.text();
+                console.log("Response text:", text);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                }
+
+                alert("✅ Profile updated successfully!");
+            } catch (error) {
+                console.error("❌ Update failed:", error);
+                alert("Error updating profile: " + error.message);
+            }
+        });
+
+        document.getElementById("changePasswordBtn").addEventListener("click", async () => {
+        const currentPassword = document.getElementById("current-password").value;
+        const newPassword = document.getElementById("new-password").value;
+        const confirmPassword = document.getElementById("confirm-password").value;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            alert("Please fill in all password fields.");
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            alert("New passwords do not match.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/Account/ChangePassword", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("Password changed successfully!");
+                document.getElementById("current-password").value = "";
+                document.getElementById("new-password").value = "";
+                document.getElementById("confirm-password").value = "";
+            } else {
+                alert("" + (data.error || "Failed to change password."));
+            }
+        } catch (error) {
+            console.error("Error changing password:", error);
+            alert("Error changing password: " + error.message);
+        }
+    });
+</script>
+</body>
+</html>
+

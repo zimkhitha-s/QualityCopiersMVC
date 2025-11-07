@@ -15,190 +15,6 @@ body {
   min-height: 100vh;
 }
 
-/* Sidebar Styles */
-.sidebar {
-  width: 80px;
-  background-color: #000000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px 0;
-  transition: width 0.3s ease;
-}
-
-.sidebar.expanded {
-  font-family: 'Poppins', sans-serif;
-  width: 280px;
-  align-items: stretch;
-  padding: 20px;
-}
-
-.sidebar-header {
-  font-family: 'Orbitron', sans-serif;
-  margin-bottom: 30px;
-}
-
-.logo {
-  width: 50px;
-  height: 50px;
-  background-color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sidebar.expanded .logo {
-  width: auto;
-  height: auto;
-  background: none;
-  border-radius: 0;
-  justify-content: flex-start;
-  gap: 12px;
-}
-
-.logo-icon {
-  font-weight: bold;
-  font-size: 18px;
-  color: #1a1a1a;
-}
-
-.sidebar.expanded .logo-icon {
-  width: 50px;
-  height: 50px;
-  background-color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #1a1a1a;
-  flex-shrink: 0;
-}
-
-.logo-text {
-  color: white;
-  font-size: 20px;
-  font-weight: 600;
-  display: none;
-}
-
-.sidebar.expanded .logo-text {
-  display: block;
-}
-
-.user-profile {
-  display: none;
-  padding: 20px 0;
-  border-bottom: 1px solid #333;
-  margin-bottom: 30px;
-}
-
-.sidebar.expanded .user-profile {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.user-avatar {
-  width: 50px;
-  height: 50px;
-  background-color: #333;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #666;
-  flex-shrink: 0;
-}
-
-.user-info {
-  flex: 1;
-}
-
-.user-name {
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
-.user-role {
-  color: #999;
-  font-size: 14px;
-}
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  flex: 1;
-}
-
-.nav-item {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #666;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  text-decoration: none;
-}
-
-.sidebar.expanded .nav-item {
-  width: auto;
-  justify-content: flex-start;
-  padding: 12px 16px;
-  gap: 12px;
-}
-
-.nav-item span {
-  display: none;
-  color: #ccc;
-  font-size: 16px;
-}
-
-.sidebar.expanded .nav-item span {
-  display: block;
-}
-
-.nav-item:hover {
-  background-color: #333;
-  color: #fff;
-}
-
-.sidebar.expanded .nav-item:hover span {
-  color: #fff;
-}
-
-.nav-item.active {
-  background-color: #4a90e2;
-  color: white;
-}
-
-.sidebar.expanded .nav-item.active span {
-  color: white;
-}
-
-.sidebar-footer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 20px;
-  border-top: 1px solid #333;
-}
-
-.sidebar.expanded .sidebar-footer {
-  display: flex;
-}
-
-.sidebar:not(.expanded) .sidebar-footer {
-  display: none;
-}
-
 /* Main Content Styles */
 .main-content {
   font-family: 'Agrandir', sans-serif;
@@ -212,13 +28,23 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  padding-top:15px;
+  margin-bottom: 10px;
 }
 
 .page-title {
-  font-size: 32px;
-  font-weight: 600;
-  color: #333;
+    font-size: 40px;
+    font-weight: 400;
+    padding-right: 25px;
+    color: #333;
+}
+
+.page-title-quotations {
+    font-size: 40px;
+    font-weight: 400;
+    font-family: 'Agrandir', sans-serif;
+    padding-right: 25px;
+    color: #333;
 }
 
 .search-container {
@@ -289,9 +115,22 @@ body {
   font-size: 12px;
 }
 
+.status-dropdown {
+    border: none;
+    background-color: transparent;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    outline: none;
+}
+
+    .status-dropdown option {
+        color: #333;
+    }
+
+
 /* Table Styles */
 .table-container {
-  background-color: white;
   border-radius: 12px;
   overflow: visible;
   box-shadow: none;
@@ -308,13 +147,18 @@ body {
   color: white;
 }
 
-.quotations-table th {
-  padding: 18px 20px;
-  text-align: left;
-  font-weight: 500;
-  font-size: 14px;
-  background-color: #1a1a1a;
-}
+    .quotations-table th,
+    .quotations-table td {
+        padding: 20px 20px;
+        vertical-align: middle; 
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+
+    .quotations-table thead th {
+        padding: 18px 28px; 
+    }
 
 .quotations-table th:first-child {
   border-top-left-radius: 12px;
@@ -328,6 +172,7 @@ body {
 
 .quotations-table tbody tr {
   background-color: white;
+  height: 65px; 
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: background-color 0.2s ease;
   cursor: pointer;
@@ -349,8 +194,74 @@ body {
   color: white;
 }
 
+/*QUOTE ACTION BUTTONS*/
+.td-quote-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    gap: 15px; /* spacing between icons */
+}
+
+    .td-quote-actions a {
+        display: flex;
+        align-items: center;
+        justify-content: right;
+        left: 25px;
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: none;
+        padding: 4px;
+    }
+
+.operation-icons-quotes {
+    width: 34px;
+    height: 34px;
+}
+
+.operation-icons-quotes:hover {
+    transform: translateY(-3px) scale(1.05);
+}
+
+
+/*PAYMENT ACTION BUTTONS*/
+.td-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    gap: 15px; /* spacing between icons */
+}
+
+    .td-actions a {
+        display: flex;
+        align-items: center;
+        justify-content: right;
+        left:25px;
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: none;
+        padding: 4px;
+    }
+
+.operation-icons{
+    width:34px;
+    height:34px;
+}
+
+    .operation-icons:hover {
+        transform: translateY(-3px) scale(1.05);
+    }
+
+.td-actions a:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+}
+
 .quotations-table tbody tr:hover .status-progress {
-  color: white;
+    color: white;
 }
 
 .quotations-table tbody tr:hover .status-accepted {
@@ -375,8 +286,8 @@ body {
 }
 
 .quotations-table td {
-  padding: 18px 20px;
-  font-size: 14px;
+    padding: 5px 27px;
+    font-size: 14px;
 }
 
 .status {
@@ -392,11 +303,11 @@ body {
 }
 
 .status-accepted {
-  color: #006434;
+    color: #006434;
 }
 
 .status-declined {
-  color: #f10000;
+    color: #f10000 ;
 }
 
 .row-selected .status-accepted {
@@ -426,6 +337,7 @@ body {
 .row-selected .delete-btn:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
+
 
 .main-content {
   flex: 1;
@@ -536,15 +448,16 @@ body {
   background-color: #f8f9fa;
 }
 
+save-btn-createQuote
 .save-button {
-  background-color: #1a1a1a;
-  color: white;
-  border-color: #1a1a1a;
+    background-color: black;
+    color: white;
 }
 
-.save-button:hover {
-  background-color: #333;
-}
+    .save-btn-createQuote-hover {
+        background-color: white;
+        color:black;
+    }
 
 /* Profile Content */
 .profile-content {
@@ -749,13 +662,13 @@ body {
             display: flex;
             flex-direction: column;
         }
-        
-        .form-group label {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
+
+            .form-group label {
+                color: #666;
+                font-size: 0.9rem;
+                margin-left: 0.3rem;
+                font-weight: 500;
+            }
         
         .form-group input,
         .form-group select {
@@ -929,22 +842,20 @@ body {
             padding-top: 2rem;
             border-top: 1px solid #e0e0e0;
         }
-        
-        .save-btn {
-            background: #333;
-            color: white;
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.2s ease;
-        }
-        
-        .save-btn:hover {
-            background: #222;
-        }
+
+.save-btn {
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 500;
+    background: #222;
+    color: #f2f2f2;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+       
         
         @media (max-width: 768px) {
             .form-row {
@@ -967,72 +878,109 @@ body {
             }
         }
 
-/* Modal overlay (dark background) */
+/* ===== Overlay ===== */
 .modal-overlay {
-    display: none; /* hidden by default */
+    display: none;
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* semi-transparent */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
     justify-content: center;
     align-items: center;
     z-index: 1000;
 }
 
-/* Popup box */
+/* ===== Modal Container ===== */
 .filter-modal {
     background: #98b5df;
-    padding: 20px 30px;
-    border-radius: 40px;
-    width: 506px;
-    max-width: 90%;
-    font-family: 'Agrandir', sans-serif;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    position: relative
+    padding: 25px 40px;
+    border-radius: 25px;
+    width: 500px;
+    font-family: 'Poppins', sans-serif;
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+    position: relative;
+    animation: popIn 0.25s ease-out;
 }
 
-/* Header */
+/* Smooth open animation */
+@keyframes popIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ===== Header ===== */
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    position: relative;
 }
 
 .modal-title {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
-    padding-bottom: 5px;
+    color: white;
 }
 
-/* Close button */
+/* ===== Close Button ===== */
 .close-btn {
-    background: none;
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #000;
+    color: #fff;
     border: none;
-    font-size: 22px;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
     cursor: pointer;
-    color: #FFF;
+    transition: all 0.2s ease;
 }
 
-/* Filter options */
+.close-btn:hover {
+    background: #333;
+    transform: scale(1.1);
+}
+
+/* ===== Filter Options ===== */
 .filter-options {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-left: 35px;
-    font-family: 'Poppins', sans-serif;
+    gap: 10px;
 }
 
 .filter-option {
-    padding: 8px 12px;
+    color: white;
+    font-size: 16px;
     cursor: pointer;
-    border-radius: 8px;
-    color: #FFF;
-    transition: background 0.2s;
+    transition: all 0.2s ease;
+    padding: 4px 0;
+    border-radius: 5px;
 }
 
 .filter-option:hover {
-    background: #a5baff;
+    color: black;
+}
+
+/* ===== Clear filter button (optional style) ===== */
+.clear-filter {
+    margin-top: 10px;
+    color: #222;
+    font-weight: 500;
 }
 
 /* Dark delete modal */
@@ -1137,7 +1085,6 @@ body {
 }
 
 /*Add New Employee Modal*/
-/* Overlay (dark background blur) */
 
 /* Modal box */
 .add-modal {
@@ -1228,3 +1175,67 @@ body {
   background: #8bb8f4;
 }
 
+.filter-modal-Payments{
+    background: #000000;
+    padding: 20px 30px;
+    border-radius: 40px;
+    width: 506px;
+    max-width: 90%;
+    font-family: 'Agrandir', sans-serif;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    position: relative
+}
+
+.filter-modal-Payments .title{
+    color: #FFFFFF;
+    font-size: 20px;
+    font-weight: 600;
+    padding-bottom: 5px;
+    text-align: center;
+}
+
+.filter-modal-payments .modal-header .delete-title{
+    color: #FFFFFF;
+    font-size: 20px;
+    font-weight: 600;
+    max-width: 300px;
+    padding-bottom: 5px;
+    text-align: center;
+}
+
+.payment-filter-options{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.filter-modal-Payments .filter-option{
+    color:#000000;
+    background-color: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+}
+
+.filter-modal-Payments .filter-option:hover {
+    color: #FFFFFF;
+    background: #929292;
+}
+
+.invoice-details{
+  background-color: #FFFFFF;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.invoice-details .details{
+  color:#000000;
+  margin-bottom: 10px;
+}
+
+.detail-title{
+  color:#000000;
+}

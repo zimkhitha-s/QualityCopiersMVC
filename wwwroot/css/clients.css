@@ -21,12 +21,17 @@
 /* ===== HEADER SECTION ===== */
 .clients-header {
     margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top:20px;
+    margin-bottom: 22px;
 }
 
     .clients-header h1 {
         font-family: 'Agrandir', sans-serif;
-        font-size: 25.4px;
-        font-weight: 600;
+        font-size: 40px;
+        font-weight: 400;
         color: #1e293b;
         margin: 0;
         letter-spacing: 0.02em;
@@ -40,6 +45,37 @@
     margin-bottom: 2rem;
     flex-wrap: wrap;
 }
+
+/* OPERATION ACTIONS*/
+
+.td-employee-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    gap: 15px; /* spacing between icons */
+}
+
+    .td-employee-actions a {
+        display: flex;
+        align-items: center;
+        justify-content: right;
+        left: 25px;
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: none;
+        padding: 4px;
+    }
+
+.operation-icons-employee {
+    width: 34px;
+    height: 34px;
+}
+
+    .operation-icons-employee:hover {
+        transform: translateY(-3px) scale(1.05);
+    }
 
 /* ===== BUTTONS ===== */
 .btn {
@@ -85,40 +121,32 @@
 }
 
 /* ===== SEARCH BOX ===== */
-.search-box {
-    display: flex;
-    align-items: center;
-    background: #ffffff;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 0.75rem 1rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+.search-container {
+    position: relative;
+    width: 400px;
 }
 
-.search-box:focus-within {
-    border-color: #98B5DF;
-    box-shadow: 0 0 0 3px rgba(152, 181, 223, 0.1);
-}
-
-.search-box i {
-    color: #64748b;
+.search-input {
+    width: 100%;
+    padding: 12px 45px 12px 20px;
+    border: 2px solid #ddd;
+    border-radius: 25px;
     font-size: 14px;
-    margin-right: 0.5rem;
-}
-
-.search-box input {
-    border: none;
     outline: none;
-    font-size: 14px;
-    font-family: 'Agrandir', sans-serif;
-    color: #1e293b;
-    width: 220px;
-    background: transparent;
+    transition: border-color 0.2s ease;
 }
 
-.search-box input::placeholder {
-    color: #94a3b8;
+    .search-input:focus {
+        border-color: #007bff;
+    }
+
+.search-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 16px;
 }
 
 /* ===== TABLE CONTAINER ===== */
@@ -176,6 +204,17 @@
 
 .clients-table tbody tr:last-child td {
     border-bottom: none;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
 }
 
 /* ===== ICON BUTTONS ===== */
@@ -243,7 +282,7 @@
     }
 }
 
-/* ===== FILTER POPUP MENU ===== */
+/* ===== FILTER POPUP OVERLAY ===== */
 .filter-popup {
     display: none;
     position: fixed;
@@ -251,81 +290,189 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1000;
     background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(8px);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s ease;
 }
 
+    /* Show popup */
+    .filter-popup.show {
+        display: flex;
+        opacity: 1;
+    }
+
+/* ===== FILTER POPUP CONTENT ===== */
 .filter-popup-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, #98B5DF 0%, #8BB8F4 100%);
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #98b5df;
+    color: white;
     width: 600px;
-    height: 400px;
-}
-
-.filter-popup-content {
-    padding: 3rem;
+    height: 300px;
+    border-radius: 25px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    padding: 2rem;
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
-}
-
-.filter-heading {
-    font-family: 'Agrandir', sans-serif;
-    font-size: 24px;
-    font-weight: 600;
-    color: #000000;
-    margin: 0 0 2.5rem 0;
+    align-items: center;
     text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    padding-bottom: 1.5rem;
-    letter-spacing: 0.05em;
 }
 
+/* ===== HEADING ===== */
+.filter-heading {
+    font-size: 20px;
+    font-weight: 600;
+    color: black;
+    margin-top: 30px;
+    font-family: 'Poppins';
+}
+
+/* ===== CLOSE ICON ===== */
+.filter-close {
+    position: absolute;
+    top: 12px;
+    right: 20px;
+    font-size: 22px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+}
+
+/* ===== FILTER OPTIONS ===== */
 .filter-options {
     list-style: none;
-    padding: 0;
     margin: 0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
+    padding: 0;
+    width: 100%;
 }
 
-.filter-options li {
-    margin-bottom: 1rem;
+    .filter-options li {
+        margin: 10px 0;
+    }
+
+    .filter-options a {
+        display: block;
+        padding: 8px 0;
+        color: #fff;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 400;
+        transition: color 0.2s ease;
+    }
+
+        .filter-options a:hover {
+            color: black;
+        }
+
+/* ===== EDIT CLIENT MODAL OVERLAY ===== */
+.edit-client-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(3px);
+    justify-content: center;
+    align-items: center;
 }
 
-.filter-options li:last-child {
-    margin-bottom: 0;
+/* ===== MODAL CONTENT ===== */
+.edit-client-content {
+    background-color: #000;
+    border-radius: 25px;
+    padding: 40px;
+    width: 380px;
+    color: white;
+    text-align: left;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.2s ease-in-out;
 }
 
-.filter-options a {
+    /* ===== CLOSE BUTTON ===== */
+    .edit-client-content .close {
+        position: absolute;
+        top: 20px;
+        right: 25px;
+        color: white;
+        font-size: 26px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+/* ===== TITLE ===== */
+.edit-client-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+/* ===== FORM FIELDS ===== */
+.edit-client-content .form-group {
+    margin-bottom: 20px;
+}
+
+.edit-client-content label {
     display: block;
-    padding: 1.25rem 1.5rem;
-    font-family: 'Agrandir', sans-serif;
-    font-size: 16px;
-    font-weight: 400;
-    color: #ffffff;
-    text-decoration: none;
-    letter-spacing: 0.02em;
-    line-height: 1.5;
+    font-size: 14px;
+    color: #fff;
+    margin-bottom: 5px;
 }
 
-.filter-options a:hover {
-    color: #f0f0f0;
+.edit-client-content input {
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: 'Poppins', sans-serif;
+    color: #000;
+    outline: none;
 }
 
-.filter-options a:active {
-    color: #e0e0e0;
+/* ===== CONFIRM BUTTON ===== */
+.edit-confirm-btn {
+    display: block; /* Make it a block element */
+    width: 50%;
+    margin: 20px auto 0 auto; /* Top margin + horizontal centering */
+    background-color: #A0B8E8;
+    color: #fff;
+    font-size: 15px;
+    font-family: 'Poppins', sans-serif;
+    border: none;
+    border-radius: 12px;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
+
+    .edit-confirm-btn:hover {
+        background-color: #8faedc;
+    }
+
+
+/* ===== ANIMATION ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
 
 
 /* ===== SMOOTH ANIMATIONS ===== */
@@ -339,85 +486,135 @@
     transition: all 0.3s ease-in-out;
 }
 
+/*Add Clients Pop Up Styling*/
+.add-clients-modal {
+    display: none; /* hidden initially */
+    position: fixed; /* sit on top of everything */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center; /* horizontal centering */
+    align-items: center; /* vertical centering */
+    z-index: 10000; /* above everything */
+}
+
+    .add-clients-modal .clients-popup-content {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        width: 400px;
+        max-width: 90%; /* responsive */
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+.add-clients-modal {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+    .add-clients-modal.show {
+        opacity: 1;
+    }
+
 /* Modal overlay */
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.8); /* darker overlay */
-    display: flex;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
     justify-content: center;
     align-items: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    z-index: 1000;
 }
 
-/* Modal box */
+    /* Show state */
+    .modal.show {
+        display: flex;
+        opacity: 1;
+    }
+
+/* Popup box */
 .modal-content {
-    background: #000; /* black background */
-    padding: 25px;
-    border-radius: 12px;
-    width: 400px;
-    text-align: center;
-    animation: fadeInUp 0.3s ease;
-    box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15);
-    color: #fff; /* default white text */
-}
-
-/* Icon on top */
-.delete-modal .modal-icon {
-    font-size: 45px;
-    color: #e74c3c; /* red alert icon */
-    margin-bottom: 15px;
-}
-
-/* Title */
-.delete-modal h2 {
-    font-size: 22px;
-    margin-bottom: 10px;
+    background-color: #000; 
     color: #fff;
+    width: 510px;
+    height: 245px;
+    border-radius: 25px;
+    padding: 30px 40px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-/* Message */
-.delete-modal p {
-    font-size: 14px;
-    color: #ccc; /* slightly lighter gray for message text */
-    margin-bottom: 20px;
-}
+    /* Close icon (if you add one) */
+    .modal-content .close {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 20px;
+        color: #fff;
+        cursor: pointer;
+    }
 
-/* Buttons row */
+    /* Title */
+    .modal-content h2 {
+        font-size: 22px;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+
+    /* Message */
+    .modal-content p {
+        font-size: 16px;
+        color: #e0e0e0;
+        margin-bottom: 35px;
+    }
+
+/* Buttons container */
 .modal-actions {
     display: flex;
-    justify-content: space-between;
-    gap: 10px;
+    justify-content: center;
+    gap: 25px;
 }
 
+    /* Buttons */
     .modal-actions .btn {
-        flex: 1;
-        padding: 10px;
-        border-radius: 8px;
+        background-color: #fff;
+        color: #000;
         border: none;
+        border-radius: 12px;
+        padding: 12px 40px;
+        font-size: 16px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s ease;
     }
 
-/* Cancel button */
-.cancel-btn {
-    background: #333;
-    color: #fff;
-}
+        /* Hover effect */
+        .modal-actions .btn:hover {
+            background-color: #f2f2f2;
+        }
 
-    .cancel-btn:hover {
-        background: #444;
+/* Responsive */
+@media (max-width: 600px) {
+    .modal-content {
+        width: 90%;
+        height: auto;
+        padding: 25px;
     }
 
-/* Delete button */
-.delete-btn {
-    background: #e74c3c;
-    color: #fff;
-}
-
-    .delete-btn:hover {
-        background: #c0392b;
+    .modal-actions {
+        flex-direction: column;
+        gap: 10px;
     }
-
+}

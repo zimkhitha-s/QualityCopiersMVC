@@ -1,0 +1,52 @@
+@model List<INSY7315_ElevateDigitalStudios_POE.Models.Notifications>
+
+@{
+    ViewBag.Title = "Quotations";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/quotations-styles.css" asp-append-version="true" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<div class="app-container">
+    <main class="main-content">
+        <div class="content-header">
+            <h1 class="page-title">Notifications</h1>
+        </div>
+
+        <div class="table-container">
+
+            @Html.AntiForgeryToken()
+
+            <table class="notifications-table table table-borderless">
+                <thead>
+                    <tr>
+                        <th>Message</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="quotationTableBody">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var notifications in Model)
+                        {
+                            <tr data-quote-id="@notifications.Uid">
+                                <td class="client-name">@notifications.message</td>
+                                <td class="client-email">@notifications.Date.ToString("yyyy-MM-dd HH:mm")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" style="text-align:center; padding:20px; font-weight:500; color:#999;">
+                                No New Notifications.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>

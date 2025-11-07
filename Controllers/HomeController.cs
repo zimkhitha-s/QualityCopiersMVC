@@ -1,9 +1,12 @@
 using System.Diagnostics;
+using INSY7315_ElevateDigitalStudios_POE.Helper;
 using INSY7315_ElevateDigitalStudios_POE.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Controllers
 {
+    [AllowAnonymous]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -24,7 +27,15 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        public IActionResult Products()
+        {
+            return View();
+        }
+        public IActionResult About()
+        {
+            return View();
+        }
+        public IActionResult Contact()
         {
             return View();
         }
@@ -35,30 +46,5 @@ namespace INSY7315_ElevateDigitalStudios_POE.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
-    public class AccountController : Controller
-    {
-        [HttpGet]
-        public IActionResult Login()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public IActionResult Login(string email, string password)
-        {
-            // For now: just a dummy check
-            if (email == "admin@test.com" && password == "12345")
-            {
-                return RedirectToAction("Index", "Dashboard");
-            }
-
-            ViewBag.Error = "Invalid login attempt.";
-            return View();
-        }
-
-        /*public IActionResult Profile()
-        {
-            return View();
-        }*/
-    }
 }
+//-------------------------------------------------------------------------------------------End Of File--------------------------------------------------------------------//
