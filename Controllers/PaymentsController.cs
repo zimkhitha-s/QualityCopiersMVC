@@ -3,8 +3,6 @@ using INSY7315_ElevateDigitalStudios_POE.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text;
-using System.Linq;
-using INSY7315_ElevateDigitalStudios_POE.Helper;
 using INSY7315_ElevateDigitalStudios_POE.Models.Requests;
 
 namespace INSY7315_ElevateDigitalStudios_POE.Controllers
